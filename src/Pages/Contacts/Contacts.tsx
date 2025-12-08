@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import Block from "../../Components/Block/Block"
 import Contact from "./Contact/Contact"
-import Button from "../../Components/Button/Button"
+import Text from "../../Components/Text/Text"
 import { Contacts_ } from "./styled"
+import Department from './Department/Department'
+import Map from './Map/Map'
 
 interface ContactData {
     id: number;
@@ -11,97 +13,87 @@ interface ContactData {
     surname: string;
     patronymic?: string;
     job_title?: string;
-    phone?: string;
+    phone?: string[];
     email?: string;
+}
+
+interface PhoneData {
+    id: number;
+    contact_id: number;
+    phone: string;
+}
+
+interface DepartmentData {
+    id: number;
+    name: string;
+    email?: string;
+    src?: string;
+}
+
+interface PhoneDepartmentData {
+    id: number;
+    id_department: number;
+    phone: string;
+    is_fax: boolean;
 }
 
 const Contacts = () => {
     const [contacts, setContacts] = useState<ContactData[]>([]);
     const [primaryContacts, setPrimaryContacts] = useState<ContactData[]>([]);
+    const [phones_contacts, setPhones_contacts] = useState<PhoneData[]>([]);
 
-    const [formData, setFormData] = useState({
-        name: '',
-        surname: '',
-        patronymic: '',
-        job_title: '',
-        phone: '',
-        email: '',
-        src: ''
-    });
+    const [departments, setDepartments] = useState<DepartmentData[]>([]);
+    const [phone_department, setPhone_department] = useState<PhoneDepartmentData[]>([]);
 
     useEffect(() => {
         fetchContacts();
+        fetchPhones();
+        fetchDepartments();
+        fetchPhone_department();
     }, []);
 
     const fetchContacts = () => {
         fetch('http://localhost:3001/contacts')
             .then(res => res.json())
             .then(data => {
-                setContacts(data.contacts.filter((x: ContactData) => ['Директор', 'Заместитель директора'].includes(x.job_title || '')));
-                setPrimaryContacts(data.contacts.filter((x: ContactData) => !['Директор', 'Заместитель директора'].includes(x.job_title || '')));
+                setContacts(data.filter((x: ContactData) => !['Директор', 'Заместитель директора'].includes(x.job_title || '')));
+                setPrimaryContacts(data.filter((x: ContactData) => ['Директор', 'Заместитель директора'].includes(x.job_title || '')));
             })
             .catch(err => console.error('Error fetching contacts:', err));
     };
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+    const fetchPhones = () => {
+        fetch('http://localhost:3001/phone_contacts')
+            .then(res => res.json())
+            .then(data => {
+                setPhones_contacts(data);
+            })
+            .catch(err => console.error('Error fetching phones:', err));
     };
 
-    const addContact = () => {
-        fetch('http://localhost:3001/contacts', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(formData),
-        })
-            .then(() => {
-                fetchContacts();
-                setFormData({
-                    name: '',
-                    surname: '',
-                    patronymic: '',
-                    job_title: '',
-                    phone: '',
-                    email: '',
-                    src: ''
-                });
+    const fetchDepartments = () => {
+        fetch('http://localhost:3001/departments')
+            .then(res => res.json())
+            .then(data => {
+                setDepartments(data);
             })
-            .catch(err => console.error('Error adding contact:', err));
+            .catch(err => console.error('Error fetching departments:', err));
+    };
+
+    const fetchPhone_department = () => {
+        fetch('http://localhost:3001/phone_departments')
+            .then(res => res.json())
+            .then(data => {
+                setPhone_department(data);
+            })
+            .catch(err => console.error('Error fetching phone_departments:', err));
     };
 
     return (
         <Contacts_>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
-                <input name="name" value={formData.name} onChange={handleChange} placeholder="Имя" />
-                <input name="surname" value={formData.surname} onChange={handleChange} placeholder="Фамилия" />
-                <input name="patronymic" value={formData.patronymic} onChange={handleChange} placeholder="Отчество" />
-                <input name="job_title" value={formData.job_title} onChange={handleChange} placeholder="Должность" />
-                <input name="phone" value={formData.phone} onChange={handleChange} placeholder="Телефон" />
-                <input name="email" value={formData.email} onChange={handleChange} placeholder="Email" />
-            </div>
-            <Button onClick={addContact}>Добавить контакт</Button>
-            {contacts && contacts.length > 0 && (
-                <Block style={{ gap: 30, alignItems: 'stretch', justifyContent: 'center' }}>
-                    {contacts.map(contact => (
-                        <Contact
-                            key={contact.id}
-                            src={contact.src}
-                            name={{
-                                name: contact.name,
-                                surname: contact.surname,
-                                patronymic: contact.patronymic
-                            }}
-                            job_title={contact.job_title || ''}
-                            email={contact.email}
-                            phone={contact.phone}
-                        />
-                    ))}
-                </Block>
-            )}
+            <Text bold='bolder' style={{ color: "rgb(40, 167, 69)", fontSize: 24 }}>Руководящий состав</Text>
             {primaryContacts && primaryContacts.length > 0 && (
-                <Block style={{ gap: 30, alignItems: 'stretch', justifyContent: 'center' }}>
+                <Block style={{ gap: 30, alignItems: 'stretch', justifyContent: 'center', width: '99%' }}>
                     {primaryContacts.map(contact => (
                         <Contact
                             key={contact.id}
@@ -113,11 +105,49 @@ const Contacts = () => {
                             }}
                             job_title={contact.job_title || ''}
                             email={contact.email}
-                            phone={contact.phone}
+                            phone={phones_contacts.filter((x: PhoneData) => x.contact_id === contact.id).map(x => x.phone)}
                         />
                     ))}
                 </Block>
             )}
+            <Block style={{ height: 1, padding: 0, width: '90%', backgroundColor: 'rgb(40, 167, 69' }} />
+            {contacts && contacts.length > 0 && (
+                <Block style={{ gap: 30, alignItems: 'stretch', justifyContent: 'center' }}>
+                    {contacts.sort((a) => a.name ? -1 : 1).map(contact => (
+                        <Contact
+                            key={contact.id}
+                            src={contact.src}
+                            name={{
+                                name: contact.name,
+                                surname: contact.surname,
+                                patronymic: contact.patronymic
+                            }}
+                            job_title={contact.job_title || ''}
+                            email={contact.email}
+                            phone={phones_contacts.filter((x: PhoneData) => x.contact_id === contact.id).map(x => x.phone)}
+                        />
+                    ))}
+                </Block>
+            )}
+            <Block style={{ height: 2, padding: 0, width: '90%', backgroundColor: 'rgb(40, 167, 69' }} />
+            <Text bold='bolder' style={{ color: "rgb(40, 167, 69)", fontSize: 24 }}>Отделы</Text>
+            <Block style={{ gap: 30, alignItems: 'stretch', justifyContent: 'center' }}>
+                {departments.map((x, i) =>
+                    <Department
+                        key={i}
+                        name={x.name}
+                        email={x.email}
+                        src={x.src}
+                        phone={phone_department.filter((y: PhoneDepartmentData) => y.id_department === x.id && !y.is_fax).map(x => x.phone)}
+                        fax={phone_department.filter((y: PhoneDepartmentData) => y.id_department === x.id && y.is_fax).map(x => x.phone)}
+                    />
+                )}
+            </Block>
+            <Block style={{ height: 1.5, padding: 0, width: '90%', backgroundColor: 'rgb(40, 167, 69' }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginTop: 5, width: "90%", alignItems: 'center' }}>
+                <Text bold='bolder' style={{ fontSize: "1.4rem", color: "rgb(40, 167, 69)" }}>Мы находимся по адресу: г. Буда-Кошелёво, ул. Озёрная 3а</Text>
+                <Map />
+            </div>
         </Contacts_>
     )
 }

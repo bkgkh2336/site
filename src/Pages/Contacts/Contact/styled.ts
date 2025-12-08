@@ -3,8 +3,7 @@ import { Block_ } from "../../../Components/Block/styled";
 
 export const Contact_ = styled(Block_)`
     flex-direction: column;
-    width: fit-content;
-    width: 210px;
+    width: 13%;
     justify-content: center;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(248, 249, 250, 0.6));
