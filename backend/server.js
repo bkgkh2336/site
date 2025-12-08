@@ -11,17 +11,37 @@ const db = new sqlite3.Database('./contacts.db', (err) => {
     } else {
         console.log('Connected to SQLite database.');
         db.run(`CREATE TABLE IF NOT EXISTS contacts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            src TEXT,
-            name TEXT NOT NULL,
-            surname TEXT NOT NULL,
-            patronymic TEXT,
-            job_title TEXT,
-            phone TEXT,
-            email TEXT
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                src TEXT,
+                name TEXT NOT NULL,
+                surname TEXT NOT NULL,
+                patronymic TEXT,
+                job_title TEXT,
+                email TEXT
         )`);
+        db.run(`CREATE TABLE IF NOT EXISTS phone_contacts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                contact_id INTEGER NOT NULL,
+                phone TEXT NOT NULL,
+                FOREIGN KEY (contact_id) REFERENCES contacts(id)
+        )`);
+        db.run(`CREATE TABLE IF NOT EXISTS "departments" (
+                "id"	INTEGER NOT NULL,
+                "name"	TEXT,
+                "email"	TEXT,
+                "src"   TEXT,
+                PRIMARY KEY("id" AUTOINCREMENT)
+        )`);
+        db.run(`CREATE TABLE IF NOT EXISTS "phone_departments" (
+                "id"	INTEGER NOT NULL,
+                "id_department"	INTEGER NOT NULL,
+                "phone"	TEXT NOT NULL,
+                PRIMARY KEY("id" AUTOINCREMENT)
+        )`)
     }
 });
+
+const VALID_TABLES = ['contacts', 'phone_contacts', 'departments', 'phone_departments'];
 
 app.use(cors());
 app.use(express.json());
@@ -30,44 +50,45 @@ app.get('/', (req, res) => {
     res.send('Hello from Node.js backend!');
 });
 
-
-app.get('/contacts', (req, res) => {
-    db.all('SELECT * FROM contacts', [], (err, rows) => {
+app.get('/:table', (req, res) => {
+    if (!VALID_TABLES.includes(req.params.table)) {
+        res.status(400).json({ error: 'Invalid table name' });
+        return;
+    }
+    const table = req.params.table;
+    const query = `SELECT * FROM ${table}`;
+    db.all(query, (err, rows) => {
         if (err) {
             res.status(500).json({ error: err.message });
             return;
         }
-        res.json({ contacts: rows });
+        res.json(rows);
     });
 });
 
-app.post('/contacts', (req, res) => {
-    const { src, name, surname, patronymic, job_title, phone, email } = req.body;
-    db.run(`INSERT INTO contacts (src, name, surname, patronymic, job_title, phone, email) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [src, name, surname, patronymic, job_title, phone, email], function(err) {
-        if (err) {
-            res.status(500).json({ error: err.message });
-            return;
-        }
-        res.json({ id: this.lastID });
-    });
-});
-
-// DELETE /contacts/:id - delete specific contact
-app.delete('/contacts/:id', (req, res) => {
+app.put('/:table/:id', (req, res) => {
+    if (!VALID_TABLES.includes(req.params.table)) {
+        res.status(400).json({ error: 'Invalid table name' });
+        return;
+    }
+    if (Object.keys(data).length === 0) {
+        return res.status(400).json({ error: 'Request body cannot be empty for update' });
+    }
+    const table = req.params.table;
     const id = req.params.id;
-    db.run('DELETE FROM contacts WHERE id = ?', id, function(err) {
+    const data = req.body;
+    const setClause = Object.keys(data).map((key) => `${key} = ?`).join(', ');
+    const row = [...Object.values(data), id];
+    const query = `UPDATE ${table} SET ${setClause} WHERE id = ?`;
+    db.run(query, row, (err) => {
         if (err) {
             res.status(500).json({ error: err.message });
             return;
         }
-        if (this.changes === 0) {
-            res.status(404).json({ message: 'Контакт не найден' });
-        } else {
-            res.json({ message: 'Контакт удален' });
-        }
+        res.json({ message: 'Data updated successfully' });
     });
 });
+
 
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);

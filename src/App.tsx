@@ -10,14 +10,11 @@ function App() {
     <Router>
       <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100vh' }}>
         <Header />
-        <div style={{overflow: 'auto'}}>
+        <div style={{ overflow: 'auto', paddingTop: '100px' }}>
           <Routes>
             <Route path="/" element={<Main />} />
             <Route path="/contacts" element={<Contacts />} />
           </Routes>
-          <div>
-            footer
-          </div>
         </div>
       </div>
     </Router>

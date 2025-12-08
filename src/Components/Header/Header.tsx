@@ -37,7 +37,7 @@ const Header = () => {
                     caption="О нас"
                 />
             </Block>
-            <Text bold="bold">8 (02336) 7-45-07</Text>
+            <Text bold="bold">+375 2336 7-45-07</Text>
         </Header_>
     )
 }
