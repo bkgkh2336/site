@@ -56,8 +56,8 @@ const Contacts = () => {
         fetch('http://localhost:3001/contacts')
             .then(res => res.json())
             .then(data => {
-                setContacts(data.filter((x: ContactData) => !['Директор', 'Заместитель директора'].includes(x.job_title || '')));
-                setPrimaryContacts(data.filter((x: ContactData) => ['Директор', 'Заместитель директора'].includes(x.job_title || '')));
+                setContacts(data.filter((x: ContactData) => !['Директор', 'Главный инженер'].includes(x.job_title || '')));
+                setPrimaryContacts(data.filter((x: ContactData) => ['Директор', 'Главный инженер'].includes(x.job_title || '')));
             })
             .catch(err => console.error('Error fetching contacts:', err));
     };
@@ -110,7 +110,7 @@ const Contacts = () => {
                     ))}
                 </Block>
             )}
-            <Block style={{ height: 1, padding: 0, width: '90%', backgroundColor: 'rgb(40, 167, 69' }} />
+            <Block style={{ height: 1, padding: 0, width: '90%', backgroundColor: 'rgb(40, 167, 69)' }} />
             {contacts && contacts.length > 0 && (
                 <Block style={{ gap: 30, alignItems: 'stretch', justifyContent: 'center' }}>
                     {contacts.sort((a) => a.name ? -1 : 1).map(contact => (
@@ -129,7 +129,7 @@ const Contacts = () => {
                     ))}
                 </Block>
             )}
-            <Block style={{ height: 2, padding: 0, width: '90%', backgroundColor: 'rgb(40, 167, 69' }} />
+            <Block style={{ height: 2, padding: 0, width: '90%', backgroundColor: 'rgb(40, 167, 69)' }} />
             <Text bold='bolder' style={{ color: "rgb(40, 167, 69)", fontSize: 24 }}>Отделы</Text>
             <Block style={{ gap: 30, alignItems: 'stretch', justifyContent: 'center' }}>
                 {departments.map((x, i) =>
@@ -143,7 +143,7 @@ const Contacts = () => {
                     />
                 )}
             </Block>
-            <Block style={{ height: 1.5, padding: 0, width: '90%', backgroundColor: 'rgb(40, 167, 69' }} />
+            <Block style={{ height: 1.5, padding: 0, width: '90%', backgroundColor: 'rgb(40, 167, 69)' }} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginTop: 5, width: "90%", alignItems: 'center' }}>
                 <Text bold='bolder' style={{ fontSize: "1.4rem", color: "rgb(40, 167, 69)" }}>Мы находимся по адресу: г. Буда-Кошелёво, ул. Озёрная 3а</Text>
                 <Map />

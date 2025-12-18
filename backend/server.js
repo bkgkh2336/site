@@ -1,6 +1,11 @@
 const express = require('express');
 const cors = require('cors');
 const sqlite3 = require('sqlite3').verbose();
+const axios = require('axios');
+const cheerio = require('cheerio');
+const https = require('https');
+const cron = require('node-cron');
+const fs = require('fs');
 
 const app = express();
 const port = 3001;
@@ -38,16 +43,116 @@ const db = new sqlite3.Database('./contacts.db', (err) => {
                 "phone"	TEXT NOT NULL,
                 PRIMARY KEY("id" AUTOINCREMENT)
         )`)
+        db.run(`CREATE TABLE IF NOT EXISTS "documents" (
+                "id"	INTEGER NOT NULL,
+                "id_group" INTEGER NOT NULL,
+                "name"	TEXT NOT NULL,
+                "src"	TEXT NOT NULL,
+                PRIMARY KEY("id" AUTOINCREMENT)
+        )`);
+        db.run(`CREATE TABLE IF NOT EXISTS "documents_group" (
+                "id"	INTEGER NOT NULL,
+                "name"	TEXT NOT NULL,
+                PRIMARY KEY("id" AUTOINCREMENT)
+        )`)
+
+        // Schedule scraping twice a day: at 9 AM and 3 PM
+        cron.schedule('0 9 * * *', scrapeAndSave);
+        cron.schedule('0 15 * * *', scrapeAndSave);
+
+        // Initial scrape on server start
+        scrapeAndSave();
     }
 });
 
-const VALID_TABLES = ['contacts', 'phone_contacts', 'departments', 'phone_departments'];
+const VALID_TABLES = ['contacts', 'phone_contacts', 'departments', 'phone_departments','documents_group','documents'];
+
+const scrapeAndSave = async () => {
+    try {
+        const baseUrl = 'https://gsz.gov.by';
+        const initialUrl = 'https://gsz.gov.by/registration/vacancy-search/?profession=&region=&salary_min=&wage_rate_from=&wage_rate_to=&business_entity=121431&search_period=0&paginate_by=10&sort_by=sort_published_at_desc';
+        const { data } = await axios.get(initialUrl, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            },
+            httpsAgent: new https.Agent({
+                rejectUnauthorized: false
+            })
+        });
+        const $ = cheerio.load(data);
+        const pageLinks = [];
+        $('.pagination a').each((_i, el) => {
+            const href = $(el).attr('href');
+            if (href) {
+                pageLinks.push(baseUrl + href);
+            }
+        });
+
+        const allJobs = [];
+
+        // Scrape the first page
+        $('h4.job-title').each((i, el) => {
+            const title = $(el).text().trim();
+            const salary = $(el).siblings('ul.job-info').find('span.salary').text().trim() || 'Не указана';
+            const address = $(el).siblings('ul.job-info').find('span.address').text().trim();
+            const link = $(el).parent('a').attr('href') || $(el).find('a').attr('href');
+            if (!allJobs.find(job => job.link === link)) allJobs.push({ title, salary, address, link });
+        });
+
+        for (const pageUrl of pageLinks) {
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            try {
+                const { data: pageData } = await axios.get(pageUrl, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                    },
+                    httpsAgent: new https.Agent({
+                        rejectUnauthorized: false
+                    })
+                });
+                const $page = cheerio.load(pageData);
+                $page('h4.job-title').each((i, el) => {
+                    const title = $page(el).text().trim();
+                    const salary = $page(el).siblings('ul.job-info').find('span.salary').text().trim() || 'Не указана';
+                    const address = $page(el).siblings('ul.job-info').find('span.address').text().trim();
+                    const link = $page(el).parent('a').attr('href') || $page(el).find('a').attr('href');
+                    if (!allJobs.find(job => job.link === link)) {
+                        allJobs.push({ title, salary, address, link });
+                    }
+                });
+
+
+
+            } catch (pageError) {
+                console.error(`Error scraping ${pageUrl}:`, pageError.message);
+            }
+        }
+        fs.writeFileSync('./vacancies.json', JSON.stringify(allJobs, null, 2));
+        console.log('Vacancies scraped and saved to file.');
+    } catch (error) {
+        console.error('Error during scraping:', error.message);
+    }
+};
 
 app.use(cors());
 app.use(express.json());
 
 app.get('/', (req, res) => {
     res.send('Hello from Node.js backend!');
+});
+
+app.get('/scrape', (req, res) => {
+    try {
+        if (!fs.existsSync('vacancies.json')) {
+            return res.status(404).json({ error: 'Vacancies data not available yet. Please try again later.' });
+        }
+        const data = fs.readFileSync('vacancies.json', 'utf8');
+        const allJobs = JSON.parse(data);
+        res.json(allJobs);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: error.message });
+    }
 });
 
 app.get('/:table', (req, res) => {
@@ -88,7 +193,6 @@ app.put('/:table/:id', (req, res) => {
         res.json({ message: 'Data updated successfully' });
     });
 });
-
 
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
