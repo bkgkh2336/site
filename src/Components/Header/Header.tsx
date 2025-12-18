@@ -3,9 +3,13 @@ import Section from "../Section/Section"
 import Text from "../Text/Text"
 import { Header_ } from "./styled"
 
-const Header = () => {
+interface HeaderProps {
+    ref?: React.RefObject<HTMLDivElement | null>
+}
+
+const Header = (props: HeaderProps) => {
     return (
-        <Header_>
+        <Header_ ref={props.ref}>
             <Block>
                 <img
                     style={{ height: 55 }}
@@ -28,16 +32,20 @@ const Header = () => {
                 />
                 <Section caption="Для граждан" />
                 <Section caption="Пресс-центр" />
+                <Section caption="Документы" url='documents' />
                 <Section
                     list={[
-                        { caption: 'О нас', url: '' },
+                        { caption: 'О нас', url: 'about_us' },
                         { caption: 'Контакты', url: 'contacts' },
-                        { caption: 'Вакансии', url: '' },
+                        { caption: 'Вакансии', url: 'vacancies' },
                     ]}
                     caption="О нас"
                 />
             </Block>
-            <Text bold="bold">+375 2336 7-45-07</Text>
+            <Block>
+                <img src="phone.png" alt="phone" style={{width: '1rem'}} />
+                <Text bold="bold">+375 2336 7-45-07</Text>
+            </Block>
         </Header_>
     )
 }
