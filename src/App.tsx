@@ -4,6 +4,7 @@ import Main from './Pages/Main/Main'
 import Contacts from './Pages/Contacts/Contacts'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Footer from './Components/Footer/Footer'
+import FixedLanguageSelector from './Components/FixedLanguageSelector/FixedLanguageSelector'
 import Vacancies from './Pages/Vacancies/Vacancies'
 import { useRef, useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
@@ -122,6 +123,7 @@ function App() {
     <Router>
       <PageTitleUpdater />
       <ScrollToTop />
+      <FixedLanguageSelector />
       <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
         <Header ref={ref} />
         <div style={{ overflow: 'auto', justifyContent: 'space-between', height: '100%', display: 'flex', flexDirection: 'column', paddingTop: headerHeight }}>

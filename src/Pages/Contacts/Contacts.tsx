@@ -93,7 +93,7 @@ const Contacts = () => {
         <Contacts_>
             <Text bold='bolder' style={{ color: "rgb(40, 167, 69)", fontSize: 24 }}>Руководящий состав</Text>
             {primaryContacts && primaryContacts.length > 0 && (
-                <Block style={{ gap: 30, alignItems: 'stretch', justifyContent: 'center', width: '99%' }}>
+                <Block style={{ gap: 30, alignItems: 'stretch', justifyContent: 'center', width: '100%' }}>
                     {primaryContacts.map(contact => (
                         <Contact
                             key={contact.id}
@@ -112,7 +112,7 @@ const Contacts = () => {
             )}
             <Block style={{ height: 1, padding: 0, width: '90%', backgroundColor: 'rgb(40, 167, 69)' }} />
             {contacts && contacts.length > 0 && (
-                <Block style={{ gap: 30, alignItems: 'stretch', justifyContent: 'center' }}>
+                <Block style={{ gap: 30, alignItems: 'stretch', justifyContent: 'center', width: '100%' }}>
                     {contacts.sort((a) => a.name ? -1 : 1).map(contact => (
                         <Contact
                             key={contact.id}
@@ -131,7 +131,7 @@ const Contacts = () => {
             )}
             <Block style={{ height: 2, padding: 0, width: '90%', backgroundColor: 'rgb(40, 167, 69)' }} />
             <Text bold='bolder' style={{ color: "rgb(40, 167, 69)", fontSize: 24 }}>Отделы</Text>
-            <Block style={{ gap: 30, alignItems: 'stretch', justifyContent: 'center' }}>
+            <Block style={{ gap: 30, alignItems: 'stretch', justifyContent: 'center', width: '100%' }}>
                 {departments.map((x, i) =>
                     <Department
                         key={i}
