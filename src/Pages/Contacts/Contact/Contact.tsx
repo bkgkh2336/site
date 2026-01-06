@@ -1,7 +1,8 @@
 import { Contact_ } from "./styled"
 import Text from "../../../Components/Text/Text"
 import Block from "../../../Components/Block/Block";
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { Mail, Phone } from "lucide-react";
 
 interface FIO {
     name: string;
@@ -19,6 +20,14 @@ interface ContactProps {
 
 const Contact = (props: ContactProps) => {
     const ref = React.useRef<HTMLDivElement>(null);
+    const [fontSize, setFontSize] = useState(52);
+
+    useEffect(() => {
+        if (ref.current) {
+            const height = ref.current.offsetHeight;
+            setFontSize(height * 0.35);
+        }
+    }, []);
 
     return (
         <Contact_>
@@ -35,12 +44,12 @@ const Contact = (props: ContactProps) => {
                 >
                     {props.name.name && props.name.patronymic &&
                         <>
-                            <Text style={{ color: 'white', fontSize: parseInt(ref.current?.style.height || "0") * 0.35 }}>{props.name.name[0].toUpperCase()}</Text>
-                            <Text style={{ color: 'white', fontSize: parseInt(ref.current?.style.height || "0") * 0.35 }}>{props.name.patronymic[0].toUpperCase()}</Text>
+                            <Text style={{ color: 'white', fontSize }}>{props.name.name[0].toUpperCase()}</Text>
+                            <Text style={{ color: 'white', fontSize }}>{props.name.patronymic[0].toUpperCase()}</Text>
                         </>
                     }
                     {!props.name.name &&
-                        <Text style={{ color: 'white', fontSize: parseInt(ref.current?.style.height || "0") * 0.35 }}>...</Text>
+                        <Text style={{ color: 'white', fontSize }}>...</Text>
                     }
                 </Block>
             }
@@ -53,13 +62,13 @@ const Contact = (props: ContactProps) => {
                 <Block style={{ flexDirection: 'column', gap: 10, padding: 0, marginTop: 5 }}>
                     {props.email &&
                         <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                            <img style={{ width: '1rem', height: '1rem' }} src="mail.png" alt="email" />
+                            <Mail style={{ width: '1rem', height: '1rem', color: '#28a745' }} />
                             <Text>{props.email}</Text>
                         </div>
                     }
                     {props.phone && props.phone.map((x, index) =>
                         <div key={index} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                            <img style={{ width: '1rem', height: '1rem' }} src="phone.png" alt="phone" />
+                            <Phone style={{ width: '1rem', height: '1rem', color: '#28a745' }} />
                             <Text>{x}</Text>
                         </div>
                     )}

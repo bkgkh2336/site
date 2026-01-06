@@ -11,6 +11,8 @@ export const Button_ = styled.button`
     padding: 10px;
     background-color: white;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    
     &:hover{
         transform:  translateY(-5px);
         background-color: #e7f3e9;
@@ -20,5 +22,15 @@ export const Button_ = styled.button`
     &:active{
         transform: translateY(-5px);
         scale: 0.95
+    }
+    
+    @media (max-width: 768px) {
+        padding: 8px;
+        font-size: 0.95rem;
+    }
+    
+    @media (max-width: 480px) {
+        padding: 6px 8px;
+        font-size: 0.9rem;
     }
 `;

@@ -55,7 +55,100 @@ const db = new sqlite3.Database('./contacts.db', (err) => {
                 "name"	TEXT NOT NULL,
                 PRIMARY KEY("id" AUTOINCREMENT)
         )`)
-
+        db.run(`CREATE TABLE IF NOT EXISTS "ventilation_services" (
+                "id"	INTEGER NOT NULL,
+                "name"	TEXT,
+                "price_no_nds"	REAL,
+                PRIMARY KEY("id" AUTOINCREMENT)
+        )`)
+        db.run(`CREATE TABLE IF NOT EXISTS "waste_services" (
+                "id"	INTEGER,
+                "name"	TEXT,
+                "price_no_dns_summer"	REAL,
+                "price_no_dns_winter"	REAL,
+                PRIMARY KEY("id" AUTOINCREMENT)
+        )`)
+        db.run(`
+            CREATE TABLE IF NOT EXISTS "electro_services" (
+            "id"	INTEGER,
+            "name"	TEXT,
+            "price_no_nds"	REAL,
+            PRIMARY KEY("id" AUTOINCREMENT)
+        )`)
+        db.run(`CREATE TABLE IF NOT EXISTS "grass_services" (
+                "id"	INTEGER,
+                "name"	TEXT,
+                "price_no_nds_is_solid"	REAL,
+                "price_no_nds_no_solid"	REAL,
+            	PRIMARY KEY("id" AUTOINCREMENT)
+        )`)
+        db.run(`CREATE TABLE IF NOT EXISTS "heating_services" (
+                "id"	INTEGER,
+                "name"	TEXT,
+                "unit"	TEXT,
+                "price_no_nds"	REAL,
+                PRIMARY KEY("id" AUTOINCREMENT)
+        )`)
+        db.run(`CREATE TABLE IF NOT EXISTS "plumbing_services" (
+                "id"	INTEGER,
+                "name"	TEXT,
+                "unit"	TEXT,
+                "price_no_nds"	REAL,
+                PRIMARY KEY("id" AUTOINCREMENT)
+        )`)
+        db.run(`CREATE TABLE IF NOT EXISTS "el_inst_services" (
+                "id"	INTEGER,
+                "name"	TEXT,
+                "unit"	TEXT,
+                "price_no_nds"	REAL,
+                PRIMARY KEY("id" AUTOINCREMENT)
+        )`)
+        db.run(`CREATE TABLE IF NOT EXISTS "transport_population_and_budget" (
+                "id"	INTEGER,
+                "name"	TEXT,
+                PRIMARY KEY("id" AUTOINCREMENT)
+        )`)
+        db.run(`CREATE TABLE IF NOT EXISTS "transport_price_population_and_budget" (
+                "id"	INTEGER,
+                "id_transport"	INTEGER NOT NULL,
+                "unit"	TEXT,
+                "price_no_nds"	REAL,
+                PRIMARY KEY("id" AUTOINCREMENT)
+        )`)
+        db.run(`CREATE TABLE IF NOT EXISTS "transport_jur" (
+                "id"	INTEGER,
+                "name"	TEXT,
+                PRIMARY KEY("id" AUTOINCREMENT)
+        )`)
+        db.run(`CREATE TABLE IF NOT EXISTS "transport_price_jur" (
+                "id"	INTEGER,
+                "id_transport"	INTEGER,
+                "price"	REAL,
+                "unit"	TEXT,
+                PRIMARY KEY("id" AUTOINCREMENT)
+        )`)
+        db.run(`CREATE TABLE IF NOT EXISTS "transport_price_other" (
+                "id"	INTEGER,
+                "id_transport"	INTEGER,
+                "price"	REAL,
+                "unit"	TEXT,
+                PRIMARY KEY("id" AUTOINCREMENT)
+        )`)
+        db.run(`CREATE TABLE IF NOT EXISTS "transport_other" (
+                "id"	INTEGER,
+                "name"	TEXT,
+                PRIMARY KEY("id" AUTOINCREMENT)
+        )`)
+        db.run(`CREATE TABLE IF NOT EXISTS "schedule_reception" (
+                "id"	INTEGER,
+                "full_name"	TEXT NOT NULL,
+                "position"	TEXT NOT NULL,
+                "reception_time"	TEXT NOT NULL,
+                "phone_line_time"	TEXT,
+                "replacement"	TEXT,
+                "organization"	TEXT NOT NULL,
+                PRIMARY KEY("id" AUTOINCREMENT)
+        )`)
         // Schedule scraping twice a day: at 9 AM and 3 PM
         cron.schedule('0 9 * * *', scrapeAndSave);
         cron.schedule('0 15 * * *', scrapeAndSave);
@@ -65,7 +158,28 @@ const db = new sqlite3.Database('./contacts.db', (err) => {
     }
 });
 
-const VALID_TABLES = ['contacts', 'phone_contacts', 'departments', 'phone_departments','documents_group','documents'];
+const VALID_TABLES = [
+    'contacts',
+    'phone_contacts',
+    'departments',
+    'phone_departments',
+    'documents_group',
+    'documents',
+    'ventilation_services',
+    'waste_services',
+    'electro_services',
+    'grass_services',
+    'heating_services',
+    'plumbing_services',
+    'el_inst_services',
+    'transport_price_population_and_budget',
+    'transport_population_and_budget',
+    'transport_price_jur',
+    'transport_jur',
+    'transport_price_other',
+    'transport_other',
+    'schedule_reception'
+];
 
 const scrapeAndSave = async () => {
     try {
@@ -137,6 +251,7 @@ const scrapeAndSave = async () => {
 app.use(cors());
 app.use(express.json());
 
+// Translation endpoints
 app.get('/', (req, res) => {
     res.send('Hello from Node.js backend!');
 });
@@ -191,6 +306,69 @@ app.put('/:table/:id', (req, res) => {
             return;
         }
         res.json({ message: 'Data updated successfully' });
+    });
+});
+
+// Special endpoint for transport services with JOIN
+app.get('/transport_services', (req, res) => {
+    const query = `
+        SELECT 
+            tp.id,
+            t.name,
+            tp.unit,
+            tp.price_no_nds
+        FROM transport_price_population_and_budget tp
+        JOIN transport_population_and_budget t ON tp.id_transport = t.id
+        ORDER BY t.name, tp.id
+    `;
+    db.all(query, (err, rows) => {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        res.json(rows);
+    });
+});
+
+// Special endpoint for transport services for legal entities with JOIN
+app.get('/transport_jur_services', (req, res) => {
+    const query = `
+        SELECT 
+            tp.id,
+            t.name,
+            tp.unit,
+            tp.price
+        FROM transport_price_jur tp
+        JOIN transport_jur t ON tp.id_transport = t.id
+        ORDER BY t.name, tp.id
+    `;
+    db.all(query, (err, rows) => {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        res.json(rows);
+    });
+});
+
+// Special endpoint for other transport services with JOIN
+app.get('/transport_other_services', (req, res) => {
+    const query = `
+        SELECT 
+            tp.id,
+            t.name,
+            tp.unit,
+            tp.price
+        FROM transport_price_other tp
+        JOIN transport_other t ON tp.id_transport = t.id
+        ORDER BY t.name, tp.id
+    `;
+    db.all(query, (err, rows) => {
+        if (err) {
+            res.status(500).json({ error: err.message });
+            return;
+        }
+        res.json(rows);
     });
 });
 

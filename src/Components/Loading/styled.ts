@@ -1,5 +1,46 @@
 import styled from "styled-components";
 
+export const LoadingContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin: auto;
+    padding: 40px;
+`;
+
+export const LoadingText = styled.div`
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #28a745;
+    position: relative;
+    
+    &::after {
+        content: '';
+        animation: dots 1.5s infinite;
+    }
+    
+    @keyframes dots {
+        0%, 20% {
+            content: '.';
+        }
+        40% {
+            content: '..';
+        }
+        60%, 100% {
+            content: '...';
+        }
+    }
+`;
+
+export const DotsContainer = styled.div`
+    display: flex;
+    gap: 0;
+    margin: 0;
+`;
+
 export const Loading_ = styled.div`
     width: 12px;
     height: 12px;

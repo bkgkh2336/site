@@ -1,52 +1,187 @@
-import Block from "../Block/Block"
+import { Phone, Menu, X } from "lucide-react"
 import Section from "../Section/Section"
 import Text from "../Text/Text"
-import { Header_ } from "./styled"
+import { HeaderContainer, Header_, Logo, Nav, ContactInfo, MobileActions, MobileContactInfo, MobileMenuButton, MobileMenu, MobileMenuOverlay } from "./styled"
+import { useState } from "react"
 
 interface HeaderProps {
     ref?: React.RefObject<HTMLDivElement | null>
 }
 
 const Header = (props: HeaderProps) => {
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+    const toggleMobileMenu = () => {
+        setIsMobileMenuOpen(!isMobileMenuOpen);
+    };
+
+    const closeMobileMenu = () => {
+        setIsMobileMenuOpen(false);
+    };
+
     return (
-        <Header_ ref={props.ref}>
-            <Block>
-                <img
-                    style={{ height: 55 }}
-                    src="logo.png"
-                    alt="logo"
-                />
-                <Text bold="bolder">Буда-Кошелёвский <br /> коммунальник</Text>
-            </Block>
-            <Block style={{ gap: 10, padding: 0 }}>
-                <Section list={[]} caption="Главная" url=" " />
-                <Section
-                    list={[
-                        { caption: 'График вывоза отходов (сектор индивидуальной жилой застройки)', url: '' },
-                        { caption: 'Санитарное содержание вспомогательных помещений жилых домов', url: '' },
-                        { caption: 'Содержание и текущий ремонт объектов внешнего благоустройтва', url: '' },
-                        { caption: 'Теплоснабжение', url: '' },
-                        { caption: 'Эксплуатация жилищного фонда', url: '' },
-                    ]}
-                    caption="Услуги и тарифы"
-                />
-                <Section caption="Для граждан" />
-                <Section caption="Пресс-центр" />
-                <Section caption="Документы" url='documents' />
-                <Section
-                    list={[
-                        { caption: 'О нас', url: 'about_us' },
-                        { caption: 'Контакты', url: 'contacts' },
-                        { caption: 'Вакансии', url: 'vacancies' },
-                    ]}
-                    caption="О нас"
-                />
-            </Block>
-            <Block>
-                <img src="phone.png" alt="phone" style={{width: '1rem'}} />
-                <Text bold="bold">+375 2336 7-45-07</Text>
-            </Block>
-        </Header_>
+        <>
+            <MobileMenuOverlay 
+                onClick={closeMobileMenu} 
+                style={{ display: isMobileMenuOpen ? 'block' : 'none' }} 
+            />
+            <HeaderContainer>
+                <Header_ ref={props.ref} as="header" role="banner">
+                <Logo>
+                    <img
+                        style={{ height: 50 }}
+                        src="/logo.png"
+                        alt="Логотип КЖУП Буда-Кошелёвский коммунальник"
+                    />
+                    <Text bold="bolder" className="full-name">КЖУП "Буда-Кошелёвский <br /> коммунальник"</Text>
+                    <Text bold="bolder" className="short-name">КЖУП</Text>
+                </Logo>
+                
+                <Nav as="nav" role="navigation" aria-label="Основная навигация">
+                    <Section list={[]} caption="Главная" url=" " />
+                    <Section
+                        caption="Услуги и тарифы"
+                        url="services"
+                    />
+                    <Section 
+                        caption="Для граждан"
+                        list={[
+                            { caption: 'График приема', url: 'schedule_forms' },
+                            { caption: 'Служба 115', url: 'service_115' },
+                            { caption: 'Платежи через систему ЕРИП', url: 'payment' },
+                            { caption: 'Обращения граждан и юр. лиц', url: 'appeals' },
+                            { caption: 'Административные процедуры', url: 'administrative_procedures' },
+                            { caption: 'Продажа и аренда', url: 'sale_and_lease' },
+                            { caption: 'Тарифы ЖКУ', url: 'tariffs' },
+                            { caption: 'Заготовка BMP', url: 'blank_bmp' },
+                            { caption: 'Планы и графики', url: 'plans_and_schedules' },
+                            { caption: 'Безналичные жилищные субсидии', url: 'non_cash_housing_subsidies' },
+                            { caption: 'Информация о сфере ЖКХ', url: 'information_about_communal' },
+                            { caption: 'Помощь инвалидам', url: 'assistance_disabilities' },
+                            { caption: 'Опросы', url: 'surveys' },
+                            { caption: 'Кибербезопасность', url: 'cybersecurity' },
+                        ]}
+                    />
+                    <Section 
+                        caption="Пресс-центр"
+                        list={[
+                            { caption: 'Новости', url: 'https://www.budakosh.by/?s=буда-кошелевский+коммунальник' },
+                            { caption: 'Полезно знать', url: 'news/useful_to_know' }
+                        ]}
+                    />
+                    <Section caption="Документы" url='documents' />
+                    <Section
+                        list={[
+                            { caption: 'О нас', url: 'about_us' },
+                            { caption: 'Контакты', url: 'contacts' },
+                            { caption: 'Вакансии', url: 'vacancies' },
+                        ]}
+                        caption="О нас"
+                    />
+                </Nav>
+                
+                <ContactInfo>
+                    <Phone style={{ width: '1rem', height: '1rem', color: '#28a745' }} aria-hidden="true" />
+                    <a href="tel:+375233674507" style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <Text bold="bold">+375 2336 7-45-07</Text>
+                    </a>
+                </ContactInfo>
+
+                    <MobileContactInfo href="tel:+375233674507" aria-label="Позвонить">
+                        <Phone size={20} />
+                        <span>+375 2336 7-45-07</span>
+                    </MobileContactInfo>
+
+                    <MobileMenuButton onClick={toggleMobileMenu} aria-label="Меню">
+                        {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                    </MobileMenuButton>
+                    
+                    <MobileActions>
+                        <MobileContactInfo href="tel:+375233674507" aria-label="Позвонить">
+                            <Phone size={18} />
+                            <span>+375 2336 7-45-07</span>
+                        </MobileContactInfo>
+                        <MobileMenuButton onClick={toggleMobileMenu} aria-label="Меню">
+                            {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+                        </MobileMenuButton>
+                    </MobileActions>
+                </Header_>
+
+                {isMobileMenuOpen && (
+                    <MobileMenu onClick={(e) => e.stopPropagation()}>
+                        <div>
+                            <Section 
+                                list={[]} 
+                                caption="Главная" 
+                                url=" " 
+                                isMobileMenu={true} 
+                                onNavigate={closeMobileMenu}
+                            />
+                            <Section
+                                caption="Услуги и тарифы"
+                                url="services"
+                                isMobileMenu={true}
+                                onNavigate={closeMobileMenu}
+                            />
+                            <Section 
+                                caption="Для граждан"
+                                isMobileMenu={true}
+                                onNavigate={closeMobileMenu}
+                                list={[
+                                    { caption: 'График приема', url: 'schedule_forms' },
+                                    { caption: 'Служба 115', url: 'service_115' },
+                                    { caption: 'Платежи через систему ЕРИП', url: 'payment' },
+                                    { caption: 'Обращения граждан и юр. лиц', url: 'appeals' },
+                                    { caption: 'Административные процедуры', url: 'administrative_procedures' },
+                                    { caption: 'Продажа и аренда', url: 'sale_and_lease' },
+                                    { caption: 'Тарифы ЖКУ', url: 'tariffs' },
+                                    { caption: 'Заготовка BMP', url: 'blank_bmp' },
+                                    { caption: 'Планы и графики', url: 'plans_and_schedules' },
+                                    { caption: 'Безналичные жилищные субсидии', url: 'non_cash_housing_subsidies' },
+                                    { caption: 'Информация о сфере ЖКХ', url: 'information_about_communal' },
+                                    { caption: 'Помощь инвалидам', url: 'assistance_disabilities' },
+                                    { caption: 'Опросы', url: 'surveys' },
+                                    { caption: 'Кибербезопасность', url: 'cybersecurity' },
+                                ]}
+                            />
+                            <Section 
+                                caption="Пресс-центр"
+                                isMobileMenu={true}
+                                onNavigate={closeMobileMenu}
+                                list={[
+                                    { caption: 'Новости', url: 'https://www.budakosh.by/?s=буда-кошелевский+коммунальник' },
+                                    { caption: 'Полезно знать', url: 'news/useful_to_know' }
+                                ]}
+                            />
+                            <Section 
+                                caption="Документы" 
+                                url='documents' 
+                                isMobileMenu={true}
+                                onNavigate={closeMobileMenu}
+                            />
+                            <Section
+                                isMobileMenu={true}
+                                onNavigate={closeMobileMenu}
+                                list={[
+                                    { caption: 'О нас', url: 'about_us' },
+                                    { caption: 'Контакты', url: 'contacts' },
+                                    { caption: 'Вакансии', url: 'vacancies' },
+                                ]}
+                                caption="О нас"
+                            />
+                            <div style={{ padding: '15px 10px', borderTop: '1px solid rgba(40, 167, 69, 0.2)' }}>
+                                <ContactInfo>
+                                    <Phone style={{ width: '1rem', height: '1rem', color: '#28a745' }} aria-hidden="true" />
+                                    <a href="tel:+375233674507" style={{ textDecoration: 'none', color: 'inherit' }}>
+                                        <Text bold="bold">+375 2336 7-45-07</Text>
+                                    </a>
+                                </ContactInfo>
+                            </div>
+                        </div>
+                    </MobileMenu>
+                )}
+            </HeaderContainer>
+        </>
     )
 }
 
