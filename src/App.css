@@ -39,3 +39,221 @@ img {
 iframe {
     max-width: 100%;
 }
+
+/* ========================================
+   BVI (Версия для слабовидящих) - Стили
+   ======================================== */
+
+/* Цветовая схема: Черное на белом */
+body.bvi-color-black-white {
+    background: #ffffff !important;
+    color: #000000 !important;
+}
+
+body.bvi-color-black-white * {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border-color: #000000 !important;
+}
+
+body.bvi-color-black-white a {
+    color: #000000 !important;
+    text-decoration: underline !important;
+}
+
+body.bvi-color-black-white button {
+    background: #000000 !important;
+    color: #ffffff !important;
+    border: 2px solid #000000 !important;
+}
+
+/* Цветовая схема: Белое на черном */
+body.bvi-color-white-black {
+    background: #000000 !important;
+    color: #ffffff !important;
+}
+
+body.bvi-color-white-black * {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    border-color: #ffffff !important;
+}
+
+body.bvi-color-white-black a {
+    color: #ffffff !important;
+    text-decoration: underline !important;
+}
+
+body.bvi-color-white-black button {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 2px solid #ffffff !important;
+}
+
+/* Цветовая схема: Синее на светло-синем */
+body.bvi-color-blue-lightblue {
+    background: #9DD1FF !important;
+    color: #063462 !important;
+}
+
+body.bvi-color-blue-lightblue * {
+    background-color: #9DD1FF !important;
+    color: #063462 !important;
+    border-color: #063462 !important;
+}
+
+body.bvi-color-blue-lightblue a {
+    color: #063462 !important;
+    text-decoration: underline !important;
+}
+
+body.bvi-color-blue-lightblue button {
+    background: #063462 !important;
+    color: #9DD1FF !important;
+    border: 2px solid #063462 !important;
+}
+
+/* Цветовая схема: Коричневое на бежевом */
+body.bvi-color-brown-beige {
+    background: #F7F3D6 !important;
+    color: #4D4B43 !important;
+}
+
+body.bvi-color-brown-beige * {
+    background-color: #F7F3D6 !important;
+    color: #4D4B43 !important;
+    border-color: #4D4B43 !important;
+}
+
+body.bvi-color-brown-beige a {
+    color: #4D4B43 !important;
+    text-decoration: underline !important;
+}
+
+body.bvi-color-brown-beige button {
+    background: #4D4B43 !important;
+    color: #F7F3D6 !important;
+    border: 2px solid #4D4B43 !important;
+}
+
+/* Цветовая схема: Зеленое на темно-зеленом */
+body.bvi-color-green-darkgreen {
+    background: #A9E44D !important;
+    color: #3B5323 !important;
+}
+
+body.bvi-color-green-darkgreen * {
+    background-color: #A9E44D !important;
+    color: #3B5323 !important;
+    border-color: #3B5323 !important;
+}
+
+body.bvi-color-green-darkgreen a {
+    color: #3B5323 !important;
+    text-decoration: underline !important;
+}
+
+body.bvi-color-green-darkgreen button {
+    background: #3B5323 !important;
+    color: #A9E44D !important;
+    border: 2px solid #3B5323 !important;
+}
+
+/* Размер шрифта */
+body.bvi-font-large {
+    font-size: 120% !important;
+}
+
+body.bvi-font-extra-large {
+    font-size: 140% !important;
+}
+
+/* Межбуквенный интервал */
+body.bvi-spacing-medium * {
+    letter-spacing: 0.05em !important;
+}
+
+body.bvi-spacing-large * {
+    letter-spacing: 0.1em !important;
+}
+
+/* Межстрочный интервал */
+body.bvi-lineheight-medium * {
+    line-height: 1.8 !important;
+}
+
+body.bvi-lineheight-large * {
+    line-height: 2.2 !important;
+}
+
+/* Отключение изображений */
+body.bvi-images-disabled img {
+    display: none !important;
+}
+
+body.bvi-images-disabled video {
+    display: none !important;
+}
+
+body.bvi-images-disabled iframe {
+    display: none !important;
+}
+
+body.bvi-images-disabled svg:not([data-keep]) {
+    display: none !important;
+}
+
+/* Общие улучшения для BVI режима */
+body.bvi-active {
+    font-family: Arial, sans-serif !important;
+}
+
+body.bvi-active * {
+    font-weight: 600 !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+}
+
+body.bvi-active a {
+    text-decoration: underline !important;
+    text-decoration-thickness: 2px !important;
+    text-underline-offset: 3px !important;
+}
+
+body.bvi-active button,
+body.bvi-active input,
+body.bvi-active select,
+body.bvi-active textarea {
+    min-height: 44px !important;
+    font-size: 110% !important;
+    border-width: 2px !important;
+}
+
+/* Исключения для панели BVI и селектора языка - сохраняем их стили */
+body.bvi-active [class*="BVIPanel"],
+body.bvi-active [class*="AccessibilityButton"],
+body.bvi-active [class*="Container"],
+body.bvi-active [class*="SelectorButton"],
+body.bvi-active [class*="Dropdown"],
+body.bvi-active [class*="LanguageOption"] {
+    background-color: initial !important;
+    color: initial !important;
+    border-color: initial !important;
+}
+
+body.bvi-color-black-white [class*="BVIPanel"],
+body.bvi-color-white-black [class*="BVIPanel"],
+body.bvi-color-blue-lightblue [class*="BVIPanel"],
+body.bvi-color-brown-beige [class*="BVIPanel"],
+body.bvi-color-green-darkgreen [class*="BVIPanel"] {
+    background: white !important;
+}
+
+body.bvi-color-black-white [class*="BVIPanelHeader"],
+body.bvi-color-white-black [class*="BVIPanelHeader"],
+body.bvi-color-blue-lightblue [class*="BVIPanelHeader"],
+body.bvi-color-brown-beige [class*="BVIPanelHeader"],
+body.bvi-color-green-darkgreen [class*="BVIPanelHeader"] {
+    background: #28a745 !important;
+    color: white !important;
+}
