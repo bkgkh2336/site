@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import Flag from "react-world-flags";
 import { ChevronDown } from "lucide-react";
+import AccessibilityToggle from "../AccessibilityToggle/AccessibilityToggle";
 import { 
     Container, 
     SelectorButton, 
@@ -52,7 +53,10 @@ const FixedLanguageSelector = () => {
             {/* Скрытый div для виджета Яндекса */}
             <div id="ytWidget" style={{ display: 'none' }}></div>
             
-            <SelectorButton 
+            {/* Кнопка версии для слабовидящих */}
+            <AccessibilityToggle />
+            
+            <SelectorButton
                 onClick={() => setIsOpen(!isOpen)}
                 $isOpen={isOpen}
                 aria-label="Выбор языка"

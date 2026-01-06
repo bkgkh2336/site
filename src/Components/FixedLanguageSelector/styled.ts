@@ -5,10 +5,14 @@ export const Container = styled.div`
   bottom: 20px;
   right: 20px;
   z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 
   @media (max-width: 768px) {
     bottom: 15px;
     right: 15px;
+    gap: 10px;
   }
 `;
 
