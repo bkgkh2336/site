@@ -3,7 +3,7 @@ import { Button_ } from "./styled"
 interface ButtonProps {
     children?: React.ReactNode
     style?: React.CSSProperties
-    onClick?: () => void;
+    onClick?: (e?: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 const Button = (props: ButtonProps) => {

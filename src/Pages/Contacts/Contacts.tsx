@@ -144,8 +144,24 @@ const Contacts = () => {
                 )}
             </Block>
             <Block style={{ height: 1.5, padding: 0, width: '90%', backgroundColor: 'rgb(40, 167, 69)' }} />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginTop: 5, width: "90%", alignItems: 'center' }}>
-                <Text bold='bolder' style={{ fontSize: "1.4rem", color: "rgb(40, 167, 69)" }}>Мы находимся по адресу: г. Буда-Кошелёво, ул. Озёрная 3а</Text>
+            <div style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: 20, 
+                marginTop: 5, 
+                width: "90%", 
+                alignItems: 'center' 
+            }}>
+                <Text 
+                    bold='bolder' 
+                    style={{ 
+                        fontSize: "1.4rem", 
+                        color: "rgb(40, 167, 69)",
+                        textAlign: 'center'
+                    }}
+                >
+                    Мы находимся по адресу: г. Буда-Кошелёво, ул. Озёрная 3а
+                </Text>
                 <Map />
             </div>
         </Contacts_>

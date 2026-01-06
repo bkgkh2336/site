@@ -1,0 +1,61 @@
+import styled, { keyframes } from "styled-components";
+
+const fadeIn = keyframes`
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+`;
+
+export const InfoContainer = styled.div`
+    width: 85%;
+    margin: 40px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    animation: ${fadeIn} 0.6s ease-out;
+    
+    @media (max-width: 768px) {
+        width: 95%;
+        margin: 20px auto;
+        gap: 20px;
+    }
+`;
+
+export const DocumentList = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+`;
+
+export const DocumentItem = styled.div`
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 18px;
+    background: rgba(40, 167, 69, 0.05);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+    
+    &:hover {
+        background: rgba(40, 167, 69, 0.1);
+        border-left-color: #28a745;
+        transform: translateX(5px);
+    }
+    
+    @media (max-width: 768px) {
+        padding: 15px;
+        gap: 12px;
+    }
+`;
+
+export const SectionDivider = styled.div`
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #28a745, transparent);
+    margin: 10px 0;
+`;

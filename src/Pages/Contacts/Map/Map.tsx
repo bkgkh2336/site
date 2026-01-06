@@ -5,7 +5,11 @@ const Map = () => {
             width="100%"
             height="404"
             frameBorder="0"
-            style={{ borderRadius: 10 }}
+            style={{ 
+                borderRadius: 10,
+                maxWidth: '100%',
+                minHeight: '300px'
+            }}
         />
     )
 }
