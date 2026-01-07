@@ -16,7 +16,7 @@ const Vacancies = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const response = await fetch('http://localhost:3001/scrape');
+            const response = await fetch('http://localhost:3001/api/scrape');
             const data = await response.json();
             setJobs(data);
             setSortedJobs(data);
