@@ -53,7 +53,7 @@ const Contacts = () => {
     }, []);
 
     const fetchContacts = () => {
-        fetch('http://localhost:3001/contacts')
+        fetch('http://localhost:3001/api/contacts')
             .then(res => res.json())
             .then(data => {
                 setContacts(data.filter((x: ContactData) => !['Директор', 'Главный инженер'].includes(x.job_title || '')));
@@ -63,7 +63,7 @@ const Contacts = () => {
     };
 
     const fetchPhones = () => {
-        fetch('http://localhost:3001/phone_contacts')
+        fetch('http://localhost:3001/api/phone_contacts')
             .then(res => res.json())
             .then(data => {
                 setPhones_contacts(data);
@@ -72,7 +72,7 @@ const Contacts = () => {
     };
 
     const fetchDepartments = () => {
-        fetch('http://localhost:3001/departments')
+        fetch('http://localhost:3001/api/departments')
             .then(res => res.json())
             .then(data => {
                 setDepartments(data);
@@ -81,7 +81,7 @@ const Contacts = () => {
     };
 
     const fetchPhone_department = () => {
-        fetch('http://localhost:3001/phone_departments')
+        fetch('http://localhost:3001/api/phone_departments')
             .then(res => res.json())
             .then(data => {
                 setPhone_department(data);
