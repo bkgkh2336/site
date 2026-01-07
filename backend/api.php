@@ -1,21 +1,25 @@
 <?php
-// 1. Настройки CORS (чтобы React мог стучаться к PHP)
+// 1. Настройки CORS и заголовки для безопасности мобильных браузеров
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, POST, PUT, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
+header("Access-Control-Allow-Methods: GET, POST, PUT, OPTIONS, DELETE");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
 header("Content-Type: application/json; charset=utf-8");
 
-// Если это preflight-запрос браузера, просто отвечаем OK
+// Если это проверочный запрос (preflight), сразу отвечаем "ОК"
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
 }
 
-// 2. Пути к файлам
+// Включаем отображение ошибок для отладки (потом можно будет выключить)
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+// 2. Пути к базе и JSON (файлы лежат в той же папке backend/)
 $dbPath = __DIR__ . '/contacts.db';
 $vacanciesPath = __DIR__ . '/vacancies.json';
 
-// Список разрешенных таблиц (как в твоем VALID_TABLES)
+// Список всех таблиц из твоего старого server.js
 $validTables = [
     'contacts', 'phone_contacts', 'departments', 'phone_departments',
     'documents_group', 'documents', 'ventilation_services', 'waste_services',
@@ -26,82 +30,75 @@ $validTables = [
 ];
 
 try {
-    // Подключение к SQLite
     $pdo = new PDO("sqlite:$dbPath");
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    $uri = $_SERVER['REQUEST_URI'];
+    // 3. Умное определение маршрута (чтобы не было undefined в React)
+    $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    
+    // Ищем, какая таблица запрошена после /api/
+    $afterApi = (strpos($requestUri, '/api/') !== false) 
+                ? substr($requestUri, strpos($requestUri, '/api/') + 5) 
+                : $requestUri;
+
+    $parts = explode('/', trim($afterApi, '/'));
+    $tableName = $parts[0] ?? '';
+    $id = $parts[1] ?? null;
+
     $method = $_SERVER['REQUEST_METHOD'];
 
-    // --- РОУТ: /api/scrape (Чтение JSON) ---
-    if (strpos($uri, '/api/scrape') !== false) {
-        if (file_exists($vacanciesPath)) {
-            echo file_get_contents($vacanciesPath);
-        } else {
-            http_response_code(404);
-            echo json_encode(["error" => "Data not ready"]);
-        }
+    // --- РОУТ: Вакансии (/api/scrape) ---
+    if ($tableName === 'scrape') {
+        echo file_exists($vacanciesPath) ? file_get_contents($vacanciesPath) : json_encode([]);
         exit;
     }
 
-    // --- РОУТ: Сложные запросы (JOIN) ---
+    // --- РОУТ: Транспортные услуги (сложные JOIN) ---
     if ($method === 'GET') {
-        if (strpos($uri, '/api/transport_services') !== false) {
+        if ($tableName === 'transport_services') {
             $sql = "SELECT tp.id, t.name, tp.unit, tp.price_no_nds FROM transport_price_population_and_budget tp JOIN transport_population_and_budget t ON tp.id_transport = t.id ORDER BY t.name, tp.id";
             echo json_encode($pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC));
             exit;
         }
-        if (strpos($uri, '/api/transport_jur_services') !== false) {
+        if ($tableName === 'transport_jur_services') {
             $sql = "SELECT tp.id, t.name, tp.unit, tp.price FROM transport_price_jur tp JOIN transport_jur t ON tp.id_transport = t.id ORDER BY t.name, tp.id";
             echo json_encode($pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC));
             exit;
         }
-        if (strpos($uri, '/api/transport_other_services') !== false) {
+        if ($tableName === 'transport_other_services') {
             $sql = "SELECT tp.id, t.name, tp.unit, tp.price FROM transport_price_other tp JOIN transport_other t ON tp.id_transport = t.id ORDER BY t.name, tp.id";
             echo json_encode($pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC));
             exit;
         }
     }
 
-    // --- РОУТ: Динамические таблицы /api/:table ---
-    // Извлекаем имя таблицы из URL
-    preg_match('/\/api\/([^\/]+)/', $uri, $matches);
-    $tableName = $matches[1] ?? '';
-
+    // --- РОУТ: Универсальные таблицы (GET и PUT) ---
     if (in_array($tableName, $validTables)) {
-        // GET /api/:table
         if ($method === 'GET') {
             $stmt = $pdo->query("SELECT * FROM $tableName");
-            echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
+            $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            echo json_encode($data ?: []); // Если пусто, возвращаем [], а не null
         } 
-        // PUT /api/:table/:id
-        elseif ($method === 'PUT') {
-            preg_match('/\/api\/[^\/]+\/(\d+)/', $uri, $idMatches);
-            $id = $idMatches[1] ?? null;
+        elseif ($method === 'PUT' && $id) {
             $data = json_decode(file_get_contents('php://input'), true);
-
-            if ($id && !empty($data)) {
-                $fields = [];
-                $values = [];
+            if (!empty($data)) {
+                $fields = []; $values = [];
                 foreach ($data as $key => $val) {
-                    $fields[] = "$key = ?";
-                    $values[] = $val;
+                    if ($key === 'id') continue;
+                    $fields[] = "$key = ?"; $values[] = $val;
                 }
                 $values[] = $id;
                 $sql = "UPDATE $tableName SET " . implode(', ', $fields) . " WHERE id = ?";
                 $pdo->prepare($sql)->execute($values);
-                echo json_encode(["message" => "Updated successfully"]);
-            } else {
-                http_response_code(400);
-                echo json_encode(["error" => "Invalid ID or data"]);
+                echo json_encode(["message" => "Updated"]);
             }
         }
     } else {
-        http_response_code(400);
-        echo json_encode(["error" => "Invalid table or route"]);
+        // Если таблица не найдена, возвращаем пустой массив, чтобы React не падал с ошибкой .length
+        echo json_encode([]);
     }
 
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode(["error" => $e->getMessage()]);
+    echo json_encode(["error" => $e->getMessage(), "trace" => "DB error"]);
 }

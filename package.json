@@ -12,7 +12,7 @@
     "start:backend": "cd backend && npm start",
     "postinstall": "npm run install:backend",
     "build": "vite build",
-    "assemble": "shx rm -rf build && shx mkdir -p build && shx cp -r dist build/dist && shx cp -r backend/* build/",
+    "assemble": "shx rm -rf build && shx mkdir -p build && shx cp -r dist build/dist && shx cp -r backend build/dist/backend && shx cp .htaccess build/",
     "prepare-deploy": "npm run build && npm run assemble"
   },
   "dependencies": {

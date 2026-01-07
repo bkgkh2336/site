@@ -1,0 +1,5 @@
+# Запрет доступа к файлам базы данных
+<Files ~ "\.(db|sqlite)$">
+    Order allow,deny
+    Deny from all
+</Files>
