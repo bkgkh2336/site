@@ -1,0 +1,12 @@
+RewriteEngine On
+RewriteBase /
+
+# 1. РАЗРЕШАЕМ доступ к папке backend (чтобы API работал)
+RewriteRule ^backend/ - [L]
+
+# 2. СТАНДАРТНЫЙ РОУТИНГ REACT
+# Если запрашиваемый файл или папка существуют — отдаем их (картинки, стили, скрипты)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+# Если нет — отправляем всё на index.html (чтобы работали ссылки React Router)
+RewriteRule . /index.html [L]
