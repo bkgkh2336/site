@@ -4,7 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently \"npm run php\" \"vite\"",
+    "php": "php -S localhost:8000",
+    "php:router": "php -S localhost:8000 router.php",
+    "dev:full": "concurrently \"npm run php:router\" \"vite\"",
+    "vite": "vite",
     "lint": "eslint .",
     "preview": "vite preview",
     "install:backend": "cd backend && npm install",

@@ -12,6 +12,7 @@ interface SectionProps {
     url?: string;
     isMobileMenu?: boolean;
     onNavigate?: () => void;
+    currentPath?: string;
 }
 
 interface ListProps {
@@ -24,6 +25,51 @@ const Section = (props: SectionProps) => {
     const [isHidingCard, setIsHidingCard] = useState(false);
     const [isMobileExpanded, setIsMobileExpanded] = useState(false);
     const navigate = useNavigate();
+
+    // Проверяем активность раздела
+    const isActive = () => {
+        if (!props.currentPath) return false;
+        
+        // Нормализуем текущий путь
+        const normalizedCurrentPath = props.currentPath.startsWith('/') ? props.currentPath : `/${props.currentPath}`;
+        
+        // Проверка прямого URL раздела
+        if (props.url) {
+            const trimmedUrl = props.url.trim();
+            
+            // Пропускаем внешние ссылки
+            if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')) {
+                return false;
+            }
+            
+            // Нормализуем URL
+            const normalizedUrl = trimmedUrl === '' || trimmedUrl === ' ' 
+                ? '/' 
+                : (trimmedUrl.startsWith('/') ? trimmedUrl : `/${trimmedUrl}`);
+            
+            // Проверяем точное совпадение
+            if (normalizedCurrentPath === normalizedUrl) {
+                return true;
+            }
+        }
+        
+        // Проверяем совпадение с любым URL из списка подразделов
+        if (props.list && props.list.length > 0) {
+            return props.list.some(item => {
+                // Пропускаем внешние ссылки
+                if (item.url.startsWith('http://') || item.url.startsWith('https://')) {
+                    return false;
+                }
+                
+                const normalizedItemUrl = item.url.startsWith('/') ? item.url : `/${item.url}`;
+                return normalizedCurrentPath === normalizedItemUrl;
+            });
+        }
+        
+        return false;
+    };
+
+    const active = isActive();
 
     const isExternalUrl = (url: string) => {
         return url.startsWith('http://') || url.startsWith('https://');
@@ -81,7 +127,7 @@ const Section = (props: SectionProps) => {
                     }}
                     onClick={handleClick}
                 >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: active ? '#28a745' : 'inherit' }}>
                         {props.src && (
                             <img
                                 style={{ height: 30 }}
@@ -144,7 +190,9 @@ const Section = (props: SectionProps) => {
                         src={props.src}
                         alt={props.caption}
                     />}
-                <Text>{props.caption}</Text>
+                <Text style={{ color: active ? '#28a745' : 'inherit', fontWeight: active ? '700' : 'normal' }}>
+                    {props.caption}
+                </Text>
             </Button>
             {isVisibleCard && props.list && props.list.length > 0 &&
                 <Section_tooltip isHidingCard={isHidingCard}>

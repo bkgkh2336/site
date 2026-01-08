@@ -46,6 +46,7 @@ import WasteRemovalGuide from './Pages/News/UsefulToKnow/WasteRemovalGuide/Waste
 import YardRecyclingGuide from './Pages/News/UsefulToKnow/YardRecyclingGuide/YardRecyclingGuide'
 import LandscapingGuide from './Pages/News/UsefulToKnow/LandscapingGuide/LandscapingGuide'
 import ScrollToTop from './Components/ScrollToTop/ScrollToTop'
+import NotFound from './Pages/NotFound/NotFound'
 
 const routeTitles: Record<string, string> = {
   '/': 'Главная - КЖУП "Буда-Кошелёвский коммунальник"',
@@ -112,10 +113,32 @@ function App() {
         setHeaderHeight(ref.current.offsetHeight+20);
       }
     };
+    
+    // Fix for iOS Safari viewport height issue
+    const setVh = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+    
+    setVh();
     updateHeaderHeight();
-    window.addEventListener('resize', updateHeaderHeight);
+    
+    window.addEventListener('resize', () => {
+      setVh();
+      updateHeaderHeight();
+    });
+    
+    // Also update on orientation change
+    window.addEventListener('orientationchange', () => {
+      setTimeout(() => {
+        setVh();
+        updateHeaderHeight();
+      }, 100);
+    });
+    
     return () => {
       window.removeEventListener('resize', updateHeaderHeight);
+      window.removeEventListener('orientationchange', updateHeaderHeight);
     };
   }, []);
 
@@ -124,7 +147,13 @@ function App() {
       <PageTitleUpdater />
       <ScrollToTop />
       <FixedLanguageSelector />
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        height: '100vh',
+        height: 'calc(var(--vh, 1vh) * 100)',
+        minHeight: '-webkit-fill-available'
+      }}>
         <Header ref={ref} />
         <div style={{ overflow: 'auto', justifyContent: 'space-between', height: '100%', display: 'flex', flexDirection: 'column', paddingTop: headerHeight }}>
           <Routes>
@@ -168,6 +197,7 @@ function App() {
             <Route path='/news/useful_to_know/waste_removal_guide' element={<WasteRemovalGuide />} />
             <Route path='/news/useful_to_know/yard_recycling_guide' element={<YardRecyclingGuide />} />
             <Route path='/news/useful_to_know/landscaping_guide' element={<LandscapingGuide />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
           <Footer />
         </div>

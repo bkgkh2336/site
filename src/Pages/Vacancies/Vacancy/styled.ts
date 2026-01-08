@@ -1,9 +1,20 @@
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 
 const gradients = [
     'linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%)',
     'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)'
 ];
+
+const fadeIn = keyframes`
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+`;
 
 export const Vacancy_ = styled.a<{index: number}>`
     display: flex;
@@ -22,6 +33,10 @@ export const Vacancy_ = styled.a<{index: number}>`
     background: ${props => gradients[props.index % gradients.length]};
     position: relative;
     overflow: hidden;
+    
+    animation: ${fadeIn} 0.5s ease-out;
+    animation-delay: ${props => props.index * 0.05}s;
+    animation-fill-mode: both;
 
     &::before {
         content: '';
@@ -76,25 +91,8 @@ export const VacancyHeader = styled.div`
     flex-wrap: wrap;
 `
 
-export const VacancyIcon = styled.img`
-    width: 1.2rem;
-    height: 1.2rem;
-    object-fit: contain;
-`
-
 export const LocationWrapper = styled.div`
     display: flex;
     align-items: center;
     gap: 8px;
-`
-
-export const ArrowIcon = styled.img`
-    width: 1.6rem;
-    opacity: 0.6;
-    transition: all 0.3s ease;
-
-    ${Vacancy_}:hover & {
-        opacity: 1;
-        transform: translateX(4px);
-    }
 `

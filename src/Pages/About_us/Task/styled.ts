@@ -20,6 +20,20 @@ export const Task_ = styled(Block_)`
         transform: translateY(-2px);
         border-color: #4CAF50;
     }
+    
+    @media (max-width: 768px) {
+        padding: 16px 20px;
+        gap: 12px;
+    }
+    
+    @media (max-width: 480px) {
+        padding: 14px 16px;
+        gap: 10px;
+        
+        &:hover {
+            transform: none;
+        }
+    }
 `
 
 export const CheckIcon = styled.div`
@@ -38,5 +52,19 @@ export const CheckIcon = styled.div`
     
     &::after {
         content: '✓';
+    }
+    
+    @media (max-width: 768px) {
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
+        font-size: 14px;
+    }
+    
+    @media (max-width: 480px) {
+        width: 24px;
+        height: 24px;
+        min-width: 24px;
+        font-size: 12px;
     }
 `

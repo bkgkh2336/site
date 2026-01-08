@@ -25,7 +25,7 @@ const About_us = () => {
 
     return (
         <About_us_>
-            <Block style={{ width: '80%', padding: 0 }}>
+            <Block className="intro-block">
                 <H1 style={{ margin: 'auto' }}>О нас</H1>
                 <H3 style={{ textAlign: 'center', fontWeight: 'normal' }}><span style={{ color: 'rgba(0,128,0)' }}>КЖУП «Буда-Кошелевский коммунальник»</span> — это предприятие с богатой историей и многолетним опытом служения людям. На протяжении более 70 лет мы обеспечиваем комфорт и благополучие жителей нашего региона.</H3>
             </Block>
@@ -38,14 +38,14 @@ const About_us = () => {
                 { year: 2002, title: 'Прием на обслуживание сельских ВКС', description: 'Расширение услуг на сельские населенные пункты.' },
                 { year: 2005, title: 'Принятие объектов теплового хозяйства', description: 'Полное коммунальное обеспечение: Предприятие становится основным оператором теплоснабжения (котельных) в районе.' },
             ]} />
-            <Block style={{ width: '80%', padding: 0 }}>
+            <Block className="intro-block">
                 <H2 style={{ margin: 'auto' }}>Сегодня</H2>
                 <H3 style={{ textAlign: 'center', fontWeight: 'normal' }}><span style={{ color: 'rgba(0,128,0)' }}>КЖУП «Буда-Кошелевский коммунальник»</span> — это самостоятельное унитарное предприятие, которое обеспечивает полноценную жизнедеятельность региона.</H3>
             </Block>
-            <Block style={{ flexDirection: 'column' }}>
+            <Block style={{ flexDirection: 'column', width: '100%' }}>
                 <H2>Задачи и функции</H2>
-                <Block style={{ flexWrap: 'wrap', alignItems: 'stretch', justifyContent: 'center', width: '90%' }}>
-                    {tasks.map(x => <Task key={x} style={{ width: '48%' }} name={x} />)}
+                <Block className="tasks-container">
+                    {tasks.map(x => <Task key={x} name={x} />)}
                 </Block>
             </Block>
         </About_us_>

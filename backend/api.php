@@ -35,10 +35,10 @@ try {
 
     // 3. Умное определение маршрута (чтобы не было undefined в React)
     $requestUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-    
+
     // Ищем, какая таблица запрошена после /api/
-    $afterApi = (strpos($requestUri, '/api/') !== false) 
-                ? substr($requestUri, strpos($requestUri, '/api/') + 5) 
+    $afterApi = (strpos($requestUri, '/api/') !== false)
+                ? substr($requestUri, strpos($requestUri, '/api/') + 5)
                 : $requestUri;
 
     $parts = explode('/', trim($afterApi, '/'));

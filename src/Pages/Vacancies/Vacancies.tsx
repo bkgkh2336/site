@@ -5,6 +5,7 @@ import H2 from "../../Components/H2/H2";
 import Combobox from "../../Components/Combobox/Combobox";
 import H3 from "../../Components/H3/H3";
 import Loading from "../../Components/Loading/Loading";
+import { GetData } from "../../functions";
 
 const Vacancies = () => {
     const [jobs, setJobs] = useState<VacancyProps[]>([]);
@@ -16,8 +17,7 @@ const Vacancies = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const response = await fetch('http://localhost:3001/api/scrape');
-            const data = await response.json();
+            const data = await GetData('scrape');
             setJobs(data);
             setSortedJobs(data);
         } catch (error) {
