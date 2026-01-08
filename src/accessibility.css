@@ -1,0 +1,89 @@
+/* Настройки размера шрифта */
+:root[data-font-size="small"] {
+    font-size: 14px;
+}
+
+:root[data-font-size="medium"] {
+    font-size: 16px;
+}
+
+:root[data-font-size="large"] {
+    font-size: 20px;
+}
+
+/* Цветовые схемы */
+:root[data-color-scheme="black-on-white"] {
+    --text-color: #000000;
+    --bg-color: #ffffff;
+    --link-color: #0000ff;
+    --border-color: #000000;
+}
+
+:root[data-color-scheme="black-on-white"] * {
+    background-color: var(--bg-color) !important;
+    color: var(--text-color) !important;
+    border-color: var(--border-color) !important;
+}
+
+:root[data-color-scheme="black-on-white"] a,
+:root[data-color-scheme="black-on-white"] button {
+    color: var(--link-color) !important;
+}
+
+:root[data-color-scheme="white-on-black"] {
+    --text-color: #ffffff;
+    --bg-color: #000000;
+    --link-color: #00ffff;
+    --border-color: #ffffff;
+}
+
+:root[data-color-scheme="white-on-black"] * {
+    background-color: var(--bg-color) !important;
+    color: var(--text-color) !important;
+    border-color: var(--border-color) !important;
+}
+
+:root[data-color-scheme="white-on-black"] a,
+:root[data-color-scheme="white-on-black"] button {
+    color: var(--link-color) !important;
+}
+
+:root[data-color-scheme="blue-on-white"] {
+    --text-color: #063462;
+    --bg-color: #9dd1ff;
+    --link-color: #0000ff;
+    --border-color: #063462;
+}
+
+:root[data-color-scheme="blue-on-white"] * {
+    background-color: var(--bg-color) !important;
+    color: var(--text-color) !important;
+    border-color: var(--border-color) !important;
+}
+
+:root[data-color-scheme="blue-on-white"] a,
+:root[data-color-scheme="blue-on-white"] button {
+    color: var(--link-color) !important;
+}
+
+/* Межбуквенный интервал */
+:root[data-letter-spacing="true"] * {
+    letter-spacing: 0.1em !important;
+}
+
+/* Скрытие изображений - только обычные img теги */
+:root[data-images-enabled="false"] img {
+    opacity: 0 !important;
+    pointer-events: none;
+}
+
+/* Улучшенная читаемость при цветовых схемах */
+:root[data-color-scheme]:not([data-color-scheme="default"]) * {
+    text-shadow: none !important;
+    box-shadow: none !important;
+}
+
+:root[data-color-scheme]:not([data-color-scheme="default"]) a,
+:root[data-color-scheme]:not([data-color-scheme="default"]) button {
+    text-decoration: underline !important;
+}

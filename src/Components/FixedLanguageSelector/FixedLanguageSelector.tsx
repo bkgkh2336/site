@@ -1,14 +1,15 @@
 import { useState, useRef, useEffect } from "react";
 import Flag from "react-world-flags";
-import { ChevronDown } from "lucide-react";
-import AccessibilityToggle from "../AccessibilityToggle/AccessibilityToggle";
+import { ChevronDown, Eye } from "lucide-react";
+import AccessibilityPanel from "../AccessibilityPanel/AccessibilityPanel";
 import { 
     Container, 
     SelectorButton, 
     Dropdown, 
     LanguageOption,
     FlagWrapper,
-    LanguageCode
+    LanguageCode,
+    AccessibilityButton
 } from "./styled";
 
 export type Language = 'ru' | 'be' | 'en';
@@ -35,6 +36,7 @@ const FixedLanguageSelector = () => {
 
     const [currentLanguage] = useState<Language>(getCurrentLang());
     const [isOpen, setIsOpen] = useState(false);
+    const [isAccessibilityOpen, setIsAccessibilityOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -54,7 +56,18 @@ const FixedLanguageSelector = () => {
             <div id="ytWidget" style={{ display: 'none' }}></div>
             
             {/* Кнопка версии для слабовидящих */}
-            <AccessibilityToggle />
+            <AccessibilityButton 
+                onClick={() => setIsAccessibilityOpen(!isAccessibilityOpen)}
+                aria-label="Версия для слабовидящих"
+                title="Версия для слабовидящих"
+            >
+                <Eye size={20} />
+            </AccessibilityButton>
+            
+            <AccessibilityPanel 
+                isOpen={isAccessibilityOpen} 
+                onClose={() => setIsAccessibilityOpen(false)} 
+            />
             
             <SelectorButton
                 onClick={() => setIsOpen(!isOpen)}
