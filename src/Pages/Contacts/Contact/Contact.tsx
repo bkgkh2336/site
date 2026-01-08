@@ -54,8 +54,8 @@ const Contact = (props: ContactProps) => {
                 </Block>
             }
             <Block style={{ flexDirection: 'column', gap: 5, padding: 0 }}>
-                <Text bold="bolder">{props.name.surname}</Text>
-                <Text bold="bolder">{props.name.name} {props.name.patronymic ? ` ${props.name.patronymic}` : ''}</Text>
+                <Text bold="bolder" style={{ textAlign: 'center' }}>{props.name.surname}</Text>
+                <Text bold="bolder" style={{ textAlign: 'center' }}>{props.name.name} {props.name.patronymic ? ` ${props.name.patronymic}` : ''}</Text>
                 <Text style={{ color: '#4e8c51', textAlign: 'center', marginTop: 5 }}>{props.job_title}</Text>
             </Block>
             {(props.email || props.phone) &&

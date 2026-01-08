@@ -1,5 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Lato:wght@300;400;600;700&display=swap');
 
+/* iOS Safari viewport height fix */
+html {
+    height: -webkit-fill-available;
+}
+
 html, body {
     padding: 0;
     margin: 0;
@@ -11,8 +16,15 @@ html, body {
 
 /* Улучшение читаемости на мобильных */
 body {
+    min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+}
+
+@supports (-webkit-touch-callout: none) {
+    body {
+        min-height: -webkit-fill-available;
+    }
 }
 
 /* Предотвращение горизонтальной прокрутки */

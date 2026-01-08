@@ -13,7 +13,10 @@ import {
     ArrowRight,
     Users,
     Award,
-    HeadphonesIcon
+    HeadphonesIcon,
+    FileText,
+    Calendar,
+    CreditCard
 } from 'lucide-react';
 import {
     MainContainer,
@@ -26,6 +29,21 @@ import {
     PrimaryButton,
     SecondaryButton,
     HeroImage,
+    QuickLinksSection,
+    QuickLinksContainer,
+    QuickLinksGrid,
+    QuickLinkCard,
+    QuickLinkIcon,
+    QuickLinkTitle,
+    ContactsInfoSection,
+    ContactsInfoContainer,
+    ContactInfoCard,
+    ContactInfoTitle,
+    ContactInfoPhone,
+    ContactInfoSchedule,
+    YearBannerSection,
+    YearBannerContainer,
+    YearBannerImage,
     StatsSection,
     StatsContainer,
     StatCard,
@@ -119,6 +137,45 @@ const Main = () => {
         }
     ];
 
+    const quickLinks = [
+        {
+            icon: <FileText size={28} />,
+            title: 'База документов',
+            url: '/documents'
+        },
+        {
+            icon: <Calendar size={28} />,
+            title: 'График приёма',
+            url: '/schedule_forms'
+        },
+        {
+            icon: <CreditCard size={28} />,
+            title: 'Оплата по ЕРИП',
+            url: '/payment'
+        }
+    ];
+
+    const contactsInfo = [
+        {
+            title: 'Приёмная',
+            phone: '+375 2336 7-45-07',
+            phoneLink: 'tel:+375233674507',
+            schedule: 'пн-пт с 9:00 до 17:00'
+        },
+        {
+            title: 'Диспетчерская',
+            phone: '115',
+            phoneLink: 'tel:115',
+            schedule: 'круглосуточно'
+        },
+        {
+            title: 'Абонентский отдел',
+            phone: '+375 2336 2-51-38',
+            phoneLink: 'tel:+375233625138',
+            schedule: 'пн-пт с 9:00 до 17:00'
+        }
+    ];
+
     return (
         <MainContainer>
             <HeroSection>
@@ -149,6 +206,46 @@ const Main = () => {
                     </HeroImage>
                 </HeroContent>
             </HeroSection>
+
+            <QuickLinksSection>
+                <QuickLinksContainer>
+                    <QuickLinksGrid>
+                        {quickLinks.map((link, index) => (
+                            <QuickLinkCard key={index} onClick={() => navigate(link.url)}>
+                                <QuickLinkIcon>{link.icon}</QuickLinkIcon>
+                                <QuickLinkTitle>{link.title}</QuickLinkTitle>
+                            </QuickLinkCard>
+                        ))}
+                    </QuickLinksGrid>
+                </QuickLinksContainer>
+            </QuickLinksSection>
+
+            <ContactsInfoSection>
+                <ContactsInfoContainer>
+                    {contactsInfo.map((contact, index) => (
+                        <ContactInfoCard key={index}>
+                            <ContactInfoTitle>{contact.title}</ContactInfoTitle>
+                            <ContactInfoPhone href={contact.phoneLink}>
+                                <Phone size={18} />
+                                {contact.phone}
+                            </ContactInfoPhone>
+                            <ContactInfoSchedule>
+                                <Clock size={16} />
+                                {contact.schedule}
+                            </ContactInfoSchedule>
+                        </ContactInfoCard>
+                    ))}
+                </ContactsInfoContainer>
+            </ContactsInfoSection>
+
+            <YearBannerSection>
+                <YearBannerContainer>
+                    <YearBannerImage 
+                        src="/2026.jpg" 
+                        alt="2026 - Год белорусской женщины"
+                    />
+                </YearBannerContainer>
+            </YearBannerSection>
 
             <StatsSection>
                 <StatsContainer>

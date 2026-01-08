@@ -25,6 +25,214 @@ export const MainContainer = styled.div`
     animation: ${fadeIn} 0.6s ease-out;
 `;
 
+export const QuickLinksSection = styled.section`
+    background: white;
+    padding: 30px 40px 20px;
+    border-bottom: 1px solid rgba(40, 167, 69, 0.1);
+    
+    @media (max-width: 768px) {
+        padding: 20px 20px 15px;
+    }
+`;
+
+export const QuickLinksContainer = styled.div`
+    max-width: 1200px;
+    margin: 0 auto;
+`;
+
+export const QuickLinksGrid = styled.div`
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+`;
+
+export const QuickLinkCard = styled.div`
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.05) 0%, rgba(32, 201, 151, 0.05) 100%);
+    border: 1px solid rgba(40, 167, 69, 0.15);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    &:hover {
+        background: linear-gradient(135deg, rgba(40, 167, 69, 0.1) 0%, rgba(32, 201, 151, 0.1) 100%);
+        border-color: rgba(40, 167, 69, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.15);
+    }
+    
+    @media (max-width: 768px) {
+        padding: 15px;
+    }
+`;
+
+export const QuickLinkIcon = styled.div`
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+    
+    @media (max-width: 768px) {
+        width: 45px;
+        height: 45px;
+    }
+`;
+
+export const QuickLinkTitle = styled.div`
+    font-family: 'Lato', 'Segoe UI', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #28a745;
+    
+    @media (max-width: 768px) {
+        font-size: 1rem;
+    }
+`;
+
+export const ContactsInfoSection = styled.section`
+    background: #f8f9fa;
+    padding: 30px 40px;
+    border-bottom: 1px solid rgba(40, 167, 69, 0.1);
+    
+    @media (max-width: 768px) {
+        padding: 20px;
+    }
+`;
+
+export const ContactsInfoContainer = styled.div`
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+    
+    @media (max-width: 968px) {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+`;
+
+export const ContactInfoCard = styled.div`
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border-left: 4px solid #28a745;
+    transition: all 0.3s ease;
+    
+    &:hover {
+        box-shadow: 0 4px 16px rgba(40, 167, 69, 0.15);
+        transform: translateX(5px);
+    }
+    
+    @media (max-width: 768px) {
+        padding: 15px;
+    }
+`;
+
+export const ContactInfoTitle = styled.div`
+    font-family: 'Archivo', 'Segoe UI', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #28a745;
+    margin-bottom: 12px;
+    
+    @media (max-width: 768px) {
+        font-size: 1.1rem;
+    }
+`;
+
+export const ContactInfoPhone = styled.a`
+    font-family: 'Lato', 'Segoe UI', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    transition: color 0.3s ease;
+    
+    &:hover {
+        color: #28a745;
+    }
+    
+    svg {
+        color: #28a745;
+    }
+    
+    @media (max-width: 768px) {
+        font-size: 1rem;
+    }
+`;
+
+export const ContactInfoSchedule = styled.div`
+    font-family: 'Lato', 'Segoe UI', sans-serif;
+    font-size: 0.95rem;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    
+    svg {
+        color: #28a745;
+    }
+    
+    @media (max-width: 768px) {
+        font-size: 0.9rem;
+    }
+`;
+
+export const YearBannerSection = styled.section`
+    background: white;
+    padding: 30px 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    @media (max-width: 768px) {
+        padding: 20px;
+    }
+`;
+
+export const YearBannerContainer = styled.div`
+    width: 90%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+`;
+
+export const YearBannerImage = styled.img`
+    max-width: 100%;
+    height: auto;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    
+    &:hover {
+        transform: scale(1.02);
+        box-shadow: 0 8px 30px rgba(40, 167, 69, 0.15);
+    }
+    
+    @media (max-width: 768px) {
+        border-radius: 12px;
+    }
+`;
+
 export const HeroSection = styled.section`
     position: relative;
     min-height: 600px;

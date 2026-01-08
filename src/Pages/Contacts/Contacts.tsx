@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react'
 import Block from "../../Components/Block/Block"
 import Contact from "./Contact/Contact"
 import Text from "../../Components/Text/Text"
-import { Contacts_ } from "./styled"
+import { Contacts_, ContentWrapper } from "./styled"
 import Department from './Department/Department'
 import Map from './Map/Map'
+import Loading from '../../Components/Loading/Loading'
+import { GetData } from '../../functions'
 
 interface ContactData {
     id: number;
@@ -41,57 +43,87 @@ const Contacts = () => {
     const [contacts, setContacts] = useState<ContactData[]>([]);
     const [primaryContacts, setPrimaryContacts] = useState<ContactData[]>([]);
     const [phones_contacts, setPhones_contacts] = useState<PhoneData[]>([]);
-
     const [departments, setDepartments] = useState<DepartmentData[]>([]);
     const [phone_department, setPhone_department] = useState<PhoneDepartmentData[]>([]);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        fetchContacts();
-        fetchPhones();
-        fetchDepartments();
-        fetchPhone_department();
+        fetchAllData();
     }, []);
 
-    const fetchContacts = () => {
-        fetch('http://localhost:3001/api/contacts')
-            .then(res => res.json())
-            .then(data => {
-                setContacts(data.filter((x: ContactData) => !['Директор', 'Главный инженер'].includes(x.job_title || '')));
-                setPrimaryContacts(data.filter((x: ContactData) => ['Директор', 'Главный инженер'].includes(x.job_title || '')));
-            })
-            .catch(err => console.error('Error fetching contacts:', err));
+    const fetchAllData = async () => {
+        setLoading(true);
+        try {
+            await Promise.all([
+                fetchContacts(),
+                fetchPhones(),
+                fetchDepartments(),
+                fetchPhone_department()
+            ]);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const fetchPhones = () => {
-        fetch('http://localhost:3001/api/phone_contacts')
-            .then(res => res.json())
-            .then(data => {
-                setPhones_contacts(data);
-            })
-            .catch(err => console.error('Error fetching phones:', err));
+    const fetchContacts = async () => {
+        try {
+            const data = await GetData('contacts');
+            const primaryTitles = ['Директор', 'Главный инженер', 'Заместитель директора'];
+            
+            // Фильтруем и сортируем руководящий состав в правильном порядке
+            const filteredPrimary = data.filter((x: ContactData) => primaryTitles.includes(x.job_title || ''));
+            const sortedPrimary = filteredPrimary.sort((a : ContactData, b: ContactData) => {
+                const orderMap: { [key: string]: number } = {
+                    'Директор': 1,
+                    'Главный инженер': 2,
+                    'Заместитель директора': 3
+                };
+                return (orderMap[a.job_title || ''] || 999) - (orderMap[b.job_title || ''] || 999);
+            });
+            
+            setPrimaryContacts(sortedPrimary);
+            setContacts(data.filter((x: ContactData) => !primaryTitles.includes(x.job_title || '')));
+        } catch (err) {
+            console.error('Error fetching contacts:', err);
+        }
     };
 
-    const fetchDepartments = () => {
-        fetch('http://localhost:3001/api/departments')
-            .then(res => res.json())
-            .then(data => {
-                setDepartments(data);
-            })
-            .catch(err => console.error('Error fetching departments:', err));
+    const fetchPhones = async () => {
+        try {
+            const data = await GetData('phone_contacts');
+            setPhones_contacts(data);
+        } catch (err) {
+            console.error('Error fetching phones:', err);
+        }
     };
 
-    const fetchPhone_department = () => {
-        fetch('http://localhost:3001/api/phone_departments')
-            .then(res => res.json())
-            .then(data => {
-                setPhone_department(data);
-            })
-            .catch(err => console.error('Error fetching phone_departments:', err));
+    const fetchDepartments = async () => {
+        try {
+            const data = await GetData('departments');
+            setDepartments(data);
+        } catch (err) {
+            console.error('Error fetching departments:', err);
+        }
+    };
+
+    const fetchPhone_department = async () => {
+        try {
+            const data = await GetData('phone_departments');
+            setPhone_department(data);
+        } catch (err) {
+            console.error('Error fetching phone_departments:', err);
+        }
     };
 
     return (
         <Contacts_>
-            <Text bold='bolder' style={{ color: "rgb(40, 167, 69)", fontSize: 24 }}>Руководящий состав</Text>
+            {loading && <Loading />}
+            
+            {!loading && (
+                <ContentWrapper>
+                    <Text bold='bolder' style={{ color: "rgb(40, 167, 69)", fontSize: 24 }}>Руководящий состав</Text>
             {primaryContacts && primaryContacts.length > 0 && (
                 <Block style={{ gap: 30, alignItems: 'stretch', justifyContent: 'center', width: '100%' }}>
                     {primaryContacts.map(contact => (
@@ -164,6 +196,8 @@ const Contacts = () => {
                 </Text>
                 <Map />
             </div>
+                </ContentWrapper>
+            )}
         </Contacts_>
     )
 }

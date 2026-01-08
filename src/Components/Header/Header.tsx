@@ -3,6 +3,7 @@ import Section from "../Section/Section"
 import Text from "../Text/Text"
 import { HeaderContainer, Header_, Logo, Nav, ContactInfo, MobileActions, MobileContactInfo, MobileMenuButton, MobileMenu, MobileMenuOverlay } from "./styled"
 import { useState } from "react"
+import { useNavigate, useLocation } from "react-router-dom"
 
 interface HeaderProps {
     ref?: React.RefObject<HTMLDivElement | null>
@@ -10,6 +11,9 @@ interface HeaderProps {
 
 const Header = (props: HeaderProps) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const navigate = useNavigate();
+    const location = useLocation();
+    const currentPath = location.pathname;
 
     const toggleMobileMenu = () => {
         setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -27,7 +31,7 @@ const Header = (props: HeaderProps) => {
             />
             <HeaderContainer>
                 <Header_ ref={props.ref} as="header" role="banner">
-                <Logo>
+                <Logo onClick={() => navigate('/')}>
                     <img
                         style={{ height: 50 }}
                         src="/logo.png"
@@ -38,13 +42,15 @@ const Header = (props: HeaderProps) => {
                 </Logo>
                 
                 <Nav as="nav" role="navigation" aria-label="Основная навигация">
-                    <Section list={[]} caption="Главная" url=" " />
+                    <Section list={[]} caption="Главная" url=" " currentPath={currentPath} />
                     <Section
                         caption="Услуги и тарифы"
                         url="services"
+                        currentPath={currentPath}
                     />
                     <Section 
                         caption="Для граждан"
+                        currentPath={currentPath}
                         list={[
                             { caption: 'График приема', url: 'schedule_forms' },
                             { caption: 'Служба 115', url: 'service_115' },
@@ -64,13 +70,15 @@ const Header = (props: HeaderProps) => {
                     />
                     <Section 
                         caption="Пресс-центр"
+                        currentPath={currentPath}
                         list={[
                             { caption: 'Новости', url: 'https://www.budakosh.by/?s=буда-кошелевский+коммунальник' },
                             { caption: 'Полезно знать', url: 'news/useful_to_know' }
                         ]}
                     />
-                    <Section caption="Документы" url='documents' />
+                    <Section caption="Документы" url='documents' currentPath={currentPath} />
                     <Section
+                        currentPath={currentPath}
                         list={[
                             { caption: 'О нас', url: 'about_us' },
                             { caption: 'Контакты', url: 'contacts' },
@@ -116,17 +124,20 @@ const Header = (props: HeaderProps) => {
                                 url=" " 
                                 isMobileMenu={true} 
                                 onNavigate={closeMobileMenu}
+                                currentPath={currentPath}
                             />
                             <Section
                                 caption="Услуги и тарифы"
                                 url="services"
                                 isMobileMenu={true}
                                 onNavigate={closeMobileMenu}
+                                currentPath={currentPath}
                             />
                             <Section 
                                 caption="Для граждан"
                                 isMobileMenu={true}
                                 onNavigate={closeMobileMenu}
+                                currentPath={currentPath}
                                 list={[
                                     { caption: 'График приема', url: 'schedule_forms' },
                                     { caption: 'Служба 115', url: 'service_115' },
@@ -148,6 +159,7 @@ const Header = (props: HeaderProps) => {
                                 caption="Пресс-центр"
                                 isMobileMenu={true}
                                 onNavigate={closeMobileMenu}
+                                currentPath={currentPath}
                                 list={[
                                     { caption: 'Новости', url: 'https://www.budakosh.by/?s=буда-кошелевский+коммунальник' },
                                     { caption: 'Полезно знать', url: 'news/useful_to_know' }
@@ -158,10 +170,12 @@ const Header = (props: HeaderProps) => {
                                 url='documents' 
                                 isMobileMenu={true}
                                 onNavigate={closeMobileMenu}
+                                currentPath={currentPath}
                             />
                             <Section
                                 isMobileMenu={true}
                                 onNavigate={closeMobileMenu}
+                                currentPath={currentPath}
                                 list={[
                                     { caption: 'О нас', url: 'about_us' },
                                     { caption: 'Контакты', url: 'contacts' },
