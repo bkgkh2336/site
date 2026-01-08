@@ -1,6 +1,15 @@
 import styled, { keyframes } from "styled-components";
 
-const fadeIn = keyframes`
+const float = keyframes`
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+`;
+
+const optimizedFadeIn = keyframes`
     from {
         opacity: 0;
         transform: translateY(20px);
@@ -11,18 +20,10 @@ const fadeIn = keyframes`
     }
 `;
 
-const float = keyframes`
-    0%, 100% {
-        transform: translateY(0px);
-    }
-    50% {
-        transform: translateY(-10px);
-    }
-`;
-
 export const MainContainer = styled.div`
     width: 100%;
-    animation: ${fadeIn} 0.6s ease-out;
+    animation: ${optimizedFadeIn} 0.6s ease-out;
+    will-change: auto;
 `;
 
 export const QuickLinksSection = styled.section`
@@ -221,7 +222,8 @@ export const YearBannerImage = styled.img`
     height: auto;
     border-radius: 16px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    will-change: transform;
     
     &:hover {
         transform: scale(1.02);
@@ -511,8 +513,9 @@ export const ServiceCard = styled.div`
     padding: 35px;
     border-radius: 16px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     cursor: pointer;
+    will-change: transform;
     
     &:hover {
         transform: translateY(-8px);

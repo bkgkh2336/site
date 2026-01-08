@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-import { 
+import { useMemo } from 'react';
+import {
     Home, 
     Phone, 
     Clock, 
@@ -73,14 +74,14 @@ import {
 const Main = () => {
     const navigate = useNavigate();
 
-    const stats = [
+    const stats = useMemo(() => [
         { icon: <Users size={32} />, number: '70+', label: 'Лет опыта работы' },
         { icon: <Home size={32} />, number: '500+', label: 'Обслуживаемых домов' },
         { icon: <Award size={32} />, number: '24/7', label: 'Круглосуточная поддержка' },
         { icon: <ShieldCheck size={32} />, number: '100%', label: 'Гарантия качества' }
-    ];
+    ], []);
 
-    const services = [
+    const services = useMemo(() => [
         {
             icon: <Wind size={32} />,
             title: 'Услуги вентиляционных и дымовых каналов',
@@ -117,9 +118,9 @@ const Main = () => {
             description: 'Качественные услуги по обеспечению водоснабжения и водоотведения',
             link: '/plumbing_services'
         }
-    ];
+    ], []);
 
-    const whyUs = [
+    const whyUs = useMemo(() => [
         {
             icon: <Clock size={32} />,
             title: 'Оперативность',
@@ -135,9 +136,9 @@ const Main = () => {
             title: 'Поддержка',
             description: 'Круглосуточная диспетчерская служба и техническая поддержка'
         }
-    ];
+    ], []);
 
-    const quickLinks = [
+    const quickLinks = useMemo(() => [
         {
             icon: <FileText size={28} />,
             title: 'База документов',
@@ -153,9 +154,9 @@ const Main = () => {
             title: 'Оплата по ЕРИП',
             url: '/payment'
         }
-    ];
+    ], []);
 
-    const contactsInfo = [
+    const contactsInfo = useMemo(() => [
         {
             title: 'Приёмная',
             phone: '+375 2336 7-45-07',
@@ -174,7 +175,7 @@ const Main = () => {
             phoneLink: 'tel:+375233625138',
             schedule: 'пн-пт с 9:00 до 17:00'
         }
-    ];
+    ], []);
 
     return (
         <MainContainer>
@@ -202,6 +203,7 @@ const Main = () => {
                         <img 
                             src="/main.png" 
                             alt="main.pg"
+                            loading="lazy"
                         />
                     </HeroImage>
                 </HeroContent>
@@ -243,6 +245,7 @@ const Main = () => {
                     <YearBannerImage 
                         src="/2026.jpg" 
                         alt="2026 - Год белорусской женщины"
+                        loading="lazy"
                     />
                 </YearBannerContainer>
             </YearBannerSection>

@@ -1,7 +1,7 @@
 import { Contact_ } from "./styled"
 import Text from "../../../Components/Text/Text"
 import Block from "../../../Components/Block/Block";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, memo } from "react";
 import { Mail, Phone } from "lucide-react";
 
 interface FIO {
@@ -35,6 +35,7 @@ const Contact = (props: ContactProps) => {
                 <img
                     style={{ width: "150px", height: "150px", objectFit: 'cover', objectPosition: 'center top', borderRadius: '50%' }}
                     src={props.src}
+                    loading="lazy"
                 />
             }
             {!props.src &&
@@ -78,4 +79,4 @@ const Contact = (props: ContactProps) => {
     )
 }
 
-export default Contact
+export default memo(Contact)
