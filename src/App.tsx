@@ -153,7 +153,6 @@ function App() {
       <div style={{ 
         display: 'flex', 
         flexDirection: 'column', 
-        height: '100vh',
         height: 'calc(var(--vh, 1vh) * 100)',
         minHeight: '-webkit-fill-available'
       }}>
