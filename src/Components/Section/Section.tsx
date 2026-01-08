@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import Text from "../Text/Text";
 import Section_tooltip from "../Section_tooltip/Section_tooltip";
@@ -219,4 +219,4 @@ const Section = (props: SectionProps) => {
     )
 }
 
-export default Section;
+export default memo(Section);
