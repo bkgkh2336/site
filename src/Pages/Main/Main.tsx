@@ -45,6 +45,10 @@ import {
     YearBannerSection,
     YearBannerContainer,
     YearBannerImage,
+    YearBannerContent,
+    YearBannerTitle,
+    YearBannerText,
+    YearBannerLink,
     StatsSection,
     StatsContainer,
     StatCard,
@@ -246,7 +250,25 @@ const Main = () => {
                         src="/2026.jpg" 
                         alt="2026 - Год белорусской женщины"
                         loading="lazy"
+                        width="1200"
+                        height="400"
                     />
+                    <YearBannerContent>
+                        <YearBannerTitle>2026 — Год белорусской женщины</YearBannerTitle>
+                        <YearBannerText>
+                            Президент Беларуси Александр Лукашенко подписал Указ № 1, которым 2026 год объявлен Годом белорусской женщины.
+                        </YearBannerText>
+                        <YearBannerText>
+                            Документ принят в целях формирования национального образа женщины-труженицы, популяризации роли женщин в сохранении и развитии общества.
+                        </YearBannerText>
+                        <YearBannerLink 
+                            href="https://buda-koshelevo.gov.by/ru/2026-ru" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                        >
+                            Подробнее <ArrowRight size={16} />
+                        </YearBannerLink>
+                    </YearBannerContent>
                 </YearBannerContainer>
             </YearBannerSection>
 

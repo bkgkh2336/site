@@ -212,26 +212,163 @@ export const YearBannerSection = styled.section`
 
 export const YearBannerContainer = styled.div`
     width: 90%;
+    position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
-`;
-
-export const YearBannerImage = styled.img`
-    max-width: 100%;
-    height: auto;
     border-radius: 16px;
+    overflow: hidden;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    will-change: transform;
-    
-    &:hover {
-        transform: scale(1.02);
-        box-shadow: 0 8px 30px rgba(40, 167, 69, 0.15);
-    }
     
     @media (max-width: 768px) {
         border-radius: 12px;
+    }
+`;
+
+export const YearBannerContent = styled.div`
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 40px;
+    background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.65) 0%,
+        rgba(0, 0, 0, 0.55) 50%,
+        rgba(0, 0, 0, 0.65) 100%
+    );
+    backdrop-filter: blur(2px);
+    z-index: 2;
+    
+    @media (max-width: 968px) {
+        padding: 30px 20px;
+    }
+    
+    @media (max-width: 768px) {
+        padding: 20px 12px;
+        background: linear-gradient(
+            to bottom,
+            rgba(0, 0, 0, 0.75) 0%,
+            rgba(0, 0, 0, 0.65) 50%,
+            rgba(0, 0, 0, 0.75) 100%
+        );
+    }
+    
+    @media (max-width: 480px) {
+        padding: 15px 10px;
+        background: rgba(0, 0, 0, 0.75);
+    }
+`;
+
+export const YearBannerTitle = styled.h2`
+    font-family: 'Archivo', 'Segoe UI', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 20px;
+    text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    line-height: 1.2;
+    
+    @media (max-width: 968px) {
+        font-size: 2rem;
+        margin-bottom: 15px;
+    }
+    
+    @media (max-width: 768px) {
+        font-size: 1.5rem;
+        margin-bottom: 12px;
+    }
+    
+    @media (max-width: 480px) {
+        font-size: 1.3rem;
+        margin-bottom: 10px;
+    }
+`;
+
+export const YearBannerText = styled.p`
+    font-family: 'Lato', 'Segoe UI', sans-serif;
+    font-size: 1.2rem;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.95);
+    margin-bottom: 12px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    max-width: 900px;
+    
+    @media (max-width: 968px) {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin-bottom: 10px;
+    }
+    
+    @media (max-width: 768px) {
+        font-size: 0.95rem;
+        line-height: 1.5;
+        margin-bottom: 8px;
+    }
+    
+    @media (max-width: 480px) {
+        font-size: 0.85rem;
+        line-height: 1.4;
+        margin-bottom: 6px;
+    }
+`;
+
+export const YearBannerLink = styled.a`
+    font-family: 'Lato', 'Segoe UI', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: white;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 15px;
+    padding: 12px 28px;
+    background: rgba(40, 167, 69, 0.9);
+    border-radius: 50px;
+    transition: all 0.3s ease;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    
+    &:hover {
+        background: rgba(32, 201, 151, 0.95);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    }
+    
+    @media (max-width: 768px) {
+        font-size: 0.95rem;
+        padding: 10px 20px;
+        margin-top: 10px;
+    }
+    
+    @media (max-width: 480px) {
+        font-size: 0.85rem;
+        padding: 8px 16px;
+        margin-top: 8px;
+    }
+`;
+
+export const YearBannerImage = styled.img`
+    width: 100%;
+    height: auto;
+    display: block;
+    position: relative;
+    z-index: 1;
+    
+    @media (max-width: 768px) {
+        min-height: 500px;
+        object-fit: cover;
+    }
+    
+    @media (max-width: 480px) {
+        min-height: 450px;
     }
 `;
 
@@ -384,18 +521,21 @@ export const StatsSection = styled.section`
 export const StatsContainer = styled.div`
     max-width: 1200px;
     margin: 0 auto;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 40px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 30px;
+    
+    @media (max-width: 968px) {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 25px;
+    }
     
     @media (max-width: 768px) {
         gap: 20px;
     }
     
     @media (max-width: 480px) {
-        flex-direction: column;
-        align-items: center;
+        grid-template-columns: 1fr;
         gap: 20px;
     }
 `;
@@ -403,24 +543,29 @@ export const StatsContainer = styled.div`
 export const StatCard = styled.div`
     text-align: center;
     padding: 30px;
-    flex: 0 1 250px;
     background: linear-gradient(135deg, rgba(40, 167, 69, 0.05) 0%, rgba(32, 201, 151, 0.05) 100%);
     border-radius: 16px;
     border: 1px solid rgba(40, 167, 69, 0.1);
     transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 220px;
+    
     &:hover {
         transform: translateY(-5px);
         box-shadow: 0 10px 30px rgba(40, 167, 69, 0.1);
     }
     
     @media (max-width: 768px) {
-        flex: 0 1 200px;
+        padding: 25px;
+        min-height: 200px;
     }
     
     @media (max-width: 480px) {
         padding: 20px;
-        flex: 1 1 100%;
-        max-width: 100%;
+        min-height: 180px;
     }
 `;
 
