@@ -81,6 +81,8 @@ const Header = (props: HeaderProps) => {
                         currentPath={currentPath}
                         list={[
                             { caption: 'О нас', url: 'about_us' },
+                            { caption: 'Реквизиты', url: 'requisites' },
+                            { caption: 'Режим работы', url: 'work_schedule' },
                             { caption: 'Контакты', url: 'contacts' },
                             { caption: 'Вакансии', url: 'vacancies' },
                         ]}
@@ -178,6 +180,8 @@ const Header = (props: HeaderProps) => {
                                 currentPath={currentPath}
                                 list={[
                                     { caption: 'О нас', url: 'about_us' },
+                                    { caption: 'Реквизиты', url: 'requisites' },
+                                    { caption: 'Режим работы', url: 'work_schedule' },
                                     { caption: 'Контакты', url: 'contacts' },
                                     { caption: 'Вакансии', url: 'vacancies' },
                                 ]}
