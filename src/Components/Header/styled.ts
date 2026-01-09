@@ -17,7 +17,7 @@ export const Logo = styled(Block_)`
         display: none;
     }
     
-    @media (max-width: 1200px) {
+    @media (max-width: 1300px) {
         gap: 8px;
         
         img {
@@ -59,7 +59,7 @@ export const Nav = styled(Block_)`
     gap: 10px;
     padding: 0;
     
-    @media (max-width: 1200px) {
+    @media (max-width: 1300px) {
         display: none;
     }
 `;
@@ -76,7 +76,7 @@ export const ContactInfo = styled(Block_)`
         }
     }
     
-    @media (max-width: 1200px) {
+    @media (max-width: 1300px) {
         display: none;
     }
 `;
@@ -113,7 +113,7 @@ export const MobileContactInfo = styled.a`
         background-color: rgba(40, 167, 69, 0.1);
     }
     
-    @media (max-width: 1200px) {
+    @media (max-width: 1300px) {
         display: flex;
     }
     
@@ -142,7 +142,7 @@ export const MobileMenuButton = styled.button`
         background-color: rgba(40, 167, 69, 0.1);
     }
     
-    @media (max-width: 1200px) {
+    @media (max-width: 1300px) {
         display: block;
     }
     
@@ -246,7 +246,7 @@ export const Header_ = styled(Block_)`
         border-color: rgba(76, 175, 80, 0.3);
     }
     
-    @media (max-width: 1200px) {
+    @media (max-width: 1300px) {
         padding: 10px 16px;
         justify-content: space-between;
         gap: 8px;
