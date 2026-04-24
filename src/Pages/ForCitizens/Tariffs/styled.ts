@@ -12,7 +12,8 @@ const fadeIn = keyframes`
 `;
 
 export const TariffsContainer = styled.div`
-    width: 90%;
+    max-width: 90%;
+    width: 100%;
     margin: 40px auto;
     display: flex;
     flex-direction: column;
@@ -20,7 +21,7 @@ export const TariffsContainer = styled.div`
     animation: ${fadeIn} 0.6s ease-out;
     
     @media (max-width: 768px) {
-        width: 95%;
+        max-width: 95%;
         margin: 20px auto;
         gap: 20px;
     }

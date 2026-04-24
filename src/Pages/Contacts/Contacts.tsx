@@ -70,14 +70,14 @@ const Contacts = () => {
     const fetchContacts = async () => {
         try {
             const data = await GetData('contacts');
-            const primaryTitles = ['Директор', 'Главный инженер', 'Заместитель директора'];
+            const primaryTitles = ['Директор', 'Первый заместитель директор - Главный инженер', 'Заместитель директора'];
             
             // Фильтруем и сортируем руководящий состав в правильном порядке
             const filteredPrimary = data.filter((x: ContactData) => primaryTitles.includes(x.job_title || ''));
             const sortedPrimary = filteredPrimary.sort((a : ContactData, b: ContactData) => {
                 const orderMap: { [key: string]: number } = {
                     'Директор': 1,
-                    'Главный инженер': 2,
+                    'Первый заместитель директор - Главный инженер': 2,
                     'Заместитель директора': 3
                 };
                 return (orderMap[a.job_title || ''] || 999) - (orderMap[b.job_title || ''] || 999);

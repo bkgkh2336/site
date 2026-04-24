@@ -72,7 +72,8 @@ const Header = (props: HeaderProps) => {
                         caption="Пресс-центр"
                         currentPath={currentPath}
                         list={[
-                            { caption: 'Новости', url: 'https://www.budakosh.by/?s=буда-кошелевский+коммунальник' },
+                            { caption: 'Новости', url: 'news' },
+                            { caption: 'Статьи', url: 'news/articles' },
                             { caption: 'Полезно знать', url: 'news/useful_to_know' }
                         ]}
                     />
@@ -84,7 +85,7 @@ const Header = (props: HeaderProps) => {
                             { caption: 'Реквизиты', url: 'requisites' },
                             { caption: 'Режим работы', url: 'work_schedule' },
                             { caption: 'Контакты', url: 'contacts' },
-                            { caption: 'Вакансии', url: 'vacancies' },
+                            { caption: 'Вакансии', url: 'https://gsz.gov.by/registration/vacancy-search/?business_entity=121431' },
                         ]}
                         caption="О нас"
                     />
@@ -163,7 +164,8 @@ const Header = (props: HeaderProps) => {
                                 onNavigate={closeMobileMenu}
                                 currentPath={currentPath}
                                 list={[
-                                    { caption: 'Новости', url: 'https://www.budakosh.by/?s=буда-кошелевский+коммунальник' },
+                                    { caption: 'Новости', url: 'news' },
+                                    { caption: 'Статьи', url: 'news/articles' },
                                     { caption: 'Полезно знать', url: 'news/useful_to_know' }
                                 ]}
                             />
@@ -183,7 +185,7 @@ const Header = (props: HeaderProps) => {
                                     { caption: 'Реквизиты', url: 'requisites' },
                                     { caption: 'Режим работы', url: 'work_schedule' },
                                     { caption: 'Контакты', url: 'contacts' },
-                                    { caption: 'Вакансии', url: 'vacancies' },
+                                    { caption: 'Вакансии', url: 'https://gsz.gov.by/registration/vacancy-search/?business_entity=121431' },
                                 ]}
                                 caption="О нас"
                             />

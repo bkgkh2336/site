@@ -5,10 +5,10 @@ import ImageGallery from "../../../../Components/ImageGallery/ImageGallery";
 
 const PhoneScammers = () => {
     const images = [
-        "https://bkgkh.by/AllObjectsForGKX/ImgGKX/UsefulToKnow/PhoneScammers/мошеничество-в-сети.jpg",
-        "https://bkgkh.by/AllObjectsForGKX/ImgGKX/UsefulToKnow/PhoneScammers/внимание-мошенники.jpg",
-        "https://bkgkh.by/AllObjectsForGKX/ImgGKX/UsefulToKnow/PhoneScammers/-мошенники 1.jpg",
-        "https://bkgkh.by/AllObjectsForGKX/ImgGKX/UsefulToKnow/PhoneScammers/вам-звонят.jpg"
+        "/useful_to_know/phone_scammers1.jpg",
+        "/useful_to_know/phone_scammers2.jpg",
+        "/useful_to_know/phone_scammers3.jpg",
+        "/useful_to_know/phone_scammers4.jpg"
     ];
 
     return (

@@ -12,7 +12,8 @@ const fadeIn = keyframes`
 `;
 
 export const AssistanceContainer = styled.div`
-    width: 85%;
+    max-width: 90%;
+    width: 100%;
     margin: 40px auto;
     display: flex;
     flex-direction: column;
@@ -21,7 +22,7 @@ export const AssistanceContainer = styled.div`
     min-height: 60vh;
     
     @media (max-width: 768px) {
-        width: 95%;
+        max-width: 95%;
         margin: 20px auto;
         gap: 20px;
     }

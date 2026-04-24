@@ -5,10 +5,10 @@ import ImageGallery from "../../../../Components/ImageGallery/ImageGallery";
 
 const SafeInternetCards = () => {
     const images = [
-        "https://bkgkh.by/AllObjectsForGKX/ImgGKX/UsefulToKnow/SafeInternet/6.-белта-05.jpg",
-        "https://bkgkh.by/AllObjectsForGKX/ImgGKX/UsefulToKnow/SafeInternet/4.-белта-03.jpg",
-        "https://bkgkh.by/AllObjectsForGKX/ImgGKX/UsefulToKnow/SafeInternet/фишинг-2024.jpg",
-        "https://bkgkh.by/AllObjectsForGKX/ImgGKX/UsefulToKnow/SafeInternet/7.-бпк-белта.jpg"
+        "/useful_to_know/safe_internet1.jpg",
+        "/useful_to_know/safe_internet2.jpg",
+        "/useful_to_know/safe_internet3.jpg",
+        "/useful_to_know/safe_internet4.jpg"
     ];
 
     return (
