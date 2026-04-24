@@ -2,19 +2,19 @@ import styled from "styled-components";
 import { Link } from "react-router-dom";
 
 export const ServicesContainer = styled.div`
-    width: 80%;
+    max-width: 90%;
+    width: 100%;
     margin: 40px auto;
     display: flex;
     flex-direction: column;
     align-items: center;
     
     @media (max-width: 768px) {
-        width: 90%;
+        max-width: 95%;
         margin: 30px auto;
     }
     
     @media (max-width: 480px) {
-        width: 95%;
         margin: 20px auto;
     }
 `;

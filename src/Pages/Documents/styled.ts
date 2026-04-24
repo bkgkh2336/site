@@ -2,18 +2,15 @@ import styled from "styled-components";
 import { Block_ } from "../../Components/Block/styled";
 
 export const DocumentsHeader = styled.div`
-    width: 80%;
+    max-width: 90%;
+    width: 100%;
     margin: 0px auto;
     display: flex;
     flex-direction: column;
     gap: 20px;
     
     @media (max-width: 768px) {
-        width: 90%;
-    }
-    
-    @media (max-width: 480px) {
-        width: 95%;
+        max-width: 95%;
     }
 `;
 
@@ -77,25 +74,24 @@ export const SearchInput = styled.input`
 `;
 
 export const Documents_ = styled(Block_)`
-    width: 80%;
+    max-width: 90%;
+    width: 100%;
     margin: 20px auto;
     align-items: flex-start;
     flex-wrap: nowrap;
     gap: 24px;
     
     @media (max-width: 1024px) {
-        width: 90%;
         gap: 20px;
     }
     
     @media (max-width: 768px) {
-        width: 95%;
+        max-width: 95%;
         flex-direction: column;
         gap: 16px;
     }
     
     @media (max-width: 480px) {
-        width: 100%;
         padding: 0 12px;
         margin: 16px auto;
     }

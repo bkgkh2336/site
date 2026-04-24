@@ -1,11 +1,16 @@
 import styled from "styled-components";
 
 export const PaymentContainer = styled.div`
-    width: 80%;
+    max-width: 90%;
+    width: 100%;
     margin: 0px auto;
     display: flex;
     flex-direction: column;
     align-items: center;
+    
+    @media (max-width: 768px) {
+        max-width: 95%;
+    }
 `;
 
 export const PaymentSection = styled.section`

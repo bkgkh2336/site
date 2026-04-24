@@ -11,6 +11,10 @@ import { useLocation } from 'react-router-dom'
 import SEO from './Components/SEO/SEO'
 import { seoConfigs } from './utils/seoConfig'
 import StructuredData from './Components/StructuredData/StructuredData'
+import ScrollToTopButton from './Components/ScrollToTopButton/ScrollToTopButton'
+import ScrollToTop from './Components/ScrollToTop/ScrollToTop'
+import LoadingIndicator from './Components/LoadingIndicator/LoadingIndicator'
+import Breadcrumbs from './Components/Breadcrumbs/Breadcrumbs'
 import About_us from './Pages/About_us/About_us'
 import Documents from './Pages/Documents/Documents'
 import Services from './Pages/Services/Services'
@@ -38,6 +42,10 @@ import InformationAboutCommunal from './Pages/ForCitizens/InformationAboutCommun
 import AssistanceDisabilities from './Pages/ForCitizens/AssistanceDisabilities/AssistanceDisabilities'
 import Surveys from './Pages/ForCitizens/Surveys/Surveys'
 import Cybersecurity from './Pages/ForCitizens/Cybersecurity/Cybersecurity'
+import News from './Pages/News/News'
+import Articles from './Pages/News/Articles/Articles'
+import BoilerMaintenance from './Pages/News/Articles/BoilerMaintenance/BoilerMaintenance'
+import UnionConference from './Pages/News/News/UnionConference/UnionConference'
 import UsefulToKnow from './Pages/News/UsefulToKnow/UsefulToKnow'
 import PhoneScammers from './Pages/News/UsefulToKnow/PhoneScammers/PhoneScammers'
 import SafeInternetCards from './Pages/News/UsefulToKnow/SafeInternetCards/SafeInternetCards'
@@ -85,6 +93,8 @@ const routeTitles: Record<string, string> = {
   '/assistance_disabilities': 'Помощь инвалидам - КЖУП "Буда-Кошелёвский коммунальник"',
   '/surveys': 'Опросы - КЖУП "Буда-Кошелёвский коммунальник"',
   '/cybersecurity': 'Кибербезопасность - КЖУП "Буда-Кошелёвский коммунальник"',
+  '/news': 'Новости - КЖУП "Буда-Кошелёвский коммунальник"',
+  '/news/union_conference': 'Прошла отчетная профсоюзная конференция - КЖУП "Буда-Кошелёвский коммунальник"',
   '/news/useful_to_know': 'Полезно знать - КЖУП "Буда-Кошелёвский коммунальник"',
   '/news/useful_to_know/phone_scammers': 'Телефонные мошенники - КЖУП "Буда-Кошелёвский коммунальник"',
   '/news/useful_to_know/safe_internet_cards': 'Безопасность в сети и банковские карты - КЖУП "Буда-Кошелёвский коммунальник"',
@@ -146,12 +156,16 @@ function App() {
 
   return (
     <Router>
+      <ScrollToTop />
       <PageTitleUpdater />
       <StructuredData />
+      <LoadingIndicator />
       <div style={{ display: 'flex', flexDirection: 'column', height: `${viewportHeight}px` }}>
         <Header ref={ref} />
         <FixedLanguageSelector />
+        <ScrollToTopButton />
         <div style={{ overflow: 'auto', justifyContent: 'space-between', height: '100%', display: 'flex', flexDirection: 'column', paddingTop: headerHeight }}>
+          <Breadcrumbs />
           <Routes>
             <Route path="/" element={<Main />} />
             <Route path='/about_us' element={<About_us />} />
@@ -185,6 +199,10 @@ function App() {
             <Route path='/assistance_disabilities' element={<AssistanceDisabilities />} />
             <Route path='/surveys' element={<Surveys />} />
             <Route path='/cybersecurity' element={<Cybersecurity />} />
+            <Route path='/news' element={<News />} />
+            <Route path='/news/union_conference' element={<UnionConference />} />
+            <Route path='/news/articles' element={<Articles />} />
+            <Route path='/news/articles/boiler_maintenance' element={<BoilerMaintenance />} />
             <Route path='/news/useful_to_know' element={<UsefulToKnow />} />
             <Route path='/news/useful_to_know/phone_scammers' element={<PhoneScammers />} />
             <Route path='/news/useful_to_know/safe_internet_cards' element={<SafeInternetCards />} />

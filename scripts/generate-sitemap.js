@@ -11,7 +11,6 @@ const pages = [
   { url: '/requisites', priority: '0.6', changefreq: 'monthly' },
   { url: '/work_schedule', priority: '0.7', changefreq: 'monthly' },
   { url: '/contacts', priority: '0.9', changefreq: 'monthly' },
-  { url: '/vacancies', priority: '0.7', changefreq: 'weekly' },
   { url: '/documents', priority: '0.8', changefreq: 'weekly' },
   
   // Услуги
