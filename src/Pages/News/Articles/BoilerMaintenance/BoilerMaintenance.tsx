@@ -52,6 +52,7 @@ const BoilerMaintenance = () => {
                 <ArticleImage 
                     src="/articles/prevention_and_maintenance_of_boiler_installations_during_frosts.jpg"
                     alt="Профилактика и уход за котельными установками во время морозов"
+                    loading="lazy"
                 />
                 
                 <IntroSection>

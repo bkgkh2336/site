@@ -372,6 +372,111 @@ export const YearBannerImage = styled.img`
     }
 `;
 
+export const InfoBannerSection = styled.section`
+    background: #e3f2fd;
+    padding: 30px 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    @media (max-width: 768px) {
+        padding: 20px;
+    }
+`;
+
+export const InfoBannerContainer = styled.div`
+    width: 90%;
+    max-width: 1200px;
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 32px 40px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border-left: 6px solid #1976d2;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 28px rgba(21, 101, 192, 0.18);
+    }
+
+    @media (max-width: 768px) {
+        padding: 20px 18px;
+        border-radius: 12px;
+        border-left-width: 4px;
+    }
+`;
+
+export const InfoBannerContent = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+`;
+
+export const InfoBannerTitle = styled.h2`
+    font-family: 'Archivo', 'Segoe UI', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1565c0;
+    margin: 0 0 12px 0;
+    line-height: 1.3;
+
+    @media (max-width: 768px) {
+        font-size: 1.3rem;
+        margin-bottom: 10px;
+    }
+
+    @media (max-width: 480px) {
+        font-size: 1.15rem;
+    }
+`;
+
+export const InfoBannerSubtitle = styled.p`
+    font-family: 'Lato', 'Segoe UI', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #0d47a1;
+    margin: 0 0 14px 0;
+
+    @media (max-width: 768px) {
+        font-size: 1rem;
+        margin-bottom: 10px;
+    }
+`;
+
+export const InfoBannerText = styled.p`
+    font-family: 'Lato', 'Segoe UI', sans-serif;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: #1a1a1a;
+    margin: 0 0 14px 0;
+
+    @media (max-width: 768px) {
+        font-size: 0.95rem;
+        line-height: 1.5;
+    }
+
+    @media (max-width: 480px) {
+        font-size: 0.9rem;
+    }
+`;
+
+export const InfoBannerLink = styled.span`
+    font-family: 'Lato', 'Segoe UI', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1976d2;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+
+    @media (max-width: 768px) {
+        font-size: 0.95rem;
+    }
+`;
+
 export const HeroSection = styled.section`
     position: relative;
     min-height: 600px;
@@ -498,8 +603,7 @@ export const HeroImage = styled.div`
     position: relative;
     
     img {
-        width: 100%;
-        height: auto;
+        width: 150%;    
         border-radius: 20px;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         animation: ${float} 6s ease-in-out infinite;
@@ -852,4 +956,111 @@ export const CTAPhone = styled.a`
         font-size: 1.5rem;
         padding: 16px 32px;
     }
+`;
+
+export const UsefulSection = styled.section`
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 60px 40px;
+    
+    @media (max-width: 768px) {
+        padding: 40px 20px;
+    }
+`;
+
+export const UsefulContainer = styled.div`
+    max-width: 1200px;
+    margin: 0 auto;
+`;
+
+export const UsefulHeader = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    
+    @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+`;
+
+export const UsefulTitle = styled.h2`
+    font-family: 'Archivo', 'Segoe UI', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #212529;
+    margin: 0;
+    
+    @media (max-width: 768px) {
+        font-size: 1.6rem;
+    }
+`;
+
+export const UsefulLink = styled.button`
+    font-family: 'Lato', 'Segoe UI', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #28a745;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0;
+    transition: all 0.3s ease;
+    
+    &:hover {
+        color: #1e7e34;
+        gap: 12px;
+    }
+`;
+
+export const UsefulGrid = styled.div`
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 24px;
+    
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+`;
+
+export const UsefulCard = styled.div`
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(40, 167, 69, 0.15);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    &:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 48px rgba(40, 167, 69, 0.2);
+        border-color: #28a745;
+    }
+`;
+
+export const UsefulCardImage = styled.img`
+    width: 100%;
+    height: 180px;
+    object-fit: contain;
+    
+    @media (max-width: 768px) {
+        height: 200px;
+    }
+`;
+
+export const UsefulCardTitle = styled.h3`
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #212529;
+    padding: 16px;
+    margin: 0;
+    line-height: 1.4;
 `;

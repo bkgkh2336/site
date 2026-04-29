@@ -12,6 +12,7 @@ const PomogutBy = () => {
                 style={{ height: '10%', objectFit: 'cover' }}
                 src="/useful_to_know/pomogut-by_icon.png"
                 alt="Логотип Pomogut BY"
+                loading="lazy"
             />
             <ContentSection>
                 <Paragraph>

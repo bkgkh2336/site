@@ -13,6 +13,7 @@ const ImageGallery = ({ images, altPrefix = 'Изображение' }: ImageGal
                     key={index}
                     src={image} 
                     alt={`${altPrefix} ${index + 1}`}
+                    loading="lazy"
                 />
             ))}
         </Gallery>

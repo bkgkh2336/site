@@ -66,7 +66,6 @@ const pageHierarchy: PageMap = {
     '/requisites': { name: 'Реквизиты', parent: [{ name: 'О нас' }] },
     '/work_schedule': { name: 'Режим работы', parent: [{ name: 'О нас' }] },
     '/contacts': { name: 'Контакты', parent: [{ name: 'О нас' }] },
-    '/vacancies': { name: 'Вакансии', parent: [{ name: 'О нас' }] },
 };
 
 const Breadcrumbs = () => {

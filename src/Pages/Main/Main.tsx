@@ -19,6 +19,7 @@ import {
     Calendar,
     CreditCard
 } from 'lucide-react';
+import { usefulToKnowArticles } from '../../data/usefulToKnowArticles';
 import {
     MainContainer,
     HeroSection,
@@ -49,6 +50,12 @@ import {
     YearBannerTitle,
     YearBannerText,
     YearBannerLink,
+    InfoBannerSection,
+    InfoBannerContainer,
+    InfoBannerContent,
+    InfoBannerTitle,
+    InfoBannerText,
+    InfoBannerLink,
     StatsSection,
     StatsContainer,
     StatCard,
@@ -72,7 +79,16 @@ import {
     CTAContent,
     CTATitle,
     CTASubtitle,
-    CTAPhone
+    CTAPhone,
+    UsefulSection,
+    UsefulContainer,
+    UsefulHeader,
+    UsefulTitle,
+    UsefulLink,
+    UsefulGrid,
+    UsefulCard,
+    UsefulCardImage,
+    UsefulCardTitle
 } from './styled';
 
 const Main = () => {
@@ -272,6 +288,27 @@ const Main = () => {
                 </YearBannerContainer>
             </YearBannerSection>
 
+            <InfoBannerSection>
+                <InfoBannerContainer 
+                    onClick={() => window.open('/documents/profsouz_priem.pdf', '_blank', 'noopener,noreferrer')}
+                >
+                    <InfoBannerContent>
+                        <InfoBannerTitle>
+                            📅 Республиканский профсоюзный правовой прием граждан
+                        </InfoBannerTitle>
+                        <InfoBannerText style={{ fontSize: '18px', fontWeight: 500, color: '#0d47a1' }}>
+                            В Гомельской области
+                        </InfoBannerText>
+                        <InfoBannerText>
+                            Прием будет проводиться 30 апреля 2026 года. Юристы профсоюза окажут бесплатную юридическую помощь по вопросам трудового законодательства, социального обеспечения, жилищных и других прав граждан.
+                        </InfoBannerText>
+                        <InfoBannerLink>
+                            Подробнее и график приема <ArrowRight size={16} />
+                        </InfoBannerLink>
+                    </InfoBannerContent>
+                </InfoBannerContainer>
+            </InfoBannerSection>
+
             <StatsSection>
                 <StatsContainer>
                     {stats.map((stat, index) => (
@@ -318,6 +355,34 @@ const Main = () => {
                     ))}
                 </WhyGrid>
             </WhySection>
+
+            <UsefulSection>
+                <UsefulContainer>
+                    <UsefulHeader>
+                        <UsefulTitle>Полезно знать</UsefulTitle>
+                        <UsefulLink onClick={() => navigate('/news/useful_to_know')}>
+                            Все материалы <ArrowRight size={18} />
+                        </UsefulLink>
+                    </UsefulHeader>
+                    <UsefulGrid>
+                        {usefulToKnowArticles.slice(usefulToKnowArticles.length - 4, usefulToKnowArticles.length).map((article, index) => (
+                            <UsefulCard
+                                key={index}
+                                onClick={() => {
+                                    if (article.externalUrl) {
+                                        window.open(article.externalUrl, '_blank', 'noopener,noreferrer');
+                                    } else if (article.url) {
+                                        navigate(`/news/useful_to_know/${article.url}`);
+                                    }
+                                }}
+                            >
+                                <UsefulCardImage src={article.image} alt={article.title} loading="lazy" />
+                                <UsefulCardTitle>{article.title}</UsefulCardTitle>
+                            </UsefulCard>
+                        ))}
+                    </UsefulGrid>
+                </UsefulContainer>
+            </UsefulSection>
 
             <CTASection>
                 <CTAContent>
