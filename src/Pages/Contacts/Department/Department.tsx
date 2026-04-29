@@ -14,7 +14,7 @@ interface ContactProps {
 const Department = (props: ContactProps) => {
 
     return (
-        <Contact_ style={{ gap: 10, width: 210 }}>
+        <Contact_ style={{ gap: 10 }}>
             {props.src &&
                 <img
                     style={{ 

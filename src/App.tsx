@@ -1,64 +1,68 @@
 import './App.css'
+import { lazy, Suspense, useRef, useEffect, useState } from 'react'
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
 import Header from './Components/Header/Header'
-import Main from './Pages/Main/Main'
-import Contacts from './Pages/Contacts/Contacts'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Footer from './Components/Footer/Footer'
 import FixedLanguageSelector from './Components/FixedLanguageSelector/FixedLanguageSelector'
-import Vacancies from './Pages/Vacancies/Vacancies'
-import { useRef, useEffect, useState } from 'react'
-import { useLocation } from 'react-router-dom'
-import SEO from './Components/SEO/SEO'
-import { seoConfigs } from './utils/seoConfig'
-import StructuredData from './Components/StructuredData/StructuredData'
 import ScrollToTopButton from './Components/ScrollToTopButton/ScrollToTopButton'
 import ScrollToTop from './Components/ScrollToTop/ScrollToTop'
 import LoadingIndicator from './Components/LoadingIndicator/LoadingIndicator'
+import Loading from './Components/Loading/Loading'
 import Breadcrumbs from './Components/Breadcrumbs/Breadcrumbs'
-import About_us from './Pages/About_us/About_us'
-import Documents from './Pages/Documents/Documents'
-import Services from './Pages/Services/Services'
-import Ventilation_services from './Pages/Services/Ventilation_services/Ventilation_services'
-import Waste_services from './Pages/Services/Waste_services/Waste_services'
-import Electro_services from './Pages/Services/Electro_services/Electro_services'
-import Grass_services from './Pages/Services/Grass_services/Grass_services'
-import Heating_services from './Pages/Services/Heating_services/Heating_services'
-import Plumbing_services from './Pages/Services/Plumbing_services/Plumbing_services'
-import El_inst_services from './Pages/Services/El_inst_services/El_inst_services'
-import Transport_services from './Pages/Services/Transport_services/Transport_services'
-import Transport_jur_services from './Pages/Services/Transport_jur_services/Transport_jur_services'
-import Transport_other_services from './Pages/Services/Transport_other_services/Transport_other_services'
-import ScheduleForms from './Pages/ScheduleForms/ScheduleForms'
-import Service115 from './Pages/Service115/Service115'
-import Payment from './Pages/Payment/Payment'
-import Appeals from './Pages/ForCitizens/Appeals/Appeals'
-import AdministrativeProcedures from './Pages/ForCitizens/AdministrativeProcedures/AdministrativeProcedures'
-import SaleAndLease from './Pages/ForCitizens/SaleAndLease/SaleAndLease'
-import Tariffs from './Pages/ForCitizens/Tariffs/Tariffs'
-import BlankBmp from './Pages/ForCitizens/BlankBmp/BlankBmp'
-import PlansAndSchedules from './Pages/ForCitizens/PlansAndSchedules/PlansAndSchedules'
-import NonCashHousingSubsidies from './Pages/ForCitizens/NonCashHousingSubsidies/NonCashHousingSubsidies'
-import InformationAboutCommunal from './Pages/ForCitizens/InformationAboutCommunal/InformationAboutCommunal'
-import AssistanceDisabilities from './Pages/ForCitizens/AssistanceDisabilities/AssistanceDisabilities'
-import Surveys from './Pages/ForCitizens/Surveys/Surveys'
-import Cybersecurity from './Pages/ForCitizens/Cybersecurity/Cybersecurity'
-import News from './Pages/News/News'
-import Articles from './Pages/News/Articles/Articles'
-import BoilerMaintenance from './Pages/News/Articles/BoilerMaintenance/BoilerMaintenance'
-import UnionConference from './Pages/News/News/UnionConference/UnionConference'
-import UsefulToKnow from './Pages/News/UsefulToKnow/UsefulToKnow'
-import PhoneScammers from './Pages/News/UsefulToKnow/PhoneScammers/PhoneScammers'
-import SafeInternetCards from './Pages/News/UsefulToKnow/SafeInternetCards/SafeInternetCards'
-import PomogutBy from './Pages/News/UsefulToKnow/PomogutBy/PomogutBy'
-import BoilerSafety from './Pages/News/UsefulToKnow/BoilerSafety/BoilerSafety'
-import CompostingGuide from './Pages/News/UsefulToKnow/CompostingGuide/CompostingGuide'
-import WasteContainersGuide from './Pages/News/UsefulToKnow/WasteContainersGuide/WasteContainersGuide'
-import WasteRemovalGuide from './Pages/News/UsefulToKnow/WasteRemovalGuide/WasteRemovalGuide'
-import YardRecyclingGuide from './Pages/News/UsefulToKnow/YardRecyclingGuide/YardRecyclingGuide'
-import LandscapingGuide from './Pages/News/UsefulToKnow/LandscapingGuide/LandscapingGuide'
-import Requisites from './Pages/Requisites/Requisites'
-import WorkSchedule from './Pages/WorkSchedule/WorkSchedule'
-import NotFound from './Pages/NotFound/NotFound'
+import SEO from './Components/SEO/SEO'
+import StructuredData from './Components/StructuredData/StructuredData'
+import { seoConfigs } from './utils/seoConfig'
+import { getCurrentLanguage, initGoogleTranslate, setLanguage } from './utils/googleTranslate'
+
+// Pages — code splitting via lazy loading
+const Main = lazy(() => import('./Pages/Main/Main'))
+const Contacts = lazy(() => import('./Pages/Contacts/Contacts'))
+const About_us = lazy(() => import('./Pages/About_us/About_us'))
+const Documents = lazy(() => import('./Pages/Documents/Documents'))
+const Services = lazy(() => import('./Pages/Services/Services'))
+const Ventilation_services = lazy(() => import('./Pages/Services/Ventilation_services/Ventilation_services'))
+const Waste_services = lazy(() => import('./Pages/Services/Waste_services/Waste_services'))
+const Electro_services = lazy(() => import('./Pages/Services/Electro_services/Electro_services'))
+const Grass_services = lazy(() => import('./Pages/Services/Grass_services/Grass_services'))
+const Heating_services = lazy(() => import('./Pages/Services/Heating_services/Heating_services'))
+const Plumbing_services = lazy(() => import('./Pages/Services/Plumbing_services/Plumbing_services'))
+const El_inst_services = lazy(() => import('./Pages/Services/El_inst_services/El_inst_services'))
+const Transport_services = lazy(() => import('./Pages/Services/Transport_services/Transport_services'))
+const Transport_jur_services = lazy(() => import('./Pages/Services/Transport_jur_services/Transport_jur_services'))
+const Transport_other_services = lazy(() => import('./Pages/Services/Transport_other_services/Transport_other_services'))
+const ScheduleForms = lazy(() => import('./Pages/ScheduleForms/ScheduleForms'))
+const Service115 = lazy(() => import('./Pages/Service115/Service115'))
+const Payment = lazy(() => import('./Pages/Payment/Payment'))
+const Appeals = lazy(() => import('./Pages/ForCitizens/Appeals/Appeals'))
+const AdministrativeProcedures = lazy(() => import('./Pages/ForCitizens/AdministrativeProcedures/AdministrativeProcedures'))
+const SaleAndLease = lazy(() => import('./Pages/ForCitizens/SaleAndLease/SaleAndLease'))
+const Tariffs = lazy(() => import('./Pages/ForCitizens/Tariffs/Tariffs'))
+const BlankBmp = lazy(() => import('./Pages/ForCitizens/BlankBmp/BlankBmp'))
+const PlansAndSchedules = lazy(() => import('./Pages/ForCitizens/PlansAndSchedules/PlansAndSchedules'))
+const NonCashHousingSubsidies = lazy(() => import('./Pages/ForCitizens/NonCashHousingSubsidies/NonCashHousingSubsidies'))
+const InformationAboutCommunal = lazy(() => import('./Pages/ForCitizens/InformationAboutCommunal/InformationAboutCommunal'))
+const AssistanceDisabilities = lazy(() => import('./Pages/ForCitizens/AssistanceDisabilities/AssistanceDisabilities'))
+const Surveys = lazy(() => import('./Pages/ForCitizens/Surveys/Surveys'))
+const Cybersecurity = lazy(() => import('./Pages/ForCitizens/Cybersecurity/Cybersecurity'))
+const News = lazy(() => import('./Pages/News/News'))
+const Articles = lazy(() => import('./Pages/News/Articles/Articles'))
+const BoilerMaintenance = lazy(() => import('./Pages/News/Articles/BoilerMaintenance/BoilerMaintenance'))
+const UnionConference = lazy(() => import('./Pages/News/News/UnionConference/UnionConference'))
+const UsefulToKnow = lazy(() => import('./Pages/News/UsefulToKnow/UsefulToKnow'))
+const PhoneScammers = lazy(() => import('./Pages/News/UsefulToKnow/PhoneScammers/PhoneScammers'))
+const SafeInternetCards = lazy(() => import('./Pages/News/UsefulToKnow/SafeInternetCards/SafeInternetCards'))
+const PomogutBy = lazy(() => import('./Pages/News/UsefulToKnow/PomogutBy/PomogutBy'))
+const BoilerSafety = lazy(() => import('./Pages/News/UsefulToKnow/BoilerSafety/BoilerSafety'))
+const CompostingGuide = lazy(() => import('./Pages/News/UsefulToKnow/CompostingGuide/CompostingGuide'))
+const WasteContainersGuide = lazy(() => import('./Pages/News/UsefulToKnow/WasteContainersGuide/WasteContainersGuide'))
+const WasteRemovalGuide = lazy(() => import('./Pages/News/UsefulToKnow/WasteRemovalGuide/WasteRemovalGuide'))
+const YardRecyclingGuide = lazy(() => import('./Pages/News/UsefulToKnow/YardRecyclingGuide/YardRecyclingGuide'))
+const LandscapingGuide = lazy(() => import('./Pages/News/UsefulToKnow/LandscapingGuide/LandscapingGuide'))
+const GSZPortal = lazy(() => import('./Pages/News/UsefulToKnow/GSZPortal/GSZPortal'))
+const Requisites = lazy(() => import('./Pages/Requisites/Requisites'))
+const WorkSchedule = lazy(() => import('./Pages/WorkSchedule/WorkSchedule'))
+const NotFound = lazy(() => import('./Pages/NotFound/NotFound'))
+const Manager = lazy(() => import('./Pages/Manager/Manager'))
 
 const routeTitles: Record<string, string> = {
   '/': 'Главная - КЖУП "Буда-Кошелёвский коммунальник"',
@@ -66,7 +70,6 @@ const routeTitles: Record<string, string> = {
   '/requisites': 'Реквизиты - КЖУП "Буда-Кошелёвский коммунальник"',
   '/work_schedule': 'Режим работы - КЖУП "Буда-Кошелёвский коммунальник"',
   '/contacts': 'Контакты - КЖУП "Буда-Кошелёвский коммунальник"',
-  '/vacancies': 'Вакансии - КЖУП "Буда-Кошелёвский коммунальник"',
   '/documents': 'Документы - КЖУП "Буда-Кошелёвский коммунальник"',
   '/services': 'Услуги - КЖУП "Буда-Кошелёвский коммунальник"',
   '/ventilation_services': 'Услуги вентиляционных и дымовых каналов - КЖУП "Буда-Кошелёвский коммунальник"',
@@ -105,6 +108,8 @@ const routeTitles: Record<string, string> = {
   '/news/useful_to_know/waste_removal_guide': 'Памятка по вывозу коммунальных отходов - КЖУП "Буда-Кошелёвский коммунальник"',
   '/news/useful_to_know/yard_recycling_guide': 'Памятка по раздельному сбору отходов - КЖУП "Буда-Кошелёвский коммунальник"',
   '/news/useful_to_know/landscaping_guide': 'Памятка по благоустройству - КЖУП "Буда-Кошелёвский коммунальник"',
+  '/news/useful_to_know/gsz_portal': 'Портал государственной службы занятости - КЖУП "Буда-Кошелёвский коммунальник"',
+  '/manager': 'Панель управления - КЖУП "Буда-Кошелёвский коммунальник"',
   '*': 'Страница не найдена - КЖУП "Буда-Кошелёвский коммунальник"',
 };
 
@@ -116,7 +121,6 @@ function PageTitleUpdater() {
     document.title = title;
   }, [location]);
 
-  // SEO компонент для динамического обновления meta-тегов
   const seoConfig = seoConfigs[location.pathname] || seoConfigs['/'];
 
   return <SEO {...seoConfig} />;
@@ -130,7 +134,7 @@ function App() {
   useEffect(() => {
     const updateHeaderHeight = () => {
       if (ref.current) {
-        setHeaderHeight(ref.current.offsetHeight+20);
+        setHeaderHeight(ref.current.offsetHeight + 20);
       }
     };
     updateHeaderHeight();
@@ -140,18 +144,30 @@ function App() {
     };
   }, []);
 
-  // Исправление для iOS Safari - правильная высота viewport
   useEffect(() => {
     const updateViewportHeight = () => {
       setViewportHeight(window.innerHeight);
     };
-    
+
     updateViewportHeight();
     window.addEventListener('resize', updateViewportHeight);
-    
+
     return () => {
       window.removeEventListener('resize', updateViewportHeight);
     };
+  }, []);
+
+  useEffect(() => {
+    const setupLanguage = async () => {
+      const savedLang = getCurrentLanguage();
+      if (savedLang === 'ru') return;
+
+      // Загружаем Google Translate динамически, т.к. нужен перевод
+      await initGoogleTranslate();
+      await setLanguage(savedLang);
+    };
+
+    setupLanguage();
   }, []);
 
   return (
@@ -164,57 +180,62 @@ function App() {
         <Header ref={ref} />
         <FixedLanguageSelector />
         <ScrollToTopButton />
-        <div style={{ overflow: 'auto', justifyContent: 'space-between', height: '100%', display: 'flex', flexDirection: 'column', paddingTop: headerHeight }}>
-          <Breadcrumbs />
-          <Routes>
-            <Route path="/" element={<Main />} />
-            <Route path='/about_us' element={<About_us />} />
-            <Route path='/requisites' element={<Requisites />} />
-            <Route path='/work_schedule' element={<WorkSchedule />} />
-            <Route path="/contacts" element={<Contacts />} />
-            <Route path="/vacancies" element={<Vacancies />} />
-            <Route path='/documents' element={<Documents />} />
-            <Route path='/services' element={<Services />} />
-            <Route path='/ventilation_services' element={<Ventilation_services />} />
-            <Route path='/waste_services' element={<Waste_services />} />
-            <Route path='/electro_services' element={<Electro_services />} />
-            <Route path='/grass_services' element={<Grass_services />} />
-            <Route path='/heating_services' element={<Heating_services />} />
-            <Route path='/plumbing_services' element={<Plumbing_services />} />
-            <Route path='/el_inst_services' element={<El_inst_services />} />
-            <Route path='/transport_services' element={<Transport_services />} />
-            <Route path='/transport_jur_services' element={<Transport_jur_services />} />
-            <Route path='/transport_other_services' element={<Transport_other_services />} />
-            <Route path='/schedule_forms' element={<ScheduleForms />} />
-            <Route path='/service_115' element={<Service115 />} />
-            <Route path='/payment' element={<Payment />} />
-            <Route path='/appeals' element={<Appeals />} />
-            <Route path='/administrative_procedures' element={<AdministrativeProcedures />} />
-            <Route path='/sale_and_lease' element={<SaleAndLease />} />
-            <Route path='/tariffs' element={<Tariffs />} />
-            <Route path='/blank_bmp' element={<BlankBmp />} />
-            <Route path='/plans_and_schedules' element={<PlansAndSchedules />} />
-            <Route path='/non_cash_housing_subsidies' element={<NonCashHousingSubsidies />} />
-            <Route path='/information_about_communal' element={<InformationAboutCommunal />} />
-            <Route path='/assistance_disabilities' element={<AssistanceDisabilities />} />
-            <Route path='/surveys' element={<Surveys />} />
-            <Route path='/cybersecurity' element={<Cybersecurity />} />
-            <Route path='/news' element={<News />} />
-            <Route path='/news/union_conference' element={<UnionConference />} />
-            <Route path='/news/articles' element={<Articles />} />
-            <Route path='/news/articles/boiler_maintenance' element={<BoilerMaintenance />} />
-            <Route path='/news/useful_to_know' element={<UsefulToKnow />} />
-            <Route path='/news/useful_to_know/phone_scammers' element={<PhoneScammers />} />
-            <Route path='/news/useful_to_know/safe_internet_cards' element={<SafeInternetCards />} />
-            <Route path='/news/useful_to_know/pomogut_by' element={<PomogutBy />} />
-            <Route path='/news/useful_to_know/boiler_safety' element={<BoilerSafety />} />
-            <Route path='/news/useful_to_know/composting_guide' element={<CompostingGuide />} />
-            <Route path='/news/useful_to_know/waste_containers_guide' element={<WasteContainersGuide />} />
-            <Route path='/news/useful_to_know/waste_removal_guide' element={<WasteRemovalGuide />} />
-            <Route path='/news/useful_to_know/yard_recycling_guide' element={<YardRecyclingGuide />} />
-            <Route path='/news/useful_to_know/landscaping_guide' element={<LandscapingGuide />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+        <div style={{ overflow: 'auto', height: '100%', display: 'flex', flexDirection: 'column', paddingTop: headerHeight }}>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <Breadcrumbs />
+            <Suspense fallback={<Loading />}>
+              <Routes>
+                <Route path="/" element={<Main />} />
+                <Route path='/about_us' element={<About_us />} />
+                <Route path='/requisites' element={<Requisites />} />
+                <Route path='/work_schedule' element={<WorkSchedule />} />
+                <Route path="/contacts" element={<Contacts />} />
+                <Route path='/documents' element={<Documents />} />
+                <Route path='/services' element={<Services />} />
+                <Route path='/ventilation_services' element={<Ventilation_services />} />
+                <Route path='/waste_services' element={<Waste_services />} />
+                <Route path='/electro_services' element={<Electro_services />} />
+                <Route path='/grass_services' element={<Grass_services />} />
+                <Route path='/heating_services' element={<Heating_services />} />
+                <Route path='/plumbing_services' element={<Plumbing_services />} />
+                <Route path='/el_inst_services' element={<El_inst_services />} />
+                <Route path='/transport_services' element={<Transport_services />} />
+                <Route path='/transport_jur_services' element={<Transport_jur_services />} />
+                <Route path='/transport_other_services' element={<Transport_other_services />} />
+                <Route path='/schedule_forms' element={<ScheduleForms />} />
+                <Route path='/service_115' element={<Service115 />} />
+                <Route path='/payment' element={<Payment />} />
+                <Route path='/appeals' element={<Appeals />} />
+                <Route path='/administrative_procedures' element={<AdministrativeProcedures />} />
+                <Route path='/sale_and_lease' element={<SaleAndLease />} />
+                <Route path='/tariffs' element={<Tariffs />} />
+                <Route path='/blank_bmp' element={<BlankBmp />} />
+                <Route path='/plans_and_schedules' element={<PlansAndSchedules />} />
+                <Route path='/non_cash_housing_subsidies' element={<NonCashHousingSubsidies />} />
+                <Route path='/information_about_communal' element={<InformationAboutCommunal />} />
+                <Route path='/assistance_disabilities' element={<AssistanceDisabilities />} />
+                <Route path='/surveys' element={<Surveys />} />
+                <Route path='/cybersecurity' element={<Cybersecurity />} />
+                <Route path='/news' element={<News />} />
+                <Route path='/news/union_conference' element={<UnionConference />} />
+                <Route path='/news/articles' element={<Articles />} />
+                <Route path='/news/articles/boiler_maintenance' element={<BoilerMaintenance />} />
+                <Route path='/news/useful_to_know' element={<UsefulToKnow />} />
+                <Route path='/news/useful_to_know/phone_scammers' element={<PhoneScammers />} />
+                <Route path='/news/useful_to_know/safe_internet_cards' element={<SafeInternetCards />} />
+                <Route path='/news/useful_to_know/pomogut_by' element={<PomogutBy />} />
+                <Route path='/news/useful_to_know/boiler_safety' element={<BoilerSafety />} />
+                <Route path='/news/useful_to_know/composting_guide' element={<CompostingGuide />} />
+                <Route path='/news/useful_to_know/waste_containers_guide' element={<WasteContainersGuide />} />
+                <Route path='/news/useful_to_know/waste_removal_guide' element={<WasteRemovalGuide />} />
+                <Route path='/news/useful_to_know/yard_recycling_guide' element={<YardRecyclingGuide />} />
+                <Route path='/news/useful_to_know/landscaping_guide' element={<LandscapingGuide />} />
+                <Route path='/news/useful_to_know/gsz_portal' element={<GSZPortal />} />
+                <Route path='/manager' element={<Manager />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
+          </div>
           <Footer />
         </div>
       </div>

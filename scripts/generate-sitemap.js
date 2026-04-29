@@ -43,7 +43,15 @@ const pages = [
   { url: '/cybersecurity', priority: '0.7', changefreq: 'monthly' },
   
   // Новости
+  { url: '/news', priority: '0.8', changefreq: 'weekly' },
+  { url: '/news/union_conference', priority: '0.6', changefreq: 'monthly' },
+  { url: '/news/articles', priority: '0.7', changefreq: 'weekly' },
+  { url: '/news/articles/boiler_maintenance', priority: '0.6', changefreq: 'monthly' },
   { url: '/news/useful_to_know', priority: '0.7', changefreq: 'weekly' },
+  { url: '/news/useful_to_know/gsz_portal', priority: '0.6', changefreq: 'monthly' },
+
+  // Панель управления
+  { url: '/manager', priority: '0.3', changefreq: 'monthly' },
   { url: '/news/useful_to_know/phone_scammers', priority: '0.6', changefreq: 'monthly' },
   { url: '/news/useful_to_know/safe_internet_cards', priority: '0.6', changefreq: 'monthly' },
   { url: '/news/useful_to_know/pomogut_by', priority: '0.6', changefreq: 'monthly' },

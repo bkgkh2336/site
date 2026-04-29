@@ -1,6 +1,18 @@
 RewriteEngine On
 RewriteBase /
 
-# Всё, что приходит на домен, отправляем в папку dist
+# 1. Статика из dist/public/ (departments, documents, uploads и т.д.)
+RewriteCond %{REQUEST_URI} !^/dist/public/
+RewriteCond %{DOCUMENT_ROOT}/dist/public%{REQUEST_URI} -f [OR]
+RewriteCond %{DOCUMENT_ROOT}/dist/public%{REQUEST_URI} -d
+RewriteRule ^(.*)$ dist/public/$1 [L]
+
+# 2. Если файл/папка существуют в dist/ (assets, index.html)
 RewriteCond %{REQUEST_URI} !^/dist/
+RewriteCond %{DOCUMENT_ROOT}/dist%{REQUEST_URI} -f [OR]
+RewriteCond %{DOCUMENT_ROOT}/dist%{REQUEST_URI} -d
 RewriteRule ^(.*)$ dist/$1 [L]
+
+# 3. Всё остальное — React SPA fallback
+RewriteCond %{REQUEST_URI} !^/dist/
+RewriteRule ^(.*)$ dist/index.html [L]

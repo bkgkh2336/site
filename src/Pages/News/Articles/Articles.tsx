@@ -40,7 +40,7 @@ const Articles = () => {
                         key={index}
                         onClick={() => navigate(article.url)}
                     >
-                        <ArticleImage src={article.image} alt={article.title} />
+                        <ArticleImage src={article.image} alt={article.title} loading="lazy" />
                         <ArticleContent>
                             <ArticleTitle>{article.title}</ArticleTitle>
                             <ArticleDate>
