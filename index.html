@@ -40,12 +40,93 @@
 
   <!-- Theme Color -->
   <meta name="theme-color" content="#28a745" />
+  <style>
+    /* Google Translate widget compact style */
+    #google_translate_element {
+      position: fixed;
+      top: 8px;
+      right: 120px;
+      z-index: 9999;
+      font-size: 14px;
+    }
+    /* Hide the banner but keep the select */
+    .goog-te-banner { display: none !important; }
+    .goog-te-menu-frame { display: none !important; }
+    body > .skiptranslate { display: none !important; }
+  </style>
+  <!-- Google Translate Widget -->
+  <div id="google_translate_element"></div>
+  <script>
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'ru',
+        includedLanguages: 'ru,en,be',
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false
+      }, 'google_translate_element');
+      window.googleTranslateReady = true;
+      translatePage();
+    }
+
+    function translatePage() {
+      window.translatePage = translatePage;
+      if (!window.googleTranslateReady || !window.google || !window.google.translate) return;
+      var lang = getCurrentLang();
+      if (!lang || lang === 'ru') return;
+      var select = document.getElementById('google_translate_element');
+      if (!select) return;
+      var comboBox = select.querySelector('.goog-te-combo');
+      if (comboBox) {
+        comboBox.value = lang;
+        comboBox.dispatchEvent(new Event('change'));
+      }
+    }
+
+    function getCurrentLang() {
+      var match = document.cookie.match(/googtrans=\/auto\/(\w+)/);
+      return match ? match[1] : null;
+    }
+
+    function debounceTranslate() {
+      translatePage();
+    }
+
+    document.addEventListener('click', function(e) {
+      var link = e.target.closest('a');
+      if (link && link.href && link.href.startsWith(window.location.origin) && !link.target) {
+        setTimeout(debounceTranslate, 200);
+      }
+    }, true);
+
+    var observer = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.addedNodes.length > 0) {
+          translatePage();
+        }
+      });
+    });
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() {
+        observer.observe(document.body, { childList: true, subtree: true });
+      });
+    } else {
+      observer.observe(document.body, { childList: true, subtree: true });
+    }
+  </script>
+  <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </head>
 
 <body>
+  <script>
+    var process = window.process || { env: {} };
+    window.process = process;
+  </script>
+
+
+
   <div id="root"></div>
   <script type="module" src="./src/main.tsx"></script>
-
 </body>
 
 </html>
