@@ -50,12 +50,6 @@ import {
     YearBannerTitle,
     YearBannerText,
     YearBannerLink,
-    InfoBannerSection,
-    InfoBannerContainer,
-    InfoBannerContent,
-    InfoBannerTitle,
-    InfoBannerText,
-    InfoBannerLink,
     StatsSection,
     StatsContainer,
     StatCard,
@@ -288,26 +282,7 @@ const Main = () => {
                 </YearBannerContainer>
             </YearBannerSection>
 
-            <InfoBannerSection>
-                <InfoBannerContainer 
-                    onClick={() => window.open('/documents/profsouz_priem.pdf', '_blank', 'noopener,noreferrer')}
-                >
-                    <InfoBannerContent>
-                        <InfoBannerTitle>
-                            📅 Республиканский профсоюзный правовой прием граждан
-                        </InfoBannerTitle>
-                        <InfoBannerText style={{ fontSize: '18px', fontWeight: 500, color: '#0d47a1' }}>
-                            В Гомельской области
-                        </InfoBannerText>
-                        <InfoBannerText>
-                            Прием будет проводиться 30 апреля 2026 года. Юристы профсоюза окажут бесплатную юридическую помощь по вопросам трудового законодательства, социального обеспечения, жилищных и других прав граждан.
-                        </InfoBannerText>
-                        <InfoBannerLink>
-                            Подробнее и график приема <ArrowRight size={16} />
-                        </InfoBannerLink>
-                    </InfoBannerContent>
-                </InfoBannerContainer>
-            </InfoBannerSection>
+            
 
             <StatsSection>
                 <StatsContainer>
