@@ -17,6 +17,11 @@ export const Section_tooltip_ = styled(Block_)`
     transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
     will-change: opacity, transform;
     animation: fade-in 0.3s ease-out;
+    display: none;
+    
+    &.visible {
+        display: flex;
+    }
     
     &.hiding {
         transform: translateY(-5px);

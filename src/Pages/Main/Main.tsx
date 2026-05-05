@@ -196,13 +196,13 @@ const Main = () => {
             <HeroSection>
                 <HeroContent>
                     <HeroText>
-                        <HeroTitle>
-                            КЖУП "Буда-Кошелёвский коммунальник"
-                        </HeroTitle>
-                        <HeroSubtitle>
-                            Надежный партнер в сфере жилищно-коммунальных услуг. 
-                            Обеспечиваем комфорт и безопасность вашего дома.
-                        </HeroSubtitle>
+                    <HeroTitle>
+                        КЖУП "Буда-Кошелёвский коммунальник"
+                    </HeroTitle>
+                    <HeroSubtitle>
+                        Надежный партнер в сфере жилищно-коммунальных услуг. 
+                        Обеспечиваем комфорт и безопасность вашего дома.
+                    </HeroSubtitle>
                         <HeroButtons>
                             <PrimaryButton onClick={() => navigate('/services')}>
                                 Наши услуги

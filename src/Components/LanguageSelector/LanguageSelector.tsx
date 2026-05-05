@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
-import { getCurrentLanguage, setLanguage, type Language } from "../../utils/googleTranslate";
 import { 
     LanguageSelectorContainer, 
     LanguageButton, 
@@ -13,16 +12,31 @@ interface LanguageSelectorProps {
     isMobile?: boolean;
 }
 
-const languages = {
+type LangKey = 'ru' | 'be' | 'en';
+const languages: Record<LangKey, { code: string; name: string; flag: string; color: string }> = {
     ru: { code: 'RU', name: 'Русский', flag: '🇷🇺', color: '#0039A6' },
     be: { code: 'BY', name: 'Беларуская', flag: '🇧🇾', color: '#CD163F' },
     en: { code: 'EN', name: 'English', flag: '🇬🇧', color: '#012169' }
 };
 
 const LanguageSelector = ({ isMobile = false }: LanguageSelectorProps) => {
-    const [currentLanguage, setCurrentLanguage] = useState<Language>(getCurrentLanguage);
+    type CurrentLang = keyof typeof languages;
+    const [currentLanguage, setCurrentLanguage] = useState<CurrentLang>('ru');
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+
+    // Load saved language on mount
+    useEffect(() => {
+        const saved = localStorage.getItem('jkx_language') as CurrentLang | null;
+        if (saved && saved in languages) {
+            setCurrentLanguage(saved);
+        }
+    }, []);
+
+    // Persist language on change
+    useEffect(() => {
+        localStorage.setItem('jkx_language', currentLanguage);
+    }, [currentLanguage]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -35,15 +49,17 @@ const LanguageSelector = ({ isMobile = false }: LanguageSelectorProps) => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const handleLanguageChange = async (lang: Language) => {
-        if (lang === currentLanguage) {
-            setIsOpen(false);
-            return;
-        }
-        setCurrentLanguage(lang);
-        setIsOpen(false);
-        await setLanguage(lang);
-    };
+    const currentLang = languages[currentLanguage];
+
+    // Update document language attribute to help Google Translate detect source/target language
+    useEffect(() => {
+        const codeMap: Record<"ru"|"be"|"en", string> = {
+            ru: 'ru',
+            be: 'be',
+            en: 'en'
+        };
+        document.documentElement.lang = codeMap[currentLanguage];
+    }, [currentLanguage]);
 
     return (
         <LanguageSelectorContainer ref={dropdownRef} $isMobile={isMobile}>
@@ -57,8 +73,8 @@ const LanguageSelector = ({ isMobile = false }: LanguageSelectorProps) => {
                 data-current-lang={currentLanguage}
             >
                 <CurrentLanguage $isMobile={isMobile}>
-                    <span className="flag-indicator" style={{ backgroundColor: languages[currentLanguage].color }}></span>
-                    <span className="code">{languages[currentLanguage].code}</span>
+                    <span className="flag-indicator" style={{ backgroundColor: currentLang?.color }}></span>
+                    <span className="code">{currentLang?.code}</span>
                 </CurrentLanguage>
                 <ChevronDown 
                     className="chevron-icon"
@@ -70,22 +86,26 @@ const LanguageSelector = ({ isMobile = false }: LanguageSelectorProps) => {
             </LanguageButton>
 
             <LanguageDropdown $isOpen={isOpen} $isMobile={isMobile}>
-                {Object.entries(languages).map(([key, lang]) => (
-                    <LanguageOption
-                        key={key}
-                        $isActive={currentLanguage === key}
-                        $isMobile={isMobile}
-                        style={{ display: currentLanguage === key ? 'none' : 'flex' }}
-                        onClick={(e) => {
-                            e.preventDefault();
-                            handleLanguageChange(key as Language);
-                        }}
-                        href="#"
-                    >
-                        <span className="flag-indicator" style={{ backgroundColor: lang.color }}></span>
-                        <span className="code">{lang.code}</span>
-                    </LanguageOption>
-                ))}
+                {Object.entries(languages).map(([key, lang]) => {
+                    const k = key as LangKey;
+                    const isActive = currentLanguage === k;
+                    return (
+                        <LanguageOption
+                            key={key}
+                            $isActive={isActive}
+                            $isMobile={isMobile}
+                            onClick={(e) => {
+                                e.preventDefault();
+                                setCurrentLanguage(k);
+                                setIsOpen(false);
+                            }}
+                            href="#"
+                        >
+                            <span className="flag-indicator" style={{ backgroundColor: lang.color }}></span>
+                            <span className="code">{lang.code}</span>
+                        </LanguageOption>
+                    );
+                })}
             </LanguageDropdown>
         </LanguageSelectorContainer>
     );

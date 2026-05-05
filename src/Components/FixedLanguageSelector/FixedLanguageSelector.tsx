@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from "react";
 import FlagSvg from "../FlagSvg/FlagSvg";
 import { ChevronDown, Eye } from "lucide-react";
 import AccessibilityPanel from "../AccessibilityPanel/AccessibilityPanel";
-import { getCurrentLanguage, setLanguage, initGoogleTranslate, type Language } from "../../utils/googleTranslate";
 import { 
     Container, 
     SelectorButton, 
@@ -18,8 +17,25 @@ const languages = {
     en: { code: 'EN', name: 'English', countryCode: 'gb' as const }
 };
 
+type Lang = keyof typeof languages;
+
+// Helper to get language from cookie
+function getLangFromCookie(): Lang | null {
+    const match = document.cookie.match(/googtrans=\/auto\/(\w+)/);
+    if (match && match[1]) {
+        const lang = match[1] as Lang;
+        if (lang in languages) return lang;
+    }
+    return null;
+}
+
 const FixedLanguageSelector = () => {
-    const [currentLanguage, setCurrentLanguage] = useState<Language>(getCurrentLanguage);
+    const [currentLanguage, setCurrentLanguage] = useState<Lang>(() => {
+        // First try cookie, then localStorage, fallback to 'ru'
+        return getLangFromCookie() || 
+               (localStorage.getItem('jkx_language') as Lang | null) || 
+               'ru';
+    });
     const [isOpen, setIsOpen] = useState(false);
     const [isAccessibilityOpen, setIsAccessibilityOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -35,16 +51,21 @@ const FixedLanguageSelector = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const handleLanguageChange = async (lang: Language) => {
+    useEffect(() => {
+        localStorage.setItem('jkx_language', currentLanguage);
+    }, [currentLanguage]);
+
+    const handleLanguageChange = (lang: Lang) => {
         if (lang === currentLanguage) {
             setIsOpen(false);
             return;
         }
-        // Загружаем Google Translate при первой смене языка
-        await initGoogleTranslate();
         setCurrentLanguage(lang);
         setIsOpen(false);
-        await setLanguage(lang);
+
+        // Set Google Translate cookie and reload page
+        document.cookie = `googtrans=/auto/${lang}; path=/; max-age=3600`;
+        window.location.reload();
     };
 
     return (
@@ -90,7 +111,7 @@ const FixedLanguageSelector = () => {
                         style={{ display: currentLanguage === key ? 'none' : 'flex' }}
                         onClick={(e) => {
                             e.preventDefault();
-                            handleLanguageChange(key as Language);
+                            handleLanguageChange(key as Lang);
                         }}
                         href="#"
                     >

@@ -177,10 +177,22 @@ const Section = (props: SectionProps) => {
     }
 
     // Для desktop меню оставляем hover
+    const triggerTranslate = () => {
+        const match = document.cookie.match(/googtrans=\/auto\/(\w+)/);
+        const lang = match ? match[1] : null;
+        if (lang && lang !== 'ru') {
+            const combo = document.querySelector('.goog-te-combo') as HTMLSelectElement;
+            if (combo && combo.value !== lang) {
+                combo.value = lang;
+                combo.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        }
+    };
+
     return (
         <div
             onClick={() => props.url && handleNavigation(props.url)}
-            onMouseEnter={() => setIsVisibleCard(true)}
+            onMouseEnter={() => { setIsVisibleCard(true); triggerTranslate(); }}
             onMouseLeave={() => setIsHidingCard(true)}
         >
             <Button style={{ boxShadow: 'none' }}>
@@ -194,8 +206,8 @@ const Section = (props: SectionProps) => {
                     {props.caption}
                 </Text>
             </Button>
-            {isVisibleCard && props.list && props.list.length > 0 &&
-                <Section_tooltip isHidingCard={isHidingCard}>
+            {props.list && props.list.length > 0 &&
+                <Section_tooltip style={{ display: isVisibleCard ? 'flex' : 'none' }}>
                     {props.list.map((item) => (
                         <Button
                             key={item.caption}
