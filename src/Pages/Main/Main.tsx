@@ -257,11 +257,12 @@ const Main = () => {
             <YearBannerSection>
                 <YearBannerContainer>
                     <YearBannerImage 
-                        src="/2026.jpg" 
+                        src="/2026_.jpg"
                         alt="2026 - Год белорусской женщины"
                         loading="lazy"
                         width="1200"
                         height="400"
+                        
                     />
                     <YearBannerContent>
                         <YearBannerTitle>2026 — Год белорусской женщины</YearBannerTitle>

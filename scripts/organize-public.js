@@ -21,15 +21,9 @@ for (const item of items) {
 
   const src = path.join(publicDir, item);
   
-  // Перемещаем только директории (assets, articles, departments и т.д.)
+  // Пропускаем директории - они уже в правильном месте
   if (fs.statSync(src).isDirectory()) {
-    const dest = path.join(publicDir, item);
-    // Удаляем старую директорию если она существует
-    if (fs.existsSync(dest)) {
-      fs.rmSync(dest, { recursive: true });
-    }
-    fs.renameSync(src, dest);
-    console.log(`✅ Каталог ${item} перемещен в public/${item}`);
+    console.log(`✅ Каталог ${item} уже на месте`);
     movedCount++;
   }
 }
