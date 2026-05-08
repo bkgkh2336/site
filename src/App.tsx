@@ -12,6 +12,7 @@ import Breadcrumbs from './Components/Breadcrumbs/Breadcrumbs'
 import SEO from './Components/SEO/SEO'
 import StructuredData from './Components/StructuredData/StructuredData'
 import { seoConfigs } from './utils/seoConfig'
+import AccessibilityPanel from './Components/AccessibilityPanel/AccessibilityPanel'
 
 // Pages — code splitting via lazy loading
 const Main = lazy(() => import('./Pages/Main/Main'))
@@ -165,8 +166,6 @@ function App() {
       <div style={{ display: 'flex', flexDirection: 'column', height: `${viewportHeight}px` }}>
         <Header ref={ref} />
         <FixedLanguageSelector />
-        {/* Google Translate widget container (hidden, controlled via our selector) */}
-        <div id="google_translate_element" style={{ display: 'none' }} />
         <ScrollToTopButton />
         <div style={{ overflow: 'auto', height: '100%', display: 'flex', flexDirection: 'column', paddingTop: headerHeight }}>
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
