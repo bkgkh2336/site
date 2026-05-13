@@ -57,10 +57,17 @@ const News = () => {
             isExternal: true
         },
         {
-            title: "Чернобыль: от возрождения до устойчивого развития. Информационно-пропагандистская группа под руководством начальника главного управления юстиции Гомельского облисполкома Артема Камалыева встретилась с коллективом КЖУП «Буда-Кошелевский коммунальник»",
+            title: "Чернобыль: от возрождения до устойчивого развития",
             image: "https://www.budakosh.by/wp-content/uploads/2026/04/img_5133.jpg",
             url: "https://www.budakosh.by/2026/04/chernobyl-ot-vozrozhdeniya-do-ustojchivogo-razvitiya-informaczionno-propagandistskaya-gruppa-pod-rukovodstvom-nachalnika-glavnogo-upravleniya-yusticzii-gomelskogo-oblispolkoma-artema-kamalyeva-vstre/",
             publishedDate: "16.04.2026",
+            isExternal: true
+        },
+        {
+            title: "Как в Буда-Кошелевском коммунальнике вытаскивают работников из алкогольного пика",
+            image: "/news/New_alcho.jpg",
+            url: "https://gp.by/novosti/obshchestvo/news317591.html",
+            publishedDate: "11.05.2026",
             isExternal: true
         },
     ];

@@ -57,6 +57,7 @@ const pageHierarchy: PageMap = {
     '/news/useful_to_know/landscaping_guide': { name: 'Благоустройство', parent: [{ name: 'Пресс-центр' }, { name: 'Полезно знать', url: '/news/useful_to_know' }] },
     '/news/articles': { name: 'Статьи', parent: [{ name: 'Пресс-центр' }] },
     '/news/articles/boiler_maintenance': { name: 'Профилактика и уход за котельными установками', parent: [{ name: 'Пресс-центр' }, { name: 'Статьи', url: '/news/articles' }] },
+    '/news/articles/attractions_safety': { name: 'Аттракцион должен быть безопасным!', parent: [{ name: 'Пресс-центр' }, { name: 'Статьи', url: '/news/articles' }] },
     
     // Документы
     '/documents': { name: 'Документы' },

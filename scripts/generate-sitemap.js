@@ -47,6 +47,7 @@ const pages = [
   { url: '/news/union_conference', priority: '0.6', changefreq: 'monthly' },
   { url: '/news/articles', priority: '0.7', changefreq: 'weekly' },
   { url: '/news/articles/boiler_maintenance', priority: '0.6', changefreq: 'monthly' },
+  { url: '/news/articles/attractions_safety', priority: '0.6', changefreq: 'monthly' },
   { url: '/news/useful_to_know', priority: '0.7', changefreq: 'weekly' },
   { url: '/news/useful_to_know/gsz_portal', priority: '0.6', changefreq: 'monthly' },
 
