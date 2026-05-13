@@ -70,7 +70,7 @@ const Contact = (props: ContactProps) => {
                     {props.phone && props.phone.map((x, index) =>
                         <div key={index} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                             <Phone style={{ width: '1rem', height: '1rem', color: '#28a745' }} />
-                            <Text>{x}</Text>
+                            <Text><a href={`tel:${x.replace(/[^+\d]/g, '')}`} style={{ color: 'inherit', textDecoration: 'none' }}>{x}</a></Text>
                         </div>
                     )}
                 </Block>
