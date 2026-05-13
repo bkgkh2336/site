@@ -27,8 +27,21 @@ const Articles = () => {
             image: "/articles/prevention_and_maintenance_of_boiler_installations_during_frosts.jpg",
             url: "/news/articles/boiler_maintenance",
             publishedDate: "28.01.2026 19:00"
+        },
+        {
+            title: "Аттракцион должен быть безопасным!",
+            image: "/articles/attractions.jpg",
+            url: "/news/articles/attractions_safety",
+            publishedDate: "13.05.2026 14:00"
         }
-    ];
+    ].sort((a, b) => {
+        const parseDate = (s: string) => {
+            const [date, time] = s.split(' ');
+            const [d, m, y] = date.split('.');
+            return new Date(+y, +m - 1, +d, ...time.split(':').map(Number));
+        };
+        return parseDate(b.publishedDate).getTime() - parseDate(a.publishedDate).getTime();
+    });
 
     return (
         <ArticlesContainer>
