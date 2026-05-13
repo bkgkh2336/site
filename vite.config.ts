@@ -67,7 +67,15 @@ export default defineConfig({
         target: 'http://localhost:8000',
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path.replace(/^\/backend/, '')
+        rewrite: (path) => path.replace(/^\/backend/, ''),
+        configure: (proxy, options) => {
+          // Перенаправляем куки
+          proxy.on('proxyRes', function (proxyRes, req, res) {
+            if (proxyRes.headers['set-cookie']) {
+              res.setHeader('set-cookie', proxyRes.headers['set-cookie']);
+            }
+          });
+        }
       }
     }
   },

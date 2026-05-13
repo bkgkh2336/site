@@ -5,6 +5,8 @@ import Button from '../../../Components/Button/Button';
 interface DepartmentData {
   id: number;
   name: string;
+  description?: string;
+  head?: string;
   email?: string;
   src?: string;
 }
@@ -41,19 +43,19 @@ const DepartmentEditForm: React.FC<DepartmentEditFormProps> = ({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
       <div>
-        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Изображение:</label>
+        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Фото/Логотип:</label>
         {department.src && (
           <div style={{ marginBottom: 10 }}>
             <img 
-              src={`departments/${department.src}`} 
-              alt="Изображение отдела" 
-              style={{ width: 150, height: 150, objectFit: 'cover', marginBottom: 5 }}
+              src={department.src} 
+              alt="Фото отдела" 
+              style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 8, marginBottom: 5 }}
             />
             <Button 
               onClick={() => onDepartmentChange({ ...department, src: undefined })}
               style={{ backgroundColor: '#dc3545', padding: '5px 10px', fontSize: 12 }}
             >
-              Удалить изображение
+              Удалить фото
             </Button>
           </div>
         )}
@@ -67,6 +69,7 @@ const DepartmentEditForm: React.FC<DepartmentEditFormProps> = ({
           style={{ marginTop: 5 }}
         />
       </div>
+
       <div>
         <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Название отдела:</label>
         <Input
@@ -75,14 +78,27 @@ const DepartmentEditForm: React.FC<DepartmentEditFormProps> = ({
           placeholder="Название отдела"
         />
       </div>
+      
       <div>
-        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Email:</label>
+        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Руководитель:</label>
         <Input
-          value={department.email || ''}
-          onChange={(e) => onDepartmentChange({ ...department, email: e.target.value })}
-          placeholder="Email"
+          value={department.head || ''}
+          onChange={(e) => onDepartmentChange({ ...department, head: e.target.value })}
+          placeholder="ФИО руководителя"
         />
       </div>
+      
+      <div>
+        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Описание:</label>
+        <Input
+          value={department.description || ''}
+          onChange={(e) => onDepartmentChange({ ...department, description: e.target.value })}
+          placeholder="Описание отдела"
+          as="textarea"
+          style={{ minHeight: 80, resize: 'vertical' }}
+        />
+      </div>
+      
       <div>
         <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Телефоны:</label>
         {phones.map((phone, index) => (
@@ -103,15 +119,34 @@ const DepartmentEditForm: React.FC<DepartmentEditFormProps> = ({
           + Добавить телефон
         </Button>
       </div>
+      
+      <div>
+        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Email:</label>
+        <Input
+          value={department.email || ''}
+          onChange={(e) => onDepartmentChange({ ...department, email: e.target.value })}
+          placeholder="Email отдела"
+        />
+      </div>
+      
       <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
-        <Button onClick={onSave} style={{ opacity: isSaving ? 0.7 : 1 }}>
+        <Button 
+          onClick={onSave} 
+          disabled={isSaving || isDeleting}
+          style={{ opacity: isSaving ? 0.7 : 1 }}
+        >
           {isSaving ? 'Сохранение...' : 'Сохранить'}
         </Button>
-        <Button onClick={onCancel} style={{ backgroundColor: '#6c757d' }}>
+        <Button 
+          onClick={onCancel} 
+          disabled={isSaving || isDeleting}
+          style={{ backgroundColor: '#6c757d' }}
+        >
           Отмена
         </Button>
         <Button 
           onClick={onDelete} 
+          disabled={isSaving || isDeleting}
           style={{ backgroundColor: '#dc3545', opacity: isDeleting ? 0.7 : 1 }}
         >
           {isDeleting ? 'Удаление...' : 'Удалить'}
