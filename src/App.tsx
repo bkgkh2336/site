@@ -12,7 +12,6 @@ import Breadcrumbs from './Components/Breadcrumbs/Breadcrumbs'
 import SEO from './Components/SEO/SEO'
 import StructuredData from './Components/StructuredData/StructuredData'
 import { seoConfigs } from './utils/seoConfig'
-import AccessibilityPanel from './Components/AccessibilityPanel/AccessibilityPanel'
 
 // Pages — code splitting via lazy loading
 const Main = lazy(() => import('./Pages/Main/Main'))

@@ -1,10 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { useMemo } from 'react';
 import {
-    Home, 
-    Phone, 
-    Clock, 
-    ShieldCheck, 
+    Home,
+    Phone,
+    Clock,
+    ShieldCheck,
     Trash2,
     Wind,
     Zap,
@@ -196,13 +196,13 @@ const Main = () => {
             <HeroSection>
                 <HeroContent>
                     <HeroText>
-                    <HeroTitle>
-                        КЖУП "Буда-Кошелёвский коммунальник"
-                    </HeroTitle>
-                    <HeroSubtitle>
-                        Надежный партнер в сфере жилищно-коммунальных услуг. 
-                        Обеспечиваем комфорт и безопасность вашего дома.
-                    </HeroSubtitle>
+                        <HeroTitle>
+                            КЖУП "Буда-Кошелёвский коммунальник"
+                        </HeroTitle>
+                        <HeroSubtitle>
+                            Надежный партнер в сфере жилищно-коммунальных услуг.
+                            Обеспечиваем комфорт и безопасность вашего дома.
+                        </HeroSubtitle>
                         <HeroButtons>
                             <PrimaryButton onClick={() => navigate('/services')}>
                                 Наши услуги
@@ -214,8 +214,8 @@ const Main = () => {
                         </HeroButtons>
                     </HeroText>
                     <HeroImage>
-                        <img 
-                            src="/main.png" 
+                        <img
+                            src="/main.png"
                             alt="main.pg"
                             loading="lazy"
                         />
@@ -256,13 +256,13 @@ const Main = () => {
 
             <YearBannerSection>
                 <YearBannerContainer>
-                    <YearBannerImage 
+                    <YearBannerImage
                         src="/2026_.jpg"
                         alt="2026 - Год белорусской женщины"
                         loading="lazy"
                         width="1200"
                         height="400"
-                        
+
                     />
                     <YearBannerContent>
                         <YearBannerTitle>2026 — Год белорусской женщины</YearBannerTitle>
@@ -272,9 +272,9 @@ const Main = () => {
                         <YearBannerText>
                             Документ принят в целях формирования национального образа женщины-труженицы, популяризации роли женщин в сохранении и развитии общества.
                         </YearBannerText>
-                        <YearBannerLink 
-                            href="https://buda-koshelevo.gov.by/ru/2026-ru" 
-                            target="_blank" 
+                        <YearBannerLink
+                            href="https://buda-koshelevo.gov.by/ru/2026-ru"
+                            target="_blank"
                             rel="noopener noreferrer"
                         >
                             Подробнее <ArrowRight size={16} />
@@ -283,7 +283,7 @@ const Main = () => {
                 </YearBannerContainer>
             </YearBannerSection>
 
-            
+
 
             <StatsSection>
                 <StatsContainer>

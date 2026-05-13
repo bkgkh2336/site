@@ -498,8 +498,7 @@ export const SecondaryButton = styled(PrimaryButton)`
 export const HeroImage = styled.div`
     position: relative;
     
-    img {
-        width: 150%;    
+    img {   
         border-radius: 20px;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         animation: ${float} 6s ease-in-out infinite;

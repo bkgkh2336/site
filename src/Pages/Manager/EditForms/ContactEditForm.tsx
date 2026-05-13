@@ -131,14 +131,23 @@ const ContactEditForm: React.FC<ContactEditFormProps> = ({
         </Button>
       </div>
       <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
-        <Button onClick={onSave} style={{ opacity: isSaving ? 0.7 : 1 }}>
+        <Button 
+          onClick={onSave} 
+          disabled={isSaving || isDeleting}
+          style={{ opacity: isSaving ? 0.7 : 1 }}
+        >
           {isSaving ? 'Сохранение...' : 'Сохранить'}
         </Button>
-        <Button onClick={onCancel} style={{ backgroundColor: '#6c757d' }}>
+        <Button 
+          onClick={onCancel} 
+          disabled={isSaving || isDeleting}
+          style={{ backgroundColor: '#6c757d' }}
+        >
           Отмена
         </Button>
         <Button 
           onClick={onDelete} 
+          disabled={isSaving || isDeleting}
           style={{ backgroundColor: '#dc3545', opacity: isDeleting ? 0.7 : 1 }}
         >
           {isDeleting ? 'Удаление...' : 'Удалить'}

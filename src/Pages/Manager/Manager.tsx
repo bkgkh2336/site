@@ -14,11 +14,21 @@ const Manager: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [activeSection, setActiveSection] = useState<SectionType>('contacts');
 
-  // Проверка существующего токена при монтировании
+  // Проверка существующей сессии при монтировании
   useEffect(() => {
-    if (localStorage.getItem('adminToken')) {
-      setIsAuthorized(true);
-    }
+    const checkSession = async () => {
+      try {
+        const response = await fetch('/backend/api.php/api/verify', {
+          credentials: 'include' // Отправляем куки
+        });
+        if (response.ok) {
+          setIsAuthorized(true);
+        }
+      } catch (err) {
+        console.error('Session check error:', err);
+      }
+    };
+    checkSession();
   }, []);
 
   const handleLogin = useCallback(async (e: React.FormEvent) => {
@@ -37,13 +47,13 @@ const Manager: React.FC = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password }),
+        credentials: 'include' // Получаем httpOnly куку
       });
 
       const data = await response.json();
 
       if (response.ok && data.success) {
         setIsAuthorized(true);
-        localStorage.setItem('adminToken', data.token);
         setPassword('');
       } else {
         setError(data.message || 'Неверный пароль');
@@ -56,9 +66,16 @@ const Manager: React.FC = () => {
     }
   }, [password]);
 
-  const handleLogout = useCallback(() => {
+  const handleLogout = useCallback(async () => {
+    try {
+      await fetch('/backend/api.php/api/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
     setIsAuthorized(false);
-    localStorage.removeItem('adminToken');
     setPassword('');
     setError('');
     setActiveSection('contacts');
