@@ -40,13 +40,13 @@ const Department = (props: ContactProps) => {
                     {props.phone && props.phone.map((phone, index) =>
                         <div key={index} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                             <Phone style={{ width: '1rem', height: '1rem', color: '#28a745' }} />
-                            <Text>{phone}</Text>
+                            <Text><a href={`tel:${phone.replace(/[^+\d]/g, '')}`} style={{ color: 'inherit', textDecoration: 'none' }}>{phone}</a></Text>
                         </div>
                     )}
                     {props.fax && props.fax.map((fax, index) =>
                         <div key={index} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                             <Printer style={{ width: '1rem', height: '1rem', color: '#28a745' }} />
-                            <Text>{fax} (факс)</Text>
+                            <Text><a href={`tel:${fax.replace(/[^+\d]/g, '')}`} style={{ color: 'inherit', textDecoration: 'none' }}>{fax}</a> (факс)</Text>
                         </div>
                     )}
                 </Block>
