@@ -25,6 +25,7 @@ const pageHierarchy: PageMap = {
     '/transport_services': { name: 'Транспорт для населения', parent: [{ name: 'Услуги и тарифы', url: '/services' }] },
     '/transport_jur_services': { name: 'Транспорт для юр. лиц', parent: [{ name: 'Услуги и тарифы', url: '/services' }] },
     '/transport_other_services': { name: 'Прочие транспортные услуги', parent: [{ name: 'Услуги и тарифы', url: '/services' }] },
+    '/cemetery_services': { name: 'Документы по обращению с отходами', parent: [{ name: 'Услуги и тарифы', url: '/services' }] },
     
     // Для граждан
     '/schedule_forms': { name: 'График приема', parent: [{ name: 'Для граждан' }] },

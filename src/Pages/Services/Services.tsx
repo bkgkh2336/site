@@ -1,4 +1,4 @@
-import { Trash2, Wind, Zap, Sprout, Flame, Droplet, PlugZap, Truck, Cross } from "lucide-react";
+import { Trash2, Wind, Zap, Sprout, Flame, Droplet, PlugZap, Truck, Cross, File } from "lucide-react";
 import H1 from "../../Components/H1/H1";
 import { ServicesContainer, ServicesGrid, ServiceCard, ServiceCardDiv, IconWrapper, CardTitle, CardDescription } from "./styled";
 
@@ -77,6 +77,12 @@ const Services = () => {
             description: "",
             pdfPath: "/documents/Об организации похоронного дела и оказанию ритуальных (гарантированных) услуг.pdf",
             icon: <Cross style={{ width: 32, height: 32, color: '#4CAF50' }} />
+        },
+        {
+            title: "Документы по обращению с отходами",
+            description: "",
+            path: "/cemetery_services",
+            icon: <File style={{ width: 32, height: 32, color: '#4CAF50' }} />
         }
     ];
 
