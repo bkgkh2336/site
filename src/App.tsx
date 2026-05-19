@@ -29,6 +29,7 @@ const El_inst_services = lazy(() => import('./Pages/Services/El_inst_services/El
 const Transport_services = lazy(() => import('./Pages/Services/Transport_services/Transport_services'))
 const Transport_jur_services = lazy(() => import('./Pages/Services/Transport_jur_services/Transport_jur_services'))
 const Transport_other_services = lazy(() => import('./Pages/Services/Transport_other_services/Transport_other_services'))
+const Cemetery_services = lazy(() => import('./Pages/Services/Cemetery_services/Cemetery_services'))
 const ScheduleForms = lazy(() => import('./Pages/ScheduleForms/ScheduleForms'))
 const Service115 = lazy(() => import('./Pages/Service115/Service115'))
 const Payment = lazy(() => import('./Pages/Payment/Payment'))
@@ -82,6 +83,7 @@ const routeTitles: Record<string, string> = {
   '/transport_services': 'Транспорт для населения и бюджетных организаций - КЖУП "Буда-Кошелёвский коммунальник"',
   '/transport_jur_services': 'Транспорт для юр. лиц - КЖУП "Буда-Кошелёвский коммунальник"',
   '/transport_other_services': 'Прочие транспортные услуги - КЖУП "Буда-Кошелёвский коммунальник"',
+  '/cemetery_services': 'Документы по обращению с отходами - КЖУП "Буда-Кошелёвский коммунальник"',
   '/schedule_forms': 'График приёма - КЖУП "Буда-Кошелёвский коммунальник"',
   '/service_115': 'Служба 115 - КЖУП "Буда-Кошелёвский коммунальник"',
   '/payment': 'Платежи через систему ЕРИП - КЖУП "Буда-Кошелёвский коммунальник"',
@@ -192,6 +194,7 @@ function App() {
                 <Route path='/transport_services' element={<Transport_services />} />
                 <Route path='/transport_jur_services' element={<Transport_jur_services />} />
                 <Route path='/transport_other_services' element={<Transport_other_services />} />
+                <Route path='/cemetery_services' element={<Cemetery_services />} />
                 <Route path='/schedule_forms' element={<ScheduleForms />} />
                 <Route path='/service_115' element={<Service115 />} />
                 <Route path='/payment' element={<Payment />} />
