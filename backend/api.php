@@ -1,72 +1,36 @@
 <?php
-// 1. Настройки CORS и заголовки для безопасности
-// Настройка CORS
+// 1. Настройки CORS и заголовки безопасности
 $allowedOrigin = $_SERVER['HTTP_ORIGIN'] ?? '';
-$isProduction = APP_ENV === 'production';
+$allowedOrigins = ['https://bkgkh.by', 'https://www.bkgkh.by'];
 
-if ($isProduction) {
-    // В продакшене разрешаем только указанные домены
-    $allowedOrigins = array_filter(array_map('trim', explode(',', getenv('CORS_ORIGINS') ?: '')));
-    if (!empty($allowedOrigins) && in_array($allowedOrigin, $allowedOrigins)) {
-        header("Access-Control-Allow-Origin: $allowedOrigin");
-    }
+if (in_array($allowedOrigin, $allowedOrigins)) {
+    header("Access-Control-Allow-Origin: $allowedOrigin");
 } else {
-    // В режиме разработки разрешаем localhost
-    $devOrigins = [
-        'http://localhost:5173',
-        'http://localhost:3000',
-        'http://127.0.0.1:5173',
-        'http://127.0.0.1:3000'
-    ];
-    if (in_array($allowedOrigin, $devOrigins)) {
-        header("Access-Control-Allow-Origin: $allowedOrigin");
-    }
+    // Разрешаем локальную разработку, если нужно, или оставляем пустой заголовок
+    header("Access-Control-Allow-Origin: https://bkgkh.by");
 }
+
 header("Access-Control-Allow-Methods: GET, POST, PUT, OPTIONS, DELETE");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
-header("Access-Control-Allow-Credentials: true"); // Разрешаем куки
+header("Access-Control-Allow-Credentials: true");
 header("Content-Type: application/json; charset=utf-8");
 
-// Если это проверочный запрос (preflight), сразу отвечаем "ОК"
+// Если это preflight-запрос, сразу отдаем 200 OK
 if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
     http_response_code(200);
     exit;
 }
 
-// Отключаем отображение ошибок в продакшене
+// Отключаем отображение ошибок в продакшене (безопасность)
 ini_set("display_errors", 0);
 error_reporting(0);
 
-// Загрузка переменных окружения из .env файла
-function loadEnv($path) {
-    if (!file_exists($path)) return false;
-    
-    $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    foreach ($lines as $line) {
-        if (strpos(trim($line), '#') === 0) continue;
-        
-        list($name, $value) = array_map('trim', explode('=', $line, 2));
-        if ($name && $value) {
-            putenv("$name=$value");
-            $_ENV[$name] = $value;
-        }
-    }
-    return true;
-}
-
-// Загружаем .env
-$envPath = __DIR__ . '/.env';
-if (file_exists($envPath)) {
-    loadEnv($envPath);
-}
-
-// Секретный ключ для токена сессии (из .env или дефолтный для разработки)
-define('SESSION_SECRET', getenv('SESSION_SECRET') ?: 'dev-secret-key-change-in-production');
-define('SESSION_EXPIRY', (int)(getenv('SESSION_EXPIRY') ?: 3600)); // 1 час по умолчанию
-define('APP_ENV', getenv('APP_ENV') ?: 'development');
+// Секретный ключ для подписи сессий (ИЗМЕНИТЕ ЭТИ СИМВОЛЫ НА СВОИ ПЕРЕД ДЕПЛОЕМ)
+define('SESSION_SECRET', 'bkgkh_secure_prod_key_2026_x92F8mQpZ');
+define('SESSION_EXPIRY', 3600); // 1 час
 
 /**
- * Генерация токена сессии
+ * Генерация токена сессии (HMAC-SHA256)
  */
 function generateSessionToken($data) {
     $payload = json_encode([
@@ -93,7 +57,7 @@ function validateSessionToken($token) {
     $payload = base64_decode($payloadB64);
     $signature = base64_decode($signatureB64);
     
-    // Проверяем подпись
+    // Проверяем подпись на подлинность
     $expectedSignature = hash_hmac('sha256', $payload, SESSION_SECRET, true);
     if (!hash_equals($expectedSignature, $signature)) {
         return null;
@@ -101,7 +65,7 @@ function validateSessionToken($token) {
     
     $data = json_decode($payload, true);
     
-    // Проверяем срок действия
+    // Проверяем таймштамп жизни сессии
     if (!isset($data['exp']) || $data['exp'] < time()) {
         return null;
     }
@@ -113,18 +77,13 @@ function validateSessionToken($token) {
  * Проверка авторизации через httpOnly куки
  */
 function checkAuth() {
-    // Получаем токен из куки
     $token = $_COOKIE['admin_session'] ?? '';
-    
-    if (empty($token)) {
-        return null;
-    }
-    
+    if (empty($token)) return null;
     return validateSessionToken($token);
 }
 
 /**
- * Отправка ответа об ошибке авторизации
+ * Ошибка авторизации
  */
 function authError() {
     http_response_code(401);
@@ -133,23 +92,22 @@ function authError() {
 }
 
 /**
- * Удаление файла изображения, если он не используется
+ * Удаление файла изображения, если он больше не привязан ни к чему
  */
 function deleteImageIfUnused($imagePath, $pdo, $currentContactId = null) {
     if (empty($imagePath)) return false;
     
-    // Извлекаем имя файла из пути (например, "/uploads/filename.jpg")
     $filename = basename($imagePath);
     $filePath = __DIR__ . '/../public/uploads/' . $filename;
     
     if (!file_exists($filePath)) return false;
     
-    // Проверяем, используется ли фото в таблице contacts
+    // Проверка в contacts
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM contacts WHERE src = ? AND id != ?");
     $stmt->execute([$imagePath, $currentContactId ?? 0]);
     $count = $stmt->fetchColumn();
     
-    // Проверяем, используется ли фото в таблице departments
+    // Проверка в departments
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM departments WHERE src = ?");
     $stmt->execute([$imagePath]);
     $count += $stmt->fetchColumn();
@@ -162,10 +120,9 @@ function deleteImageIfUnused($imagePath, $pdo, $currentContactId = null) {
     return false;
 }
 
-// 2. Пути к базе и JSON (файлы лежат в той же папке backend/)
+// 2. Путь к базе данных SQLite
 $dbPath = __DIR__ . "/contacts.db";
 
-// Список всех таблиц из твоего старого server.js
 $validTables = [
     "contacts", "phone_contacts", "departments", "phone_departments",
     "documents_group", "documents", "ventilation_services", "waste_services",
@@ -179,10 +136,9 @@ try {
     $pdo = new PDO("sqlite:$dbPath");
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // 3. Умное определение маршрута (чтобы не было undefined в React)
+    // 3. Роутинг запросов
     $requestUri = parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH);
 
-    // Ищем, какая таблица запрошена после /api/
     $afterApi = (strpos($requestUri, "/api/") !== false)
                 ? substr($requestUri, strpos($requestUri, "/api/") + 5)
                 : $requestUri;
@@ -198,8 +154,7 @@ try {
         $data = json_decode(file_get_contents("php://input"), true);
         $password = $data["password"] ?? "";
         
-        // Хеш пароля (в продакшене должен быть в БД или .env)
-        // Сгенерируйте хеш: php generate_hash.php "ваш_пароль"
+        // Ваш текущий рабочий хеш пароля
         $passwordHash = '$2y$12$rarAoqlerZubcUTgR3ExDuLflIMyH22F5xnLbrCg1p38DQcpv5Q5C';
         
         if (password_verify($password, $passwordHash)) {
@@ -208,7 +163,6 @@ try {
                 'role' => 'administrator'
             ]);
             
-            // Устанавливаем httpOnly куку
             $isSecure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
             setcookie(
                 'admin_session',
@@ -216,10 +170,10 @@ try {
                 [
                     'expires' => time() + SESSION_EXPIRY,
                     'path' => '/',
-                    'domain' => '', // Автоматически из текущего домена
-                    'secure' => $isSecure, // true в продакшене (HTTPS)
-                    'httponly' => true, // Недоступно через JavaScript
-                    'samesite' => 'Lax' // Защита от CSRF
+                    'domain' => '', 
+                    'secure' => $isSecure, 
+                    'httponly' => true, // Защита от кражи токена через XSS / JS
+                    'samesite' => 'Lax'
                 ]
             );
             
@@ -245,7 +199,6 @@ try {
     
     // --- РОУТ: Выход (/api/logout) ---
     if ($tableName === "logout" && $method === "POST") {
-        // Удаляем куку
         setcookie(
             'admin_session',
             '',
@@ -253,7 +206,7 @@ try {
                 'expires' => time() - 3600,
                 'path' => '/',
                 'domain' => '',
-                'secure' => false, // true в продакшене
+                'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
                 'httponly' => true,
                 'samesite' => 'Lax'
             ]
@@ -262,12 +215,10 @@ try {
         exit;
     }
     
-    // --- РОУТ: Очистка неиспользуемых файлов (/api/cleanup) ---
+    // --- РОУТ: Очистка мусорных изображений (/api/cleanup) ---
     if ($tableName === "cleanup" && $method === "POST") {
         $user = checkAuth();
-        if (!$user) {
-            authError();
-        }
+        if (!$user) authError();
         
         $uploadDir = __DIR__ . '/../public/uploads/';
         if (!is_dir($uploadDir)) {
@@ -275,7 +226,6 @@ try {
             exit;
         }
         
-        // Получаем все файлы из папки uploads
         $files = scandir($uploadDir);
         $deletedCount = 0;
         
@@ -287,7 +237,6 @@ try {
             
             $imagePath = '/uploads/' . $file;
             
-            // Проверяем, используется ли файл
             $stmt = $pdo->prepare("SELECT COUNT(*) FROM contacts WHERE src = ?");
             $stmt->execute([$imagePath]);
             $count = $stmt->fetchColumn();
@@ -306,13 +255,10 @@ try {
         exit;
     }
     
-    // --- РОУТ: Загрузка изображений (/api/upload) ---
+    // --- РОУТ: Загрузка картинок (/api/upload) ---
     if ($tableName === "upload" && $method === "POST") {
-        // Проверяем авторизацию
         $user = checkAuth();
-        if (!$user) {
-            authError();
-        }
+        if (!$user) authError();
         
         if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
             http_response_code(400);
@@ -324,7 +270,6 @@ try {
         $fileName = basename($file['name']);
         $fileExt = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
         
-        // Проверяем расширение
         $allowedExts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
         if (!in_array($fileExt, $allowedExts)) {
             http_response_code(400);
@@ -332,11 +277,9 @@ try {
             exit;
         }
         
-        // Генерируем уникальное имя файла
         $newFileName = uniqid() . '_' . time() . '.' . $fileExt;
         $uploadPath = __DIR__ . '/../public/uploads/' . $newFileName;
         
-        // Создаем директорию если не существует
         $uploadDir = dirname($uploadPath);
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0755, true);
@@ -355,7 +298,7 @@ try {
         exit;
     }
 
-    // --- РОУТ: Транспортные услуги (сложные JOIN) ---
+    // --- РОУТ: Транспортные JOIN-запросы ---
     if ($method === "GET") {
         if ($tableName === "transport_services") {
             $sql = "SELECT tp.id, t.name, tp.unit, tp.price_no_nds FROM transport_price_population_and_budget tp JOIN transport_population_and_budget t ON tp.id_transport = t.id ORDER BY t.name, tp.id";
@@ -374,23 +317,19 @@ try {
         }
     }
 
-    // --- РОУТ: Универсальные таблицы (GET, POST, PUT, DELETE) ---
+    // --- РОУТ: CRUD операции ---
     if (in_array($tableName, $validTables)) {
         if ($method === "GET") {
             $stmt = $pdo->query("SELECT * FROM $tableName");
             $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            echo json_encode($data ?: []); // Если пусто, возвращаем [], а не null
+            echo json_encode($data ?: []);
         }
         elseif ($method === "POST") {
-            // Проверяем авторизацию для POST запросов
             $user = checkAuth();
-            if (!$user) {
-                authError();
-            }
+            if (!$user) authError();
             
             $data = json_decode(file_get_contents("php://input"), true);
             if (!empty($data)) {
-                // Whitelist разрешенных полей для каждой таблицы
                 $allowedFields = [
                     'contacts' => ['name', 'surname', 'patronymic', 'job_title', 'email', 'src', 'is_primary'],
                     'phone_contacts' => ['contact_id', 'phone'],
@@ -415,18 +354,13 @@ try {
                 ];
                 
                 $tableAllowedFields = $allowedFields[$tableName] ?? [];
-                $fields = []; 
-                $placeholders = [];
-                $values = [];
+                $fields = []; $placeholders = []; $values = [];
                 
                 foreach ($data as $key => $val) {
-                    if (!in_array($key, $tableAllowedFields)) {
-                        continue;
-                    }
-                    $sanitizedVal = is_string($val) ? strip_tags($val) : $val;
+                    if (!in_array($key, $tableAllowedFields)) continue;
                     $fields[] = $key;
                     $placeholders[] = '?';
-                    $values[] = $sanitizedVal;
+                    $values[] = is_string($val) ? strip_tags($val) : $val;
                 }
                 
                 if (empty($fields)) {
@@ -441,15 +375,11 @@ try {
             }
         } 
         elseif ($method === "PUT" && $id) {
-            // Проверяем авторизацию для PUT запросов
             $user = checkAuth();
-            if (!$user) {
-                authError();
-            }
+            if (!$user) authError();
             
             $data = json_decode(file_get_contents("php://input"), true);
             if (!empty($data)) {
-                // НЕ ТРОГАТЬ
                 $allowedFields = [
                     'contacts' => ['name', 'surname', 'patronymic', 'job_title', 'email', 'src'],
                     'phone_contacts' => ['contact_id', 'phone'],
@@ -474,10 +404,8 @@ try {
                 ];
                 
                 $tableAllowedFields = $allowedFields[$tableName] ?? [];
-                $fields = []; 
-                $values = [];
+                $fields = []; $values = [];
                 
-                // Получаем текущие данные контакта (для проверки старого фото)
                 $oldData = null;
                 if ($tableName === 'contacts') {
                     $stmt = $pdo->prepare("SELECT src FROM $tableName WHERE id = ?");
@@ -487,14 +415,9 @@ try {
                 
                 foreach ($data as $key => $val) {
                     if ($key === "id") continue;
-                    // Проверяем, что поле разрешено
-                    if (!in_array($key, $tableAllowedFields)) {
-                        continue; // Пропускаем неразрешенные поля
-                    }
-                    // Базовая санитизация значений
-                    $sanitizedVal = is_string($val) ? strip_tags($val) : $val;
+                    if (!in_array($key, $tableAllowedFields)) continue;
                     $fields[] = "$key = ?"; 
-                    $values[] = $sanitizedVal;
+                    $values[] = is_string($val) ? strip_tags($val) : $val;
                 }
                 
                 if (empty($fields)) {
@@ -507,7 +430,6 @@ try {
                 $sql = "UPDATE $tableName SET " . implode(", ", $fields) . " WHERE id = ?";
                 $pdo->prepare($sql)->execute($values);
                 
-                // Если обновляли поле src и оно изменилось, удаляем старое фото
                 if (($tableName === 'contacts' || $tableName === 'departments') && $oldData) {
                     $newSrc = $data['src'] ?? '';
                     if (($oldData['src'] ?? '') !== $newSrc) {
@@ -519,13 +441,9 @@ try {
             }
         }
         elseif ($method === "DELETE" && $id) {
-            // Проверяем авторизацию для DELETE запросов
             $user = checkAuth();
-            if (!$user) {
-                authError();
-            }
+            if (!$user) authError();
             
-            // Получаем данные контакта перед удалением (для фото)
             $oldData = null;
             if ($tableName === 'contacts' || $tableName === 'departments') {
                 $stmt = $pdo->prepare("SELECT src FROM $tableName WHERE id = ?");
@@ -536,7 +454,6 @@ try {
             $sql = "DELETE FROM $tableName WHERE id = ?";
             $pdo->prepare($sql)->execute([$id]);
             
-            // Удаляем фото, если оно не используется другими записями
             if ($oldData && !empty($oldData['src'])) {
                 deleteImageIfUnused($oldData['src'], $pdo);
             }
@@ -544,7 +461,6 @@ try {
             echo json_encode(["message" => "Deleted"]);
         }
     } else {
-        // Если таблица не найдена, возвращаем пустой массив, чтобы React не падал с ошибкой .length
         echo json_encode([]);
     }
 

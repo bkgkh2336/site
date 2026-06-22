@@ -1,17 +1,95 @@
-RewriteEngine On
-RewriteBase /
+# SEO оптимизация для КЖУП "Буда-Кошелёвский коммунальник"
 
-# 1. Статика из public/ (departments, documents, uploads и т.д.)
-RewriteCond %{REQUEST_URI} !^/public/
-RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -f [OR]
-RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -d
-RewriteRule ^(.*)$ public/$1 [L]
+# Включаем mod_rewrite
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
 
-# 2. Если файл/папка существуют в корне (assets, index.html)
-RewriteCond %{REQUEST_URI} !^/(assets|index\.html)/
-RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_URI} -f [OR]
-RewriteCond %{DOCUMENT_ROOT}/%{REQUEST_URI} -d
-RewriteRule ^(.*)$ $1 [L]
+    # Принудительное использование HTTPS (если есть SSL)
+    # RewriteCond %{HTTPS} off
+    # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-# 3. Всё остальное — React SPA fallback
-RewriteRule ^(.*)$ index.html [L]
+    # Принудительное использование www (или без www)
+    # RewriteCond %{HTTP_HOST} !^www\. [NC]
+    # RewriteRule ^(.*)$ https://www.%{HTTP_HOST}/$1 [L,R=301]
+
+    # -----------------------------------------------------------------
+    # ЗАЩИТА: Отсекаем левые PHP и выдаем хостингу честный 404 статус
+    # -----------------------------------------------------------------
+    
+    # Если запрашивают ЛЮБОЙ .php файл, КРОМЕ твоего рабочего backend/api.php
+    # отдаем сухую системную ошибку 404 (React даже не загрузится)
+    RewriteCond %{REQUEST_URI} !^/backend/api\.php [NC]
+    RewriteCond %{REQUEST_URI} \.php$ [NC]
+    RewriteRule ^ - [R=404,L]
+
+    # -----------------------------------------------------------------
+    # СТАНДАРТНЫЙ РОУТИНГ ДЛЯ REACT SPA (БЕЗ РЕДИРЕКТОВ)
+    # -----------------------------------------------------------------
+
+    # Если запрос идет к РЕАЛЬНОМУ файлу (картинка, js, css) — отдаем его как есть
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_URI} !^/backend/ [NC]
+    RewriteRule . /index.html [L]
+
+</IfModule>
+
+# -----------------------------------------------------------------
+# КРАСИВАЯ 404 СТРАНИЦА ДЛЯ ПОЛЬЗОВАТЕЛЕЙ
+# -----------------------------------------------------------------
+# Если папка или файл не найдены, сервер отдаст index.html с кодом 404.
+# Браузер загрузит React, и ваш внутренний роутер покажет красивую 404.
+ErrorDocument 404 /index.html
+
+
+# Кэширование статических ресурсов
+<IfModule mod_expires.c>
+    ExpiresActive On
+    
+    # Изображения
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    
+    # CSS и JavaScript
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    
+    # Шрифты
+    ExpiresByType font/woff2 "access plus 1 year"
+    ExpiresByType font/woff "access plus 1 year"
+    ExpiresByType font/ttf "access plus 1 year"
+    
+    # HTML
+    ExpiresByType text/html "access plus 0 seconds"
+</IfModule>
+
+# Сжатие Gzip
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css
+    AddOutputFilterByType DEFLATE application/javascript application/json
+    AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# Настройки безопасности
+<IfModule mod_headers.c>
+    # Защита от XSS
+    Header set X-XSS-Protection "1; mode=block"
+    
+    # Защита от clickjacking
+    Header always append X-Frame-Options SAMEORIGIN
+    
+    # Защита от MIME-сниффинга
+    Header set X-Content-Type-Options nosniff
+    
+    # Referrer Policy
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# Запрет доступа к служебным файлам
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
