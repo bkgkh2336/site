@@ -7,18 +7,21 @@ import {
     TableCell
 } from "./styled";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type TableRow = Record<string, any>;
+
 interface TableColumn {
     header: string;
     key: string;
-    render?: (value: any, row: any) => React.ReactNode;
+    render?: (value: unknown, row: TableRow) => React.ReactNode;
 }
 
 interface TableProps {
     columns: TableColumn[];
-    data: any[];
+    data: TableRow[];
 }
 
-const Table = ({ columns, data }: TableProps) => {
+const Table = ({ columns, data }: TableProps): React.ReactElement => {
     return (
         <TableContainer>
             <StyledTable>

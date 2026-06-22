@@ -26,7 +26,7 @@ const Combobox = (props: ComboboxProps) => {
                             data-selected={value === selectedValue}
                             onClick={(e) => {
                                 e.stopPropagation();
-                                props.onChange && props.onChange(value);
+                                if (props.onChange) props.onChange(value);
                                 setSelectedValue(value);
                                 setIsVisible(false);
                             }}

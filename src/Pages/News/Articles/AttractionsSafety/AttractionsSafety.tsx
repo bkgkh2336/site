@@ -3,8 +3,7 @@ import {
     Calendar,
     Shield,
     Users,
-    MapPin,
-    Phone
+    MapPin
 } from 'lucide-react';
 import {
     ArticleContainer,

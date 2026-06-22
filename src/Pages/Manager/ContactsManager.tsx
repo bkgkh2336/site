@@ -257,7 +257,7 @@ const ContactsManager: React.FC = () => {
       return 'Некорректный email';
     }
     
-    const invalidPhone = editingPhones.find(p => p.trim() && !/^[\d\s\-\+\(\)]{5,20}$/.test(p.trim()));
+    const invalidPhone = editingPhones.find(p => p.trim() && !/^[\d\s\-+()]{5,20}$/.test(p.trim()));
     if (invalidPhone) return 'Некорректный номер телефона';
     
     return null;

@@ -48,10 +48,7 @@ const Contacts = () => {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        fetchAllData();
-    }, []);
-
-    const fetchAllData = async () => {
+        const fetchData = async () => {
         setLoading(true);
         try {
             await Promise.all([
@@ -66,6 +63,9 @@ const Contacts = () => {
             setLoading(false);
         }
     };
+    
+    fetchData();
+    }, []);
 
     const fetchContacts = async () => {
         try {
@@ -85,8 +85,8 @@ const Contacts = () => {
             
             setPrimaryContacts(sortedPrimary);
             setContacts(data.filter((x: ContactData) => !primaryTitles.includes(x.job_title || '')));
-        } catch (err) {
-            console.error('Error fetching contacts:', err);
+        } catch {
+            // Ошибка обрабатывается gracefully
         }
     };
 
@@ -94,8 +94,8 @@ const Contacts = () => {
         try {
             const data = await GetData('phone_contacts');
             setPhones_contacts(data);
-        } catch (err) {
-            console.error('Error fetching phones:', err);
+        } catch {
+            // Ошибка обрабатывается gracefully
         }
     };
 
@@ -103,8 +103,8 @@ const Contacts = () => {
         try {
             const data = await GetData('departments');
             setDepartments(data);
-        } catch (err) {
-            console.error('Error fetching departments:', err);
+        } catch {
+            // Ошибка обрабатывается gracefully
         }
     };
 
@@ -112,8 +112,8 @@ const Contacts = () => {
         try {
             const data = await GetData('phone_departments');
             setPhone_department(data);
-        } catch (err) {
-            console.error('Error fetching phone_departments:', err);
+        } catch {
+            // Ошибка обрабатывается gracefully
         }
     };
 

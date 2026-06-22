@@ -216,7 +216,7 @@ const Main = () => {
                     <HeroImage>
                         <img
                             src="/main.png"
-                            alt="main.pg"
+                            alt="КЖУП Буда-Кошелёвский коммунальник"
                             loading="lazy"
                         />
                     </HeroImage>
