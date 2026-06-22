@@ -1,13 +1,27 @@
 <?php
 // 1. Настройки CORS и заголовки для безопасности
-// Ограничиваем CORS конкретным доменом (замените на ваш домен в продакшене)
+// Настройка CORS
 $allowedOrigin = $_SERVER['HTTP_ORIGIN'] ?? '';
-// В продакшене раскомментируйте и укажите ваш домен:
-// $allowedOrigins = ['https://yourdomain.com', 'https://www.yourdomain.com'];
-// if (in_array($allowedOrigin, $allowedOrigins)) {
-//     header("Access-Control-Allow-Origin: $allowedOrigin");
-// }
-header("Access-Control-Allow-Origin: http://localhost:5173"); // Vite dev server
+$isProduction = APP_ENV === 'production';
+
+if ($isProduction) {
+    // В продакшене разрешаем только указанные домены
+    $allowedOrigins = array_filter(array_map('trim', explode(',', getenv('CORS_ORIGINS') ?: '')));
+    if (!empty($allowedOrigins) && in_array($allowedOrigin, $allowedOrigins)) {
+        header("Access-Control-Allow-Origin: $allowedOrigin");
+    }
+} else {
+    // В режиме разработки разрешаем localhost
+    $devOrigins = [
+        'http://localhost:5173',
+        'http://localhost:3000',
+        'http://127.0.0.1:5173',
+        'http://127.0.0.1:3000'
+    ];
+    if (in_array($allowedOrigin, $devOrigins)) {
+        header("Access-Control-Allow-Origin: $allowedOrigin");
+    }
+}
 header("Access-Control-Allow-Methods: GET, POST, PUT, OPTIONS, DELETE");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
 header("Access-Control-Allow-Credentials: true"); // Разрешаем куки
@@ -23,9 +37,33 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
 ini_set("display_errors", 0);
 error_reporting(0);
 
-// Секретный ключ для токена сессии (в продакшене должен быть в .env файле)
-define('SESSION_SECRET', 'your-super-secret-session-key-change-this-2026');
-define('SESSION_EXPIRY', 3600); // 1 час
+// Загрузка переменных окружения из .env файла
+function loadEnv($path) {
+    if (!file_exists($path)) return false;
+    
+    $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) continue;
+        
+        list($name, $value) = array_map('trim', explode('=', $line, 2));
+        if ($name && $value) {
+            putenv("$name=$value");
+            $_ENV[$name] = $value;
+        }
+    }
+    return true;
+}
+
+// Загружаем .env
+$envPath = __DIR__ . '/.env';
+if (file_exists($envPath)) {
+    loadEnv($envPath);
+}
+
+// Секретный ключ для токена сессии (из .env или дефолтный для разработки)
+define('SESSION_SECRET', getenv('SESSION_SECRET') ?: 'dev-secret-key-change-in-production');
+define('SESSION_EXPIRY', (int)(getenv('SESSION_EXPIRY') ?: 3600)); // 1 час по умолчанию
+define('APP_ENV', getenv('APP_ENV') ?: 'development');
 
 /**
  * Генерация токена сессии

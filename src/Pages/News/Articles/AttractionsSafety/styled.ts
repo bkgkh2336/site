@@ -1,4 +1,4 @@
-import styled, { css } from 'styled-components';
+import styled from 'styled-components';
 
 export const ArticleContainer = styled.div`
     max-width: 90%;

@@ -36,7 +36,7 @@ export default defineConfig({
       name: 'preview-public-static',
       configurePreviewServer(server) {
         server.middlewares.use((req, res, next) => {
-          const url = (req as any).url || ''
+          const url = (req as { url?: string }).url || ''
           // Пропускаем корень, assets и index (vite сам их раздаст из dist/)
           if (url === '/' || url.startsWith('/assets/') || url === '/index.html') {
             return next()
@@ -68,9 +68,9 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/backend/, ''),
-        configure: (proxy, options) => {
+        configure: (proxy) => {
           // Перенаправляем куки
-          proxy.on('proxyRes', function (proxyRes, req, res) {
+          proxy.on('proxyRes', function (proxyRes, _req, res) {
             if (proxyRes.headers['set-cookie']) {
               res.setHeader('set-cookie', proxyRes.headers['set-cookie']);
             }

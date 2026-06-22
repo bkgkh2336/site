@@ -8,8 +8,8 @@ export const GetData = async (nameTable: string) => {
 
         const data = await response.json();
         return data;
-    } catch (error) {
-        console.error('Error fetching data:', error);
+    } catch {
+        // Возвращаем пустой массив при ошибке
         return [];
     }
 }
