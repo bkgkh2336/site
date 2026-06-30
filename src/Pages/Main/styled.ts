@@ -372,6 +372,112 @@ export const YearBannerImage = styled.img`
     }
 `;
 
+export const LoveBannerSection = styled(YearBannerSection)`
+    padding: 40px;
+`;
+
+export const LoveBannerContainer = styled(YearBannerContainer)`
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+`;
+
+export const LoveBannerImage = styled(YearBannerImage)`
+    width: 100%;
+    height: auto;
+    display: block;
+`;
+
+export const LoveBannerSticker = styled.div`
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-2deg);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    border-radius: 24px;
+    padding: 32px 48px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease;
+    max-width: 90%;
+    z-index: 2;
+
+    &:hover {
+        transform: translate(-50%, -50%) rotate(0deg) scale(1.02);
+    }
+
+    @media (max-width: 768px) {
+        padding: 24px 32px;
+        border-radius: 20px;
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+
+    @media (max-width: 480px) {
+        padding: 20px 24px;
+        border-radius: 16px;
+    }
+`;
+
+export const LoveBannerHeart = styled.span`
+    font-size: 3rem;
+    line-height: 1;
+    animation: ${keyframes`
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.15); }
+    `} 1.5s ease-in-out infinite;
+
+    @media (max-width: 768px) {
+        font-size: 2.5rem;
+    }
+
+    @media (max-width: 480px) {
+        font-size: 2rem;
+    }
+`;
+
+export const LoveBannerTitle = styled.span`
+    font-family: 'Archivo', 'Segoe UI', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #e83e8c, #ff6b9d);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-align: center;
+    line-height: 1.3;
+
+    @media (max-width: 968px) {
+        font-size: 1.6rem;
+    }
+
+    @media (max-width: 768px) {
+        font-size: 1.3rem;
+    }
+
+    @media (max-width: 480px) {
+        font-size: 1.1rem;
+    }
+`;
+
+export const LoveBannerSubtext = styled.span`
+    font-family: 'Lato', 'Segoe UI', sans-serif;
+    font-size: 0.95rem;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-align: center;
+
+    @media (max-width: 480px) {
+        font-size: 0.85rem;
+    }
+`;
+
 
 export const HeroSection = styled.section`
     position: relative;

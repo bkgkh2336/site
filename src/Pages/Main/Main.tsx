@@ -50,6 +50,13 @@ import {
     YearBannerTitle,
     YearBannerText,
     YearBannerLink,
+    LoveBannerSection,
+    LoveBannerContainer,
+    LoveBannerImage,
+    LoveBannerSticker,
+    LoveBannerHeart,
+    LoveBannerTitle,
+    LoveBannerSubtext,
     StatsSection,
     StatsContainer,
     StatCard,
@@ -284,6 +291,23 @@ const Main = () => {
             </YearBannerSection>
 
 
+
+            <LoveBannerSection>
+                <LoveBannerContainer>
+                    <LoveBannerImage
+                        src="/Love.png"
+                        alt="Я здесь живу и мне есть чем гордиться"
+                        loading="lazy"
+                        width="1200"
+                        height="400"
+                    />
+                    <LoveBannerSticker>
+                        <LoveBannerHeart>❤️</LoveBannerHeart>
+                        <LoveBannerTitle>Я здесь живу и мне есть чем гордиться</LoveBannerTitle>
+                        <LoveBannerSubtext>КЖУП "Буда-Кошелёвский коммунальник"</LoveBannerSubtext>
+                    </LoveBannerSticker>
+                </LoveBannerContainer>
+            </LoveBannerSection>
 
             <StatsSection>
                 <StatsContainer>
