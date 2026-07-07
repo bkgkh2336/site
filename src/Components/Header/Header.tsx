@@ -1,4 +1,4 @@
-import { Phone, Menu, X } from "lucide-react"
+import { Phone, Menu, X, Send } from "lucide-react"
 import Section from "../Section/Section"
 import Text from "../Text/Text"
 import { HeaderContainer, Header_, Logo, Nav, ContactInfo, MobileActions, MobileContactInfo, MobileMenuButton, MobileMenu, MobileMenuOverlay } from "./styled"
@@ -96,11 +96,18 @@ const Header = (props: HeaderProps) => {
                     <a href="tel:+375233674507" style={{ textDecoration: 'none', color: 'inherit' }}>
                         <Text bold="bold">+375 2336 7-45-07</Text>
                     </a>
+                    <Send style={{ width: '1rem', height: '1rem', color: '#0088cc', marginLeft: '10px' }} aria-hidden="true" />
+                    <a href="https://t.me/bkgkhBy" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>
+                        <Text bold="bold">Telegram</Text>
+                    </a>
                 </ContactInfo>
 
                     <MobileContactInfo href="tel:+375233674507" aria-label="Позвонить">
                         <Phone size={20} />
                         <span>+375 2336 7-45-07</span>
+                    </MobileContactInfo>
+                    <MobileContactInfo href="https://t.me/bkgkhBy" target="_blank" rel="noopener noreferrer" aria-label="Telegram" style={{ color: '#0088cc' }}>
+                        <Send size={20} />
                     </MobileContactInfo>
 
                     <MobileMenuButton onClick={toggleMobileMenu} aria-label="Меню">
@@ -111,6 +118,9 @@ const Header = (props: HeaderProps) => {
                         <MobileContactInfo href="tel:+375233674507" aria-label="Позвонить">
                             <Phone size={18} />
                             <span>+375 2336 7-45-07</span>
+                        </MobileContactInfo>
+                        <MobileContactInfo href="https://t.me/bkgkhBy" target="_blank" rel="noopener noreferrer" aria-label="Telegram" style={{ color: '#0088cc' }}>
+                            <Send size={18} />
                         </MobileContactInfo>
                         <MobileMenuButton onClick={toggleMobileMenu} aria-label="Меню">
                             {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
@@ -189,11 +199,17 @@ const Header = (props: HeaderProps) => {
                                 ]}
                                 caption="О нас"
                             />
-                            <div style={{ padding: '15px 10px', borderTop: '1px solid rgba(40, 167, 69, 0.2)' }}>
+                            <div style={{ padding: '15px 10px', borderTop: '1px solid rgba(40, 167, 69, 0.2)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                 <ContactInfo>
                                     <Phone style={{ width: '1rem', height: '1rem', color: '#28a745' }} aria-hidden="true" />
                                     <a href="tel:+375233674507" style={{ textDecoration: 'none', color: 'inherit' }}>
                                         <Text bold="bold">+375 2336 7-45-07</Text>
+                                    </a>
+                                </ContactInfo>
+                                <ContactInfo>
+                                    <Send style={{ width: '1rem', height: '1rem', color: '#0088cc' }} aria-hidden="true" />
+                                    <a href="https://t.me/bkgkhBy" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: 'inherit' }}>
+                                        <Text bold="bold">Мы в Telegram</Text>
                                     </a>
                                 </ContactInfo>
                             </div>
