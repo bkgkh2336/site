@@ -177,3 +177,96 @@ export const LinksContainer = styled.div`
     border-radius: 12px;
     border: 1px solid rgba(76, 175, 80, 0.2);
 `;
+
+export const ScheduleLinkCard = styled.a`
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 24px 28px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(40, 167, 69, 0.15);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+    &:hover {
+        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.15);
+        transform: translateY(-2px);
+        border-color: rgba(40, 167, 69, 0.3);
+    }
+
+    @media (max-width: 768px) {
+        padding: 18px 20px;
+        gap: 15px;
+    }
+
+    @media (max-width: 480px) {
+        flex-direction: column;
+        text-align: center;
+        padding: 16px;
+    }
+`;
+
+export const ScheduleLinkIcon = styled.div<{ color?: string }>`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    min-width: 56px;
+    background: ${props => props.color ? `${props.color}15` : 'rgba(40, 167, 69, 0.1)'};
+    border-radius: 14px;
+    color: ${props => props.color || 'rgb(40, 167, 69)'};
+    transition: all 0.3s ease;
+
+    ${ScheduleLinkCard}:hover & {
+        background: ${props => props.color ? `${props.color}25` : 'rgba(40, 167, 69, 0.2)'};
+        transform: scale(1.05);
+    }
+
+    @media (max-width: 480px) {
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
+    }
+`;
+
+export const ScheduleLinkContent = styled.div`
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+`;
+
+export const ScheduleLinkTitle = styled.span`
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #212529;
+    line-height: 1.4;
+
+    @media (max-width: 768px) {
+        font-size: 1rem;
+    }
+`;
+
+export const ScheduleLinkDesc = styled.span`
+    font-size: 0.9rem;
+    color: #6c757d;
+    line-height: 1.4;
+`;
+
+export const ScheduleLinkArrow = styled.div`
+    display: flex;
+    align-items: center;
+    color: #28a745;
+    transition: all 0.3s ease;
+    opacity: 0.6;
+
+    ${ScheduleLinkCard}:hover & {
+        transform: translateX(4px);
+        opacity: 1;
+    }
+`;
