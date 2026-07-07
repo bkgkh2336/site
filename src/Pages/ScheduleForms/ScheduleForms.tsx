@@ -11,9 +11,15 @@ import {
     TableCell,
     NoticeText,
     LinksContainer,
-    SectionTitle
+    SectionTitle,
+    ScheduleLinkCard,
+    ScheduleLinkIcon,
+    ScheduleLinkContent,
+    ScheduleLinkTitle,
+    ScheduleLinkDesc,
+    ScheduleLinkArrow
 } from "./styled";
-import { Phone } from "lucide-react";
+import { Phone, Building2, ExternalLink as ExternalLinkIcon } from "lucide-react";
 import ExternalLink from "../../Components/ExternalLink/ExternalLink";
 
 
@@ -73,7 +79,7 @@ const ScheduleForms = () => {
                 <>
                     <SectionTitle>
                         График личных приемов граждан, их представителей, представителей юридических лиц 
-                        руководством и специалистами КЖУП "Буда-Кошелевский коммунальник" на 2025 год
+                        руководством и специалистами КЖУП "Буда-Кошелевский коммунальник" на 2026 год
                     </SectionTitle>
 
                     <TableContainer>
@@ -111,51 +117,72 @@ const ScheduleForms = () => {
                         Прием к директору и заместителю директора осуществляется в порядке очереди и по предварительной записи по тел. 8-02336-7-45-03
                     </NoticeText>
 
-                    <SectionTitle style={{ marginTop: '50px' }}>
-                        ГРАФИК личного приема граждан и юридических лиц, проведения «прямых линий» 
-                        генеральным директором, заместителями генерального директора ГО «ЖКХ Гомельской области»
-                    </SectionTitle>
+                    
+                    <ScheduleLinkCard 
+                        href="https://buda-koshelevo.gov.by/ru/grafiki_priema/" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                    >
+                        <ScheduleLinkIcon>
+                            <Building2 size={28} />
+                        </ScheduleLinkIcon>
+                        <ScheduleLinkContent>
+                            <ScheduleLinkTitle>
+                                Буда-Кошелевский районный исполнительный комитет
+                            </ScheduleLinkTitle>
+                            <ScheduleLinkDesc>
+                                График личного приема граждан, их представителей, представителей юридических лиц
+                            </ScheduleLinkDesc>
+                        </ScheduleLinkContent>
+                        <ScheduleLinkArrow>
+                            <ExternalLinkIcon size={20} />
+                        </ScheduleLinkArrow>
+                    </ScheduleLinkCard>
 
-                    <TableContainer>
-                        <ScheduleTable>
-                            <thead>
-                                <tr>
-                                    <TableHeader>Фамилия, имя, отчество, должность</TableHeader>
-                                    <TableHeader>Время личного приема, время проведения «прямых телефонных линий»</TableHeader>
-                                    <TableHeader>Замещение на время отсутствия</TableHeader>
-                                </tr>
-                            </thead>
-                        <tbody>
-                            <TableRow>
-                                <TableCell>
-                                    <strong>Пархоменко Вячеслав Николаевич</strong><br/>
-                                    Генеральный директор<br/>
-                                    Прямая линия
-                                </TableCell>
-                                <TableCell>
-                                    3-я среда каждого месяца каб.3-14 с 8:00 до 13:00<br/>
-                                    27-46-07 с 9:00 до 10:00
-                                </TableCell>
-                                <TableCell>Заместитель генерального директора</TableCell>
-                            </TableRow>
-                            </tbody>
-                        </ScheduleTable>
-                    </TableContainer>
+                    <ScheduleLinkCard 
+                        href="https://ugkh.gomel.by/wp-content/uploads/2025/09/grafik-lichnogo-priema-grazhdan-i-yur.-licz-provedenie-pryamoj-tel.-linii-1.pdf" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                    >
+                        <ScheduleLinkIcon color="#dc3545">
+                            <Building2 size={28} />
+                        </ScheduleLinkIcon>
+                        <ScheduleLinkContent>
+                            <ScheduleLinkTitle>
+                                ГО «ЖКХ Гомельской области»
+                            </ScheduleLinkTitle>
+                            <ScheduleLinkDesc>
+                                График личного приема граждан и юридических лиц, проведения «прямых линий» 
+                                генеральным директором, заместителями генерального директора
+                            </ScheduleLinkDesc>
+                        </ScheduleLinkContent>
+                        <ScheduleLinkArrow>
+                            <ExternalLinkIcon size={20} />
+                        </ScheduleLinkArrow>
+                    </ScheduleLinkCard>
 
-                    <NoticeText>
-                        В случае служебной необходимости прием граждан проводится начальниками отделов по компетенции поступающих вопросов.
-                        Прием к генеральному директору и заместителям генерального директора осуществляется в порядке очереди 
-                        и по предварительной записи по тел. 8-0232-22-83-26, 30-47-06, 28-38-25
-                    </NoticeText>
+                    <ScheduleLinkCard 
+                        href="https://www.mjkx.gov.by/odno-okno" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                    >
+                        <ScheduleLinkIcon color="#0d6efd">
+                            <Building2 size={28} />
+                        </ScheduleLinkIcon>
+                        <ScheduleLinkContent>
+                            <ScheduleLinkTitle>
+                                Министерство жилищно-коммунального хозяйства Республики Беларусь
+                            </ScheduleLinkTitle>
+                            <ScheduleLinkDesc>
+                                График личного приема граждан и юридических лиц Министром, заместителями Министра
+                            </ScheduleLinkDesc>
+                        </ScheduleLinkContent>
+                        <ScheduleLinkArrow>
+                            <ExternalLinkIcon size={20} />
+                        </ScheduleLinkArrow>
+                    </ScheduleLinkCard>
 
                     <LinksContainer>
-                        <ExternalLink 
-                            href="https://www.mjkx.gov.by/odno-okno" 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                        >
-                            График личного приема граждан и юридических лиц Министром, заместителями Министра
-                        </ExternalLink>
                         <ExternalLink 
                             href="https://siap.gomel-region.gov.by/ochered/" 
                             target="_blank" 

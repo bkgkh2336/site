@@ -70,6 +70,13 @@ const News = () => {
             publishedDate: "11.05.2026",
             isExternal: true
         },
+        {
+            title: "Будакошелевщина встретила День Независимости",
+            image: "https://sp-ao.shortpixel.ai/client/to_webp,q_glossy,ret_img,w_800,h_533/https://buda-koshelevo.net/wp-content/uploads/2026/07/20cd883511d3f60160201bf5c6e2ba37.jpg",
+            url: "https://buda-koshelevo.net/krasota-sozidanie-bydyshee-bydakoshelevshina-vstretila-den-nezavisimosti/",
+            publishedDate: "07.07.2026",
+            isExternal: true
+        },
     ];
 
     const parseDate = (dateStr: string) => {
