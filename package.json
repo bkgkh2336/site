@@ -18,8 +18,7 @@
     "generate:sitemap": "node scripts/generate-sitemap.js",
     "build": "npm run generate:sitemap && vite build",
     "organize-public": "node scripts/organize-public.js",
-    "assemble": "shx rm -rf build && shx mkdir -p build && shx cp -r dist build/dist && shx cp -r backend build/dist/backend && shx cp .htaccess build/",
-    "prepare-deploy": "npm run build && npm run organize-public && npm run assemble"
+    "prepare-deploy": "npm run build && shx mkdir -p dist/backend && shx cp backend/.env dist/backend/ && shx cp backend/.htaccess dist/backend/ && shx cp backend/api.php dist/backend/ && shx cp backend/contacts.db dist/backend/ && shx cp .htaccess dist/"
   },
   "dependencies": {
     "lucide-react": "^0.561.0",
