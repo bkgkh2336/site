@@ -29,31 +29,24 @@ const News = () => {
 
     const ourNews: NewsItem[] = [
         {
-            title: "Прошла отчетная профсоюзная конференция",
-            image: "/news/UnionConference_12_02_26/img1.jpg",
-            url: "/news/union_conference",
-            publishedDate: "13.02.2026",
+            title: "Буда-Кошелевщина встретила День Независимости",
+            image: "https://sp-ao.shortpixel.ai/client/to_webp,q_glossy,ret_img,w_800,h_533/https://buda-koshelevo.net/wp-content/uploads/2026/07/20cd883511d3f60160201bf5c6e2ba37.jpg",
+            url: "https://buda-koshelevo.net/krasota-sozidanie-bydyshee-bydakoshelevshina-vstretila-den-nezavisimosti/",
+            publishedDate: "07.07.2026",
+            isExternal: true
+        },
+        {
+            title: "Прошел субботник по благоустройству территории",
+            image: "/news/CleanupDay_05_09_26/img1.jpg",
+            url: "/news/cleanup_day",
+            publishedDate: "10.09.2026",
             isExternal: false
         },
         {
-            title: "От конторы до предприятия — «Буда-Кошелевский коммунальник» отмечает 75-летие",
-            image: "/main.png",
-            url: "https://www.sb.by/articles/delat-zhizn-krashe.html",
-            publishedDate: "23.03.2026",
-            isExternal: true
-        },
-        {
-            title: "Представители КЖУП «Буда-Кошелевский коммунальник» удостоены наград областного уровня",
-            image: "/news/New2.jpg",
-            url: "https://www.budakosh.by/2026/03/za-dobrosovestnyj-trud-v-preddverii-professionalnogo-prazdnika-dnya-rabotnikov-bytovogo-obsluzhivaniya-naseleniya-i-zhilishhno-kommunalnogo-hozyajstva-predstaviteli-kzhup-bu/",
-            publishedDate: "19.03.2026",
-            isExternal: true
-        },
-        {
-            title: "Профсоюзный правовой прием граждан прошел в КЖУП «Буда-Кошелевский коммунальник»",
-            image: "https://buda-koshelevo.gov.by/images/storage/news/000050_967797_big.jpg",
-            url: "https://buda-koshelevo.gov.by/ru/district/view/profsojuznyj-pravovoj-priem-grazhdan-proshel-v-kzhup-buda-koshelevskij-kommunalnik-29148-2026/",
-            publishedDate: "29.01.2026",
+            title: "Как в Буда-Кошелевском коммунальнике вытаскивают работников из алкогольного пика",
+            image: "/news/New_alcho.jpg",
+            url: "https://gp.by/novosti/obshchestvo/news317591.html",
+            publishedDate: "11.05.2026",
             isExternal: true
         },
         {
@@ -64,17 +57,31 @@ const News = () => {
             isExternal: true
         },
         {
-            title: "Как в Буда-Кошелевском коммунальнике вытаскивают работников из алкогольного пика",
-            image: "/news/New_alcho.jpg",
-            url: "https://gp.by/novosti/obshchestvo/news317591.html",
-            publishedDate: "11.05.2026",
+            title: "Представители КЖУП «Буда-Кошелевский коммунальник» удостоены наград областного уровня",
+            image: "/news/New2.jpg",
+            url: "https://www.budakosh.by/2026/03/za-dobrosovestnyj-trud-v-preddverii-professionalnogo-prazdnika-dnya-rabotnikov-bytovogo-obsluzhivaniya-naseleniya-i-zhilishhno-kommunalnogo-hozyajstva-predstaviteli-kzhup-bu/",
+            publishedDate: "19.03.2026",
             isExternal: true
         },
         {
-            title: "Будакошелевщина встретила День Независимости",
-            image: "https://sp-ao.shortpixel.ai/client/to_webp,q_glossy,ret_img,w_800,h_533/https://buda-koshelevo.net/wp-content/uploads/2026/07/20cd883511d3f60160201bf5c6e2ba37.jpg",
-            url: "https://buda-koshelevo.net/krasota-sozidanie-bydyshee-bydakoshelevshina-vstretila-den-nezavisimosti/",
-            publishedDate: "07.07.2026",
+            title: "От конторы до предприятия — «Буда-Кошелевский коммунальник» отмечает 75-летие",
+            image: "/main.png",
+            url: "https://www.sb.by/articles/delat-zhizn-krashe.html",
+            publishedDate: "23.03.2026",
+            isExternal: true
+        },
+        {
+            title: "Прошла отчетная профсоюзная конференция",
+            image: "/news/UnionConference_12_02_26/img1.jpg",
+            url: "/news/union_conference",
+            publishedDate: "13.02.2026",
+            isExternal: false
+        },
+        {
+            title: "Профсоюзный правовой прием граждан прошел в КЖУП «Буда-Кошелевский коммунальник»",
+            image: "https://buda-koshelevo.gov.by/images/storage/news/000050_967797_big.jpg",
+            url: "https://buda-koshelevo.gov.by/ru/district/view/profsojuznyj-pravovoj-priem-grazhdan-proshel-v-kzhup-buda-koshelevskij-kommunalnik-29148-2026/",
+            publishedDate: "29.01.2026",
             isExternal: true
         },
     ];

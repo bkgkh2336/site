@@ -46,6 +46,7 @@ const pageHierarchy: PageMap = {
     // Пресс-центр
     '/news': { name: 'Новости', parent: [{ name: 'Пресс-центр' }] },
     '/news/union_conference': { name: 'Прошла отчетная профсоюзная конференция', parent: [{ name: 'Пресс-центр' }, { name: 'Новости', url: '/news' }] },
+    '/news/cleanup_day': { name: 'Прошел субботник по благоустройству территории', parent: [{ name: 'Пресс-центр' }, { name: 'Новости', url: '/news' }] },
     '/news/useful_to_know': { name: 'Полезно знать', parent: [{ name: 'Пресс-центр' }] },
     '/news/useful_to_know/phone_scammers': { name: 'Телефонные мошенники', parent: [{ name: 'Пресс-центр' }, { name: 'Полезно знать', url: '/news/useful_to_know' }] },
     '/news/useful_to_know/safe_internet_cards': { name: 'Безопасность в сети', parent: [{ name: 'Пресс-центр' }, { name: 'Полезно знать', url: '/news/useful_to_know' }] },

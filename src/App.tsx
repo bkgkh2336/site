@@ -49,6 +49,7 @@ const Articles = lazy(() => import('./Pages/News/Articles/Articles'))
 const BoilerMaintenance = lazy(() => import('./Pages/News/Articles/BoilerMaintenance/BoilerMaintenance'))
 const AttractionsSafety = lazy(() => import('./Pages/News/Articles/AttractionsSafety/AttractionsSafety'))
 const UnionConference = lazy(() => import('./Pages/News/News/UnionConference/UnionConference'))
+const CleanupDay = lazy(() => import('./Pages/News/News/CleanupDay/CleanupDay'))
 const UsefulToKnow = lazy(() => import('./Pages/News/UsefulToKnow/UsefulToKnow'))
 const PhoneScammers = lazy(() => import('./Pages/News/UsefulToKnow/PhoneScammers/PhoneScammers'))
 const SafeInternetCards = lazy(() => import('./Pages/News/UsefulToKnow/SafeInternetCards/SafeInternetCards'))
@@ -102,8 +103,9 @@ const routeTitles: Record<string, string> = {
   '/news/articles': 'Статьи - КЖУП "Буда-Кошелёвский коммунальник"',
   '/news/articles/boiler_maintenance': 'Профилактика и уход за котельными установками во время морозов - КЖУП "Буда-Кошелёвский коммунальник"',
   '/news/articles/attractions_safety': 'Аттракцион должен быть безопасным! - КЖУП "Буда-Кошелёвский коммунальник"',
-  '/news/union_conference': 'Прошла отчетная профсоюзная конференция - КЖУП "Буда-Кошелёвский коммунальник"',
-  '/news/useful_to_know': 'Полезно знать - КЖУП "Буда-Кошелёвский коммунальник"',
+'/news/union_conference': 'Прошла отчетная профсоюзная конференция - КЖУП "Буда-Кошелёвский коммунальник"',
+    '/news/cleanup_day': 'Прошел субботник по благоустройству территории - КЖУП "Буда-Кошелёвский коммунальник"',
+    '/news/useful_to_know': 'Полезно знать - КЖУП "Буда-Кошелёвский коммунальник"',
   '/news/useful_to_know/phone_scammers': 'Телефонные мошенники - КЖУП "Буда-Кошелёвский коммунальник"',
   '/news/useful_to_know/safe_internet_cards': 'Безопасность в сети и банковские карты - КЖУП "Буда-Кошелёвский коммунальник"',
   '/news/useful_to_know/pomogut_by': 'Pomogut BY - КЖУП "Буда-Кошелёвский коммунальник"',
@@ -211,6 +213,7 @@ function App() {
                 <Route path='/cybersecurity' element={<Cybersecurity />} />
                 <Route path='/news' element={<News />} />
                 <Route path='/news/union_conference' element={<UnionConference />} />
+                <Route path='/news/cleanup_day' element={<CleanupDay />} />
                 <Route path='/news/articles' element={<Articles />} />
                 <Route path='/news/articles/boiler_maintenance' element={<BoilerMaintenance />} />
                 <Route path='/news/articles/attractions_safety' element={<AttractionsSafety />} />
