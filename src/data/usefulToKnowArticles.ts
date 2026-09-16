@@ -22,6 +22,11 @@ export const usefulToKnowArticles: UsefulArticle[] = [
         url: "phone_scammers"
     },
     {
+        title: "Как не попасться на удочку телефонных мошенников?",
+        image: "/useful_to_know/phone-scammers__1.jpg",
+        url: "phone_scammers_guide"
+    },
+    {
         title: "Памятка по безопасной эксплуатации бытовых котлов на твердых видах топлива",
         image: "/useful_to_know/boiler_safety_icon.png",
         url: "boiler_safety"
@@ -55,6 +60,16 @@ export const usefulToKnowArticles: UsefulArticle[] = [
         title: "Список экстремистких материалов",
         image: "/useful_to_know/forbidden.png",
         externalUrl: "http://mininform.gov.by/documents/respublikanskiy-spisok-ekstremistskikh-materialov/"
+    },
+    {
+        title: "Фишинг",
+        image: "/useful_to_know/phishing.png",
+        url: "phishing"
+    },
+    {
+        title: "Вишинг",
+        image: "/useful_to_know/vishing.jpg",
+        url: "vishing"
     },
     {
         title: "Портал государственной службы занятости",
