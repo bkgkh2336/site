@@ -23,7 +23,7 @@ export const usefulToKnowArticles: UsefulArticle[] = [
     },
     {
         title: "Как не попасться на удочку телефонных мошенников?",
-        image: "/useful_to_know/phone-scammers__1.jpg",
+        image: "/useful_to_know/phone-scammers__icon.jpg",
         url: "phone_scammers_guide"
     },
     {
@@ -63,12 +63,12 @@ export const usefulToKnowArticles: UsefulArticle[] = [
     },
     {
         title: "Фишинг",
-        image: "/useful_to_know/phishing.png",
+        image: "/useful_to_know/phishing_icon.png",
         url: "phishing"
     },
     {
         title: "Вишинг",
-        image: "/useful_to_know/vishing.jpg",
+        image: "/useful_to_know/vishing_icon.jpg",
         url: "vishing"
     },
     {
