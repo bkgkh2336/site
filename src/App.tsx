@@ -61,6 +61,9 @@ const WasteRemovalGuide = lazy(() => import('./Pages/News/UsefulToKnow/WasteRemo
 const YardRecyclingGuide = lazy(() => import('./Pages/News/UsefulToKnow/YardRecyclingGuide/YardRecyclingGuide'))
 const LandscapingGuide = lazy(() => import('./Pages/News/UsefulToKnow/LandscapingGuide/LandscapingGuide'))
 const GSZPortal = lazy(() => import('./Pages/News/UsefulToKnow/GSZPortal/GSZPortal'))
+const Phishing = lazy(() => import('./Pages/News/UsefulToKnow/Phishing/Phishing'))
+const Vishing = lazy(() => import('./Pages/News/UsefulToKnow/Vishing/Vishing'))
+const PhoneScammersGuide = lazy(() => import('./Pages/News/UsefulToKnow/PhoneScammersGuide/PhoneScammersGuide'))
 const Requisites = lazy(() => import('./Pages/Requisites/Requisites'))
 const WorkSchedule = lazy(() => import('./Pages/WorkSchedule/WorkSchedule'))
 const NotFound = lazy(() => import('./Pages/NotFound/NotFound'))
@@ -116,6 +119,9 @@ const routeTitles: Record<string, string> = {
   '/news/useful_to_know/yard_recycling_guide': 'Памятка по раздельному сбору отходов - КЖУП "Буда-Кошелёвский коммунальник"',
   '/news/useful_to_know/landscaping_guide': 'Памятка по благоустройству - КЖУП "Буда-Кошелёвский коммунальник"',
   '/news/useful_to_know/gsz_portal': 'Портал государственной службы занятости - КЖУП "Буда-Кошелёвский коммунальник"',
+  '/news/useful_to_know/phone_scammers_guide': 'Как не попасться на удочку телефонных мошенников? - КЖУП "Буда-Кошелёвский коммунальник"',
+  '/news/useful_to_know/phishing': 'Фишинг - КЖУП "Буда-Кошелёвский коммунальник"',
+  '/news/useful_to_know/vishing': 'Вишинг - КЖУП "Буда-Кошелёвский коммунальник"',
   '/manager': 'Панель управления - КЖУП "Буда-Кошелёвский коммунальник"',
   '*': 'Страница не найдена - КЖУП "Буда-Кошелёвский коммунальник"',
 };
@@ -228,6 +234,9 @@ function App() {
                 <Route path='/news/useful_to_know/yard_recycling_guide' element={<YardRecyclingGuide />} />
                 <Route path='/news/useful_to_know/landscaping_guide' element={<LandscapingGuide />} />
                 <Route path='/news/useful_to_know/gsz_portal' element={<GSZPortal />} />
+                <Route path='/news/useful_to_know/phone_scammers_guide' element={<PhoneScammersGuide />} />
+                <Route path='/news/useful_to_know/phishing' element={<Phishing />} />
+                <Route path='/news/useful_to_know/vishing' element={<Vishing />} />
                 <Route path='/manager' element={<Manager />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
