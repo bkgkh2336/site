@@ -15,6 +15,15 @@ const PhoneScammersGuide = () => {
                 images={images}
                 altPrefix="Как не попасться на удочку телефонных мошенников"
             />
+            <video
+                src="/useful_to_know/IMG_2477.MP4"
+                controls
+                width="100%"
+                style={{ maxWidth: 800, margin: '30px auto', display: 'block', borderRadius: 12 }}
+                loading="lazy"
+            >
+                Ваш браузер не поддерживает воспроизведение видео.
+            </video>
         </ArticleLayout>
     );
 };
