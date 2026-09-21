@@ -64,6 +64,7 @@ const pageHierarchy: PageMap = {
     '/news/articles': { name: 'Статьи', parent: [{ name: 'Пресс-центр' }] },
     '/news/articles/boiler_maintenance': { name: 'Профилактика и уход за котельными установками', parent: [{ name: 'Пресс-центр' }, { name: 'Статьи', url: '/news/articles' }] },
     '/news/articles/attractions_safety': { name: 'Аттракцион должен быть безопасным!', parent: [{ name: 'Пресс-центр' }, { name: 'Статьи', url: '/news/articles' }] },
+    '/news/articles/autonomous_fire_detectors': { name: 'Автономные пожарные извещатели — важный элемент пожарной безопасности', parent: [{ name: 'Пресс-центр' }, { name: 'Статьи', url: '/news/articles' }] },
     
     // Документы
     '/documents': { name: 'Документы' },
