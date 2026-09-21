@@ -29,6 +29,13 @@ const News = () => {
 
     const ourNews: NewsItem[] = [
         {
+            title: "Единый день безопасности",
+            image: "/useful_to_know/safe-internet_icon.jpg",
+            url: "https://mchs.gov.by/edinyy-den-bezopasnosti/",
+            publishedDate: "21.09.2026",
+            isExternal: true
+        },
+        {
             title: "Буда-Кошелевщина встретила День Независимости",
             image: "https://sp-ao.shortpixel.ai/client/to_webp,q_glossy,ret_img,w_800,h_533/https://buda-koshelevo.net/wp-content/uploads/2026/07/20cd883511d3f60160201bf5c6e2ba37.jpg",
             url: "https://buda-koshelevo.net/krasota-sozidanie-bydyshee-bydakoshelevshina-vstretila-den-nezavisimosti/",
