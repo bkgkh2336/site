@@ -59,7 +59,7 @@ export const usefulToKnowArticles: UsefulArticle[] = [
     {
         title: "Список экстремистких материалов",
         image: "/useful_to_know/forbidden.png",
-        externalUrl: "http://mininform.gov.by/documents/respublikanskiy-spisok-ekstremistskikh-materialov/"
+        externalUrl: "https://mininform.gov.by/ru/extrim-material-ru"
     },
     {
         title: "Фишинг",
