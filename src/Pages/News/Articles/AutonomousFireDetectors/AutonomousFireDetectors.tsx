@@ -1,23 +1,84 @@
-import { 
-    Calendar
+import { useState } from 'react';
+import {
+    Calendar,
+    ShieldCheck,
+    AlertTriangle,
+    Phone,
+    MapPin,
+    Heart,
+    CheckCircle,
+    Battery,
+    Wrench,
+    Bell,
+    House,
+    Thermometer
 } from 'lucide-react';
-import { 
-    ArticleContainer, 
+import {
+    ArticleContainer,
     ArticleContent,
     ArticleImage,
+    PublicationDate,
+    IntroSection,
+    IntroText,
+    StatisticsSection,
+    StatsGrid,
+    StatCard,
+    StatNumber,
+    StatLabel,
+    SectionTitle,
     ArticleText,
-    HighlightedText,
-    PublicationDate
+    InfoCard,
+    InfoCardTitle,
+    InfoCardText,
+    CardGrid,
+    PlacementCard,
+    PlacementCardTitle,
+    PlacementCardText,
+    WarningCard,
+    ChecklistGrid,
+    ChecklistItem,
+    ChecklistIcon,
+    ChecklistText,
+    StepsGrid,
+    StepItem,
+    StepNumber,
+    StepText,
+    MaintenanceGrid,
+    MaintenanceCard,
+    MaintenanceIcon,
+    MaintenanceTitle,
+    MaintenanceDesc,
+    FinalCallToAction,
+    FinalTitle,
+    FinalText,
+    CtaText
 } from "./styled";
 import H1 from "../../../../Components/H1/H1";
 
 const AutonomousFireDetectors = () => {
     const publishedDate = "21.09.2026";
 
+    const checklistItems = [
+        "извещатель надёжно закреплён",
+        "корпус не имеет механических повреждений",
+        "доступ к прибору не перекрыт",
+        "установлен источник питания, предусмотренный изготовителем",
+        "извещатель находится в рабочем состоянии",
+        "контрольный индикатор работает в соответствии с инструкцией",
+        "при проверке срабатывает звуковая сигнализация"
+    ];
+
+    const maintenanceItems = [
+        { icon: "🛡️", title: "Осмотр", desc: "Регулярно осматривайте корпус извещателя" },
+        { icon: "🧹", title: "Очистка", desc: "Своевременно очищайте прибор от пыли" },
+        { icon: "🔋", title: "Элемент питания", desc: "Контролируйте состояние батарейки" },
+        { icon: "✅", title: "Проверка", desc: "Проверяйте работоспособность по инструкции" }
+    ];
+
     return (
         <ArticleContainer>
             <H1 style={{ marginBottom: '20px' }}>Автономные пожарные извещатели — важный элемент пожарной безопасности</H1>
-            
+
             <PublicationDate>
                 <Calendar size={16} />
                 <span>Опубликовано: {publishedDate}</span>
@@ -30,159 +91,182 @@ const AutonomousFireDetectors = () => {
                     loading="lazy"
                 />
 
-                <HighlightedText>
-                    Пожар может возникнуть внезапно, а первые минуты после обнаружения возгорания имеют решающее значение для спасения людей и сохранения имущества. Одним из простых и эффективных средств раннего обнаружения пожара являются <strong>автономные пожарные извещатели (АПИ)</strong>.
-                </HighlightedText>
+                <IntroSection>
+                    <IntroText>
+                        Пожар может возникнуть внезапно, а первые минуты после обнаружения возгорания имеют <strong>решающее значение</strong> для спасения людей и сохранения имущества. Одним из простых и эффективных средств раннего обнаружения пожара являются <strong>автономные пожарные извещатели (АПИ)</strong>.
+                    </IntroText>
+                </IntroSection>
 
-                <ArticleText>
-                    АПИ предназначен для обнаружения признаков пожара, прежде всего задымления, и подачи звукового сигнала, предупреждающего находящихся в помещении людей об опасности. В отличие от систем пожарной сигнализации, автономный извещатель имеет собственный источник питания и не требует подключения к централизованной системе.
-                </ArticleText>
+                <StatisticsSection>
+                    <SectionTitle>
+                        <ShieldCheck size={28} />
+                        Эффективность АПИ
+                    </SectionTitle>
+                    <StatsGrid>
+                        <StatCard>
+                            <StatNumber>93</StatNumber>
+                            <StatLabel>спасено благодаря своевременному срабатыванию АПИ в Гомельской области в 2025 году</StatLabel>
+                        </StatCard>
+                        <StatCard>
+                            <StatNumber>21</StatNumber>
+                            <StatLabel>в том числе детей</StatLabel>
+                        </StatCard>
+                        <StatCard>
+                            <StatNumber>200+</StatNumber>
+                            <StatLabel>ежегодно устанавливается АПИ в нашем районе</StatLabel>
+                        </StatCard>
+                    </StatsGrid>
+                </StatisticsSection>
 
-                <HighlightedText>
-                    Эффективность использования АПИ
-                </HighlightedText>
+                <InfoCard>
+                    <InfoCardTitle>
+                        <House size={22} />
+                        Что такое АПИ?
+                    </InfoCardTitle>
+                    <InfoCardText>
+                        АПИ предназначен для обнаружения признаков пожара, прежде всего задымления, и подачи звукового сигнала, предупреждающего находящихся в помещении людей об опасности. В отличие от систем пожарной сигнализации, автономный извещатель имеет собственный источник питания и не требует подключения к централизованной системе.
+                    </InfoCardText>
+                </InfoCard>
 
-                <ArticleText>
-                    Эффективность автономных пожарных извещателей подтверждается не только техническими характеристиками, но и реальными случаями спасения людей.
-                </ArticleText>
-
-                <ArticleText>
-                    <strong>В 2025 году в Гомельской области благодаря своевременному срабатыванию автономных пожарных извещателей были спасены 93 человека, в том числе 21 ребенок.</strong>
-                </ArticleText>
-
-                <ArticleText>
-                    Эти цифры наглядно показывают, что своевременное обнаружение задымления может дать людям дополнительные минуты для того, чтобы проснуться, покинуть опасное помещение и вызвать подразделения МЧС.
-                </ArticleText>
-
-                <ArticleText>
-                    Работа по обеспечению населения автономными пожарными извещателями проводится и на территории нашего района. <strong>Ежегодно в районе устанавливается более 200 АПИ.</strong> Это позволяет повышать уровень пожарной безопасности жилых помещений и своевременно оснащать ими граждан, нуждающихся в дополнительной защите.
-                </ArticleText>
-
-                <ArticleText>
-                    Особенно важна установка АПИ в домах и квартирах, где проживают дети, пожилые люди, а также граждане, которые по различным причинам могут не сразу обнаружить возникшее возгорание.
-                </ArticleText>
-
-                <HighlightedText>
+                <SectionTitle>
+                    <AlertTriangle size={28} />
                     Почему установка АПИ необходима?
-                </HighlightedText>
+                </SectionTitle>
 
-                <ArticleText>
-                    Основная опасность пожара заключается не только в воздействии высокой температуры и огня, но и в распространении дыма. Особенно опасным является пожар в ночное время, когда человек может не почувствовать запах дыма или не услышать первые признаки возгорания.
-                </ArticleText>
+                <InfoCard>
+                    <InfoCardTitle>
+                        <Thermometer size={22} />
+                        Главная опасность — дым
+                    </InfoCardTitle>
+                    <InfoCardText>
+                        Основная опасность пожара заключается не только в воздействии высокой температуры и огня, но и в распространении дыма. Особенно опасным является пожар в ночное время, когда человек может не почувствовать запах дыма или не услышать первые признаки возгорания. АПИ способен обнаружить задымление на ранней стадии и подать громкий звуковой сигнал, позволяя своевременно проснуться, покинуть опасное помещение и вызвать спасателей.
+                    </InfoCardText>
+                </InfoCard>
 
-                <ArticleText>
-                    АПИ способен обнаружить задымление на ранней стадии и подать громкий звуковой сигнал. Это позволяет своевременно проснуться, покинуть опасное помещение и вызвать спасателей.
-                </ArticleText>
-
-                <ArticleText>
-                    При этом эффективность извещателя напрямую зависит от правильного размещения, исправности и своевременного обслуживания.
-                </ArticleText>
-
-                <HighlightedText>
+                <SectionTitle>
+                    <MapPin size={28} />
                     Где следует устанавливать АПИ?
-                </HighlightedText>
+                </SectionTitle>
 
                 <ArticleText>
                     АПИ рекомендуется устанавливать в каждой жилой комнате, особое внимание следует уделять детским комнатам. Обычные дымовые АПИ не следует устанавливать непосредственно на кухне, поскольку пар и дым, образующиеся во время приготовления пищи, могут привести к ложным срабатываниям.
                 </ArticleText>
 
-                <ArticleText>
-                    Оптимальным местом размещения является потолок:
-                </ArticleText>
-
-                <ArticleText>
-                    <em>• предпочтительно — центральная часть помещения;</em><br />
-                    <em>• если установка по центру невозможна — на потолке ближе к стене;</em><br />
-                    <em>• расстояние от извещателя до стены должно быть не менее 10 см;</em><br />
-                    <em>• допускается установка на стене на расстоянии 10–30 см от потолка.</em>
-                </ArticleText>
+                <CardGrid>
+                    <PlacementCard>
+                        <PlacementCardTitle>📌 На потолке</PlacementCardTitle>
+                        <PlacementCardText>
+                            Центральная часть помещения. Если невозможно по центру — ближе к стене. Расстояние до стены — не менее 10 см.
+                        </PlacementCardText>
+                    </PlacementCard>
+                    <PlacementCard>
+                        <PlacementCardTitle>📌 На стене</PlacementCardTitle>
+                        <PlacementCardText>
+                            При натяжном потолке крепится на стене на расстоянии 10–30 см от потолка.
+                        </PlacementCardText>
+                    </PlacementCard>
+                    <PlacementCard style={{ gridColumn: '1 / -1' }}>
+                        <PlacementCardTitle>🚫 Где не рекомендуется</PlacementCardTitle>
+                        <PlacementCardText>
+                            Не устанавливайте в местах, где работе извещателя могут препятствовать мебель, декоративные конструкции и другие предметы. Также избегайте углов помещений и прямой установки над плитой.
+                        </PlacementCardText>
+                    </PlacementCard>
+                </CardGrid>
 
                 <ArticleText>
                     При выборе места установки необходимо учитывать особенности конкретного помещения и требования эксплуатационной документации изготовителя.
                 </ArticleText>
 
-                <ArticleText>
-                    Не следует размещать извещатель в местах, где его работе могут препятствовать мебель, декоративные конструкции или другие предметы.
-                </ArticleText>
-
-                <HighlightedText>
+                <SectionTitle>
+                    <CheckCircle size={28} />
                     Требования к монтажу
-                </HighlightedText>
+                </SectionTitle>
 
                 <ArticleText>
-                    Монтаж АПИ должен выполняться в соответствии с инструкцией изготовителя и требованиями действующих нормативных документов.
+                    Монтаж АПИ должен выполняться в соответствии с инструкцией изготовителя и требованиями действующих нормативных документов. После монтажа необходимо убедиться в следующем:
                 </ArticleText>
 
-                <ArticleText>
-                    После монтажа необходимо убедиться, что:
-                </ArticleText>
+                <ChecklistGrid>
+                    {checklistItems.map((item, index) => (
+                        <ChecklistItem key={index}>
+                            <ChecklistIcon><CheckCircle size={18} /></ChecklistIcon>
+                            <ChecklistText>{item}</ChecklistText>
+                        </ChecklistItem>
+                    ))}
+                </ChecklistGrid>
 
-                <ArticleText>
-                    <em>• извещатель надежно закреплен;</em><br />
-                    <em>• корпус не имеет механических повреждений;</em><br />
-                    <em>• доступ к прибору не перекрыт;</em><br />
-                    <em>• установлен источник питания, предусмотренный изготовителем;</em><br />
-                    <em>• извещатель находится в рабочем состоянии;</em><br />
-                    <em>• контрольный индикатор работает в соответствии с инструкцией;</em><br />
-                    <em>• при проверке срабатывает звуковая сигнализация.</em>
-                </ArticleText>
-
-                <HighlightedText>
+                <SectionTitle>
+                    <Bell size={28} />
                     Правила эксплуатации
-                </HighlightedText>
+                </SectionTitle>
 
                 <ArticleText>
                     После установки извещатель должен постоянно находиться в рабочем состоянии.
                 </ArticleText>
 
-                <ArticleText>
-                    При срабатывании АПИ необходимо определить возможную причину сигнала. Если обнаружено возгорание, следует немедленно покинуть опасную зону, сообщить о пожаре по телефону <strong>101 или 112</strong>, предупредить находящихся рядом людей и не возвращаться в горящее помещение.
-                </ArticleText>
+                <StepsGrid>
+                    <StepItem>
+                        <StepNumber>1</StepNumber>
+                        <StepText>Определить возможную причину сигнала. Если обнаружено возгорание — перейти к шагу 2.</StepText>
+                    </StepItem>
+                    <StepItem>
+                        <StepNumber>2</StepNumber>
+                        <StepText>Немедленно покинуть опасную зону вместе с находящимися рядом людьми.</StepText>
+                    </StepItem>
+                    <StepItem>
+                        <StepNumber>3</StepNumber>
+                        <StepText>Сообщить о пожаре по телефону <strong>101</strong> или <strong>112</strong>.</StepText>
+                    </StepItem>
+                    <StepItem>
+                        <StepNumber>4</StepNumber>
+                        <StepText>Предупредить находящихся людей об опасности.</StepText>
+                    </StepItem>
+                    <StepItem>
+                        <StepNumber>5</StepNumber>
+                        <StepText>Не возвращаться в горящее помещение ни при каких обстоятельствах.</StepText>
+                    </StepItem>
+                </StepsGrid>
 
-                <ArticleText>
-                    Нельзя отключать АПИ, извлекать из него источник питания или закрывать его корпус посторонними предметами только для того, чтобы избежать ложных срабатываний.
-                </ArticleText>
+                <WarningCard>
+                    <AlertTriangle size={24} style={{ flexShrink: 0, color: '#ffc107' }} />
+                    <InfoCardText style={{ margin: 0 }}>
+                        <strong>Нельзя отключать АПИ</strong>, извлекать из него источник питания или закрывать корпус посторонними предметами только для того, чтобы избежать ложных срабатываний.
+                    </InfoCardText>
+                </WarningCard>
 
-                <HighlightedText>
+                <SectionTitle>
+                    <Wrench size={28} />
                     Обслуживание АПИ
-                </HighlightedText>
+                </SectionTitle>
 
                 <ArticleText>
                     Даже исправный АПИ требует периодического ухода. На корпусе и защитной сетке со временем может накапливаться пыль, которая способна повлиять на работу чувствительного элемента.
                 </ArticleText>
 
-                <ArticleText>
-                    Для поддержания работоспособности необходимо:
-                </ArticleText>
+                <MaintenanceGrid>
+                    {maintenanceItems.map((item, index) => (
+                        <MaintenanceCard key={index}>
+                            <MaintenanceIcon>{item.icon}</MaintenanceIcon>
+                            <MaintenanceTitle>{item.title}</MaintenanceTitle>
+                            <MaintenanceDesc>{item.desc}</MaintenanceDesc>
+                        </MaintenanceCard>
+                    ))}
+                </MaintenanceGrid>
 
                 <ArticleText>
-                    <em>• регулярно осматривать корпус извещателя;</em><br />
-                    <em>• следить за отсутствием механических повреждений;</em><br />
-                    <em>• не допускать загрязнения защитной сетки;</em><br />
-                    <em>• своевременно очищать прибор от пыли;</em><br />
-                    <em>• контролировать состояние элемента питания;</em><br />
-                    <em>• периодически проверять работоспособность извещателя в соответствии с инструкцией изготовителя.</em>
+                    Очистку извещателя от пыли рекомендуется проводить <strong>не реже одного раза в год</strong>, а также после каждого ложного срабатывания.
                 </ArticleText>
 
-                <ArticleText>
-                    Очистку извещателя от пыли рекомендуется проводить не реже одного раза в год, а также после ложного срабатывания.
-                </ArticleText>
-
-                <HighlightedText>
-                    Помните!
-                </HighlightedText>
-
-                <ArticleText style={{ textAlign: 'center', fontWeight: 700 }}>
-                    <strong>Автономный пожарный извещатель — это небольшое устройство, которое может спасти жизнь.</strong>
-                </ArticleText>
-
-                <ArticleText style={{ textAlign: 'center' }}>
-                    Но для этого он должен быть правильно установлен, исправен и находиться в рабочем состоянии. Не пренебрегайте требованиями пожарной безопасности: установите АПИ в своем доме или квартире, регулярно проверяйте его работоспособность и своевременно заменяйте элемент питания.
-                </ArticleText>
-
-                <ArticleText style={{ textAlign: 'center' }}>
-                    <strong>Позаботьтесь о безопасности своей семьи — установите автономный пожарный извещатель!</strong>
-                </ArticleText>
+                <FinalCallToAction>
+                    <FinalTitle>Помните!</FinalTitle>
+                    <FinalText>
+                        <strong>Автономный пожарный извещатель — это небольшое устройство, которое может спасти жизнь.</strong>
+                    </FinalText>
+                    <FinalText>
+                        Но для этого он должен быть правильно установлен, исправен и находиться в рабочем состоянии. Не пренебрегайте требованиями пожарной безопасности: установите АПИ в своем доме или квартире, регулярно проверяйте его работоспособность и своевременно заменяйте элемент питания.
+                    </FinalText>
+                    <CtaText>Позаботьтесь о безопасности своей семьи — установите автономный пожарный извещатель!</CtaText>
+                </FinalCallToAction>
             </ArticleContent>
         </ArticleContainer>
     );
