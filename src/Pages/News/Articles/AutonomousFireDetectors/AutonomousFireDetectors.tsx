@@ -1,18 +1,4 @@
-import { useState } from 'react';
-import {
-    Calendar,
-    ShieldCheck,
-    AlertTriangle,
-    Phone,
-    MapPin,
-    Heart,
-    CheckCircle,
-    Battery,
-    Wrench,
-    Bell,
-    House,
-    Thermometer
-} from 'lucide-react';
+import { Calendar, ShieldCheck, AlertTriangle, MapPin, Wrench, CheckCircle, Bell, Search, Brush, Battery, Check } from 'lucide-react';
 import {
     ArticleContainer,
     ArticleContent,
@@ -21,34 +7,42 @@ import {
     IntroSection,
     IntroText,
     StatisticsSection,
+    StatsContainer,
+    StatsLabel,
     StatsGrid,
-    StatCard,
+    StatBlock,
+    StatDivider,
     StatNumber,
-    StatLabel,
+    StatMainLabel,
+    StatSubLabel,
     SectionTitle,
     ArticleText,
-    InfoCard,
-    InfoCardTitle,
-    InfoCardText,
+    InfoBlock,
+    InfoBlockIcon,
+    InfoBlockText,
     CardGrid,
-    PlacementCard,
+    PlacementCardGreen,
+    PlacementCardYellow,
     PlacementCardTitle,
+    PlacementCardYellowTitle,
     PlacementCardText,
-    WarningCard,
     ChecklistGrid,
     ChecklistItem,
     ChecklistIcon,
     ChecklistText,
-    StepsGrid,
+    StepsContainer,
     StepItem,
     StepNumber,
     StepText,
+    WarningBlock,
+    WarningIcon,
+    WarningText,
     MaintenanceGrid,
     MaintenanceCard,
     MaintenanceIcon,
     MaintenanceTitle,
     MaintenanceDesc,
-    FinalCallToAction,
+    FinalSection,
     FinalTitle,
     FinalText,
     CtaText
@@ -69,10 +63,10 @@ const AutonomousFireDetectors = () => {
     ];
 
     const maintenanceItems = [
-        { icon: "🛡️", title: "Осмотр", desc: "Регулярно осматривайте корпус извещателя" },
-        { icon: "🧹", title: "Очистка", desc: "Своевременно очищайте прибор от пыли" },
-        { icon: "🔋", title: "Элемент питания", desc: "Контролируйте состояние батарейки" },
-        { icon: "✅", title: "Проверка", desc: "Проверяйте работоспособность по инструкции" }
+        { icon: <Search size={22} />, title: "Осмотр", desc: "Регулярно осматривайте корпус извещателя" },
+        { icon: <Brush size={22} />, title: "Очистка", desc: "Своевременно очищайте прибор от пыли" },
+        { icon: <Battery size={22} />, title: "Элемент питания", desc: "Контролируйте состояние батарейки" },
+        { icon: <Check size={22} />, title: "Проверка", desc: "Проверяйте работоспособность по инструкции" }
     ];
 
     return (
@@ -98,53 +92,59 @@ const AutonomousFireDetectors = () => {
                 </IntroSection>
 
                 <StatisticsSection>
-                    <SectionTitle>
-                        <ShieldCheck size={28} />
-                        Эффективность АПИ
-                    </SectionTitle>
-                    <StatsGrid>
-                        <StatCard>
-                            <StatNumber>93</StatNumber>
-                            <StatLabel>спасено благодаря своевременному срабатыванию АПИ в Гомельской области в 2025 году</StatLabel>
-                        </StatCard>
-                        <StatCard>
-                            <StatNumber>21</StatNumber>
-                            <StatLabel>в том числе детей</StatLabel>
-                        </StatCard>
-                        <StatCard>
-                            <StatNumber>200+</StatNumber>
-                            <StatLabel>ежегодно устанавливается АПИ в нашем районе</StatLabel>
-                        </StatCard>
-                    </StatsGrid>
+                    <StatsContainer>
+                        <StatsLabel>Эффективность АПИ</StatsLabel>
+                        <StatsGrid>
+                            <StatBlock>
+                                <StatNumber>93</StatNumber>
+                                <StatMainLabel>спасено в Гомельской области в 2025 году</StatMainLabel>
+                            </StatBlock>
+                            <StatDivider />
+                            <StatBlock>
+                                <StatNumber>21</StatNumber>
+                                <StatMainLabel>в том числе</StatMainLabel>
+                                <StatSubLabel>детей спасено</StatSubLabel>
+                            </StatBlock>
+                            <StatDivider />
+                            <StatBlock>
+                                <StatNumber>200+</StatNumber>
+                                <StatMainLabel>ежегодно устанавливается</StatMainLabel>
+                                <StatSubLabel>АПИ в нашем районе</StatSubLabel>
+                            </StatBlock>
+                        </StatsGrid>
+                    </StatsContainer>
                 </StatisticsSection>
 
-                <InfoCard>
-                    <InfoCardTitle>
-                        <House size={22} />
-                        Что такое АПИ?
-                    </InfoCardTitle>
-                    <InfoCardText>
+                <SectionTitle>
+                    <ShieldCheck size={26} />
+                    Что такое АПИ?
+                </SectionTitle>
+
+                <InfoBlock>
+                    <InfoBlockIcon><ShieldCheck size={22} /></InfoBlockIcon>
+                    <InfoBlockText>
                         АПИ предназначен для обнаружения признаков пожара, прежде всего задымления, и подачи звукового сигнала, предупреждающего находящихся в помещении людей об опасности. В отличие от систем пожарной сигнализации, автономный извещатель имеет собственный источник питания и не требует подключения к централизованной системе.
-                    </InfoCardText>
-                </InfoCard>
+                    </InfoBlockText>
+                </InfoBlock>
 
                 <SectionTitle>
-                    <AlertTriangle size={28} />
+                    <AlertTriangle size={26} />
                     Почему установка АПИ необходима?
                 </SectionTitle>
 
-                <InfoCard>
-                    <InfoCardTitle>
-                        <Thermometer size={22} />
-                        Главная опасность — дым
-                    </InfoCardTitle>
-                    <InfoCardText>
-                        Основная опасность пожара заключается не только в воздействии высокой температуры и огня, но и в распространении дыма. Особенно опасным является пожар в ночное время, когда человек может не почувствовать запах дыма или не услышать первые признаки возгорания. АПИ способен обнаружить задымление на ранней стадии и подать громкий звуковой сигнал, позволяя своевременно проснуться, покинуть опасное помещение и вызвать спасателей.
-                    </InfoCardText>
-                </InfoCard>
+                <ArticleText>
+                    Основная опасность пожара заключается не только в воздействии высокой температуры и огня, но и в распространении дыма. Особенно опасным является пожар в ночное время, когда человек может не почувствовать запах дыма или не услышать первые признаки возгорания.
+                </ArticleText>
+
+                <InfoBlock>
+                    <InfoBlockIcon><AlertTriangle size={22} /></InfoBlockIcon>
+                    <InfoBlockText>
+                        АПИ способен обнаружить задымление на ранней стадии и подать громкий звуковой сигнал. Это позволяет своевременно проснуться, покинуть опасное помещение и вызвать спасателей. При этом эффективность извещателя напрямую зависит от правильного размещения, исправности и своевременного обслуживания.
+                    </InfoBlockText>
+                </InfoBlock>
 
                 <SectionTitle>
-                    <MapPin size={28} />
+                    <MapPin size={26} />
                     Где следует устанавливать АПИ?
                 </SectionTitle>
 
@@ -153,24 +153,24 @@ const AutonomousFireDetectors = () => {
                 </ArticleText>
 
                 <CardGrid>
-                    <PlacementCard>
-                        <PlacementCardTitle>📌 На потолке</PlacementCardTitle>
+                    <PlacementCardGreen>
+                        <PlacementCardTitle>Потолок</PlacementCardTitle>
                         <PlacementCardText>
-                            Центральная часть помещения. Если невозможно по центру — ближе к стене. Расстояние до стены — не менее 10 см.
+                            Основной и рекомендуемый вариант. Центральная часть помещения, или ближе к стене если по центру невозможно. Расстояние от извещателя до стены — не менее 10 см.
                         </PlacementCardText>
-                    </PlacementCard>
-                    <PlacementCard>
-                        <PlacementCardTitle>📌 На стене</PlacementCardTitle>
+                    </PlacementCardGreen>
+                    <PlacementCardGreen>
+                        <PlacementCardTitle>Стена</PlacementCardTitle>
                         <PlacementCardText>
-                            При натяжном потолке крепится на стене на расстоянии 10–30 см от потолка.
+                            При натяжном потолке извещатель крепится на стене на расстоянии 10–30 см от потолка.
                         </PlacementCardText>
-                    </PlacementCard>
-                    <PlacementCard style={{ gridColumn: '1 / -1' }}>
-                        <PlacementCardTitle>🚫 Где не рекомендуется</PlacementCardTitle>
+                    </PlacementCardGreen>
+                    <PlacementCardYellow>
+                        <PlacementCardYellowTitle>Не рекомендуется</PlacementCardYellowTitle>
                         <PlacementCardText>
-                            Не устанавливайте в местах, где работе извещателя могут препятствовать мебель, декоративные конструкции и другие предметы. Также избегайте углов помещений и прямой установки над плитой.
+                            Не устанавливайте в местах, где работе извещателя препятствуют мебель и декоративные конструкции. Также избегайте углов помещений и установки над плитой.
                         </PlacementCardText>
-                    </PlacementCard>
+                    </PlacementCardYellow>
                 </CardGrid>
 
                 <ArticleText>
@@ -178,7 +178,7 @@ const AutonomousFireDetectors = () => {
                 </ArticleText>
 
                 <SectionTitle>
-                    <CheckCircle size={28} />
+                    <CheckCircle size={26} />
                     Требования к монтажу
                 </SectionTitle>
 
@@ -189,14 +189,14 @@ const AutonomousFireDetectors = () => {
                 <ChecklistGrid>
                     {checklistItems.map((item, index) => (
                         <ChecklistItem key={index}>
-                            <ChecklistIcon><CheckCircle size={18} /></ChecklistIcon>
+                            <ChecklistIcon><CheckCircle size={16} /></ChecklistIcon>
                             <ChecklistText>{item}</ChecklistText>
                         </ChecklistItem>
                     ))}
                 </ChecklistGrid>
 
                 <SectionTitle>
-                    <Bell size={28} />
+                    <Bell size={26} />
                     Правила эксплуатации
                 </SectionTitle>
 
@@ -204,38 +204,38 @@ const AutonomousFireDetectors = () => {
                     После установки извещатель должен постоянно находиться в рабочем состоянии.
                 </ArticleText>
 
-                <StepsGrid>
+                <StepsContainer>
                     <StepItem>
-                        <StepNumber>1</StepNumber>
-                        <StepText>Определить возможную причину сигнала. Если обнаружено возгорание — перейти к шагу 2.</StepText>
+                        <StepNumber>01</StepNumber>
+                        <StepText>Определить возможную причину срабатывания. Если обнаружено возгорание — перейти к шагу 2.</StepText>
                     </StepItem>
                     <StepItem>
-                        <StepNumber>2</StepNumber>
-                        <StepText>Немедленно покинуть опасную зону вместе с находящимися рядом людьми.</StepText>
+                        <StepNumber>02</StepNumber>
+                        <StepText>При обнаружении пожара немедленно покинуть опасную зону.</StepText>
                     </StepItem>
                     <StepItem>
-                        <StepNumber>3</StepNumber>
+                        <StepNumber>03</StepNumber>
                         <StepText>Сообщить о пожаре по телефону <strong>101</strong> или <strong>112</strong>.</StepText>
                     </StepItem>
                     <StepItem>
-                        <StepNumber>4</StepNumber>
+                        <StepNumber>04</StepNumber>
                         <StepText>Предупредить находящихся людей об опасности.</StepText>
                     </StepItem>
                     <StepItem>
-                        <StepNumber>5</StepNumber>
+                        <StepNumber>05</StepNumber>
                         <StepText>Не возвращаться в горящее помещение ни при каких обстоятельствах.</StepText>
                     </StepItem>
-                </StepsGrid>
+                </StepsContainer>
 
-                <WarningCard>
-                    <AlertTriangle size={24} style={{ flexShrink: 0, color: '#ffc107' }} />
-                    <InfoCardText style={{ margin: 0 }}>
+                <WarningBlock>
+                    <WarningIcon><AlertTriangle size={22} /></WarningIcon>
+                    <WarningText>
                         <strong>Нельзя отключать АПИ</strong>, извлекать из него источник питания или закрывать корпус посторонними предметами только для того, чтобы избежать ложных срабатываний.
-                    </InfoCardText>
-                </WarningCard>
+                    </WarningText>
+                </WarningBlock>
 
                 <SectionTitle>
-                    <Wrench size={28} />
+                    <Wrench size={26} />
                     Обслуживание АПИ
                 </SectionTitle>
 
@@ -257,7 +257,7 @@ const AutonomousFireDetectors = () => {
                     Очистку извещателя от пыли рекомендуется проводить <strong>не реже одного раза в год</strong>, а также после каждого ложного срабатывания.
                 </ArticleText>
 
-                <FinalCallToAction>
+                <FinalSection>
                     <FinalTitle>Помните!</FinalTitle>
                     <FinalText>
                         <strong>Автономный пожарный извещатель — это небольшое устройство, которое может спасти жизнь.</strong>
@@ -266,7 +266,7 @@ const AutonomousFireDetectors = () => {
                         Но для этого он должен быть правильно установлен, исправен и находиться в рабочем состоянии. Не пренебрегайте требованиями пожарной безопасности: установите АПИ в своем доме или квартире, регулярно проверяйте его работоспособность и своевременно заменяйте элемент питания.
                     </FinalText>
                     <CtaText>Позаботьтесь о безопасности своей семьи — установите автономный пожарный извещатель!</CtaText>
-                </FinalCallToAction>
+                </FinalSection>
             </ArticleContent>
         </ArticleContainer>
     );
