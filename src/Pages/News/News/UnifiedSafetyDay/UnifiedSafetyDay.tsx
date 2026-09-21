@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import {
     Calendar,
     MapPin,
@@ -25,7 +24,7 @@ const UnifiedSafetyDay = () => {
 
     return (
         <ArticleContainer>
-            <H1 style={{ marginBottom: '20px' }}>24 сентября — Единый день безопасности</H1>
+            <H1 style={{ marginBottom: '20px' }}>24 сентября состоится Единый день безопасности</H1>
 
             <PublicationDate>
                 <Calendar size={16} />
@@ -40,7 +39,7 @@ const UnifiedSafetyDay = () => {
                 />
 
                 <HighlightedText>
-                    24 сентября 2026 года в Буда-Кошелёве состоялся Единый день безопасности!
+                    24 сентября 2026 года в Буда-Кошелёве состоится Единый день безопасности!
                 </HighlightedText>
 
                 <InfoBlock>

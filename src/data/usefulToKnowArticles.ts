@@ -77,7 +77,7 @@ export const usefulToKnowArticles: UsefulArticle[] = [
         url: "gsz_portal"
     },
     {
-        title: "24 сентября – Единый день безопасности",
+        title: "Единый день безопасности",
         image: "https://mchs.gov.by/upload/iblock/4e3/ko0kq5tkpjbkp29ifj8mbcvu4nlw0l64/pravyy-banner.jpg",
         externalUrl: "https://mchs.gov.by/edinyy-den-bezopasnosti/"
     }
