@@ -29,10 +29,10 @@ const News = () => {
 
     const ourNews: NewsItem[] = [
         {
-            title: "Единый день безопасности",
-            image: "/useful_to_know/safe-internet_icon.jpg",
+            title: "24 сентября – Единый день безопасности",
+            image: "https://mchs.gov.by/upload/iblock/4e3/ko0kq5tkpjbkp29ifj8mbcvu4nlw0l64/pravyy-banner.jpg",
             url: "https://mchs.gov.by/edinyy-den-bezopasnosti/",
-            publishedDate: "21.09.2026",
+            publishedDate: "24.09.2026",
             isExternal: true
         },
         {
