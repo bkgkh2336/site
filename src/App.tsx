@@ -50,6 +50,7 @@ const BoilerMaintenance = lazy(() => import('./Pages/News/Articles/BoilerMainten
 const AttractionsSafety = lazy(() => import('./Pages/News/Articles/AttractionsSafety/AttractionsSafety'))
 const UnionConference = lazy(() => import('./Pages/News/News/UnionConference/UnionConference'))
 const CleanupDay = lazy(() => import('./Pages/News/News/CleanupDay/CleanupDay'))
+const UnifiedSafetyDay = lazy(() => import('./Pages/News/News/UnifiedSafetyDay/UnifiedSafetyDay'))
 const UsefulToKnow = lazy(() => import('./Pages/News/UsefulToKnow/UsefulToKnow'))
 const PhoneScammers = lazy(() => import('./Pages/News/UsefulToKnow/PhoneScammers/PhoneScammers'))
 const SafeInternetCards = lazy(() => import('./Pages/News/UsefulToKnow/SafeInternetCards/SafeInternetCards'))
@@ -108,6 +109,7 @@ const routeTitles: Record<string, string> = {
   '/news/articles/attractions_safety': 'Аттракцион должен быть безопасным! - КЖУП "Буда-Кошелёвский коммунальник"',
 '/news/union_conference': 'Прошла отчетная профсоюзная конференция - КЖУП "Буда-Кошелёвский коммунальник"',
     '/news/cleanup_day': 'Прошел субботник по благоустройству территории - КЖУП "Буда-Кошелёвский коммунальник"',
+    '/news/unified_safety_day': '24 сентября – Единый день безопасности - КЖУП "Буда-Кошелёвский коммунальник"',
     '/news/useful_to_know': 'Полезно знать - КЖУП "Буда-Кошелёвский коммунальник"',
   '/news/useful_to_know/phone_scammers': 'Телефонные мошенники - КЖУП "Буда-Кошелёвский коммунальник"',
   '/news/useful_to_know/safe_internet_cards': 'Безопасность в сети и банковские карты - КЖУП "Буда-Кошелёвский коммунальник"',
@@ -220,6 +222,7 @@ function App() {
                 <Route path='/news' element={<News />} />
                 <Route path='/news/union_conference' element={<UnionConference />} />
                 <Route path='/news/cleanup_day' element={<CleanupDay />} />
+                <Route path='/news/unified_safety_day' element={<UnifiedSafetyDay />} />
                 <Route path='/news/articles' element={<Articles />} />
                 <Route path='/news/articles/boiler_maintenance' element={<BoilerMaintenance />} />
                 <Route path='/news/articles/attractions_safety' element={<AttractionsSafety />} />
