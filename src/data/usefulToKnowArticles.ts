@@ -75,5 +75,10 @@ export const usefulToKnowArticles: UsefulArticle[] = [
         title: "Портал государственной службы занятости",
         image: "/useful_to_know/GSZ.png",
         url: "gsz_portal"
+    },
+    {
+        title: "Единый день безопасности",
+        image: "/useful_to_know/forbidden.png",
+        externalUrl: "https://mchs.gov.by/edinyy-den-bezopasnosti/"
     }
 ];
