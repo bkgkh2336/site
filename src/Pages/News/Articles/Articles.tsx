@@ -23,6 +23,12 @@ const Articles = () => {
 
     const articles: Article[] = [
         {
+            title: "Автономные пожарные извещатели — важный элемент пожарной безопасности",
+            image: "/articles/autonomous_fire_detectors.jpg",
+            url: "/news/articles/autonomous_fire_detectors",
+            publishedDate: "21.09.2026 14:00"
+        },
+        {
             title: "Профилактика и уход за котельными установками во время морозов",
             image: "/articles/prevention_and_maintenance_of_boiler_installations_during_frosts.jpg",
             url: "/news/articles/boiler_maintenance",

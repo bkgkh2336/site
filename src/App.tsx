@@ -48,6 +48,7 @@ const News = lazy(() => import('./Pages/News/News'))
 const Articles = lazy(() => import('./Pages/News/Articles/Articles'))
 const BoilerMaintenance = lazy(() => import('./Pages/News/Articles/BoilerMaintenance/BoilerMaintenance'))
 const AttractionsSafety = lazy(() => import('./Pages/News/Articles/AttractionsSafety/AttractionsSafety'))
+const AutonomousFireDetectors = lazy(() => import('./Pages/News/Articles/AutonomousFireDetectors/AutonomousFireDetectors'))
 const UnionConference = lazy(() => import('./Pages/News/News/UnionConference/UnionConference'))
 const CleanupDay = lazy(() => import('./Pages/News/News/CleanupDay/CleanupDay'))
 const UnifiedSafetyDay = lazy(() => import('./Pages/News/News/UnifiedSafetyDay/UnifiedSafetyDay'))
@@ -106,8 +107,9 @@ const routeTitles: Record<string, string> = {
   '/news': 'Новости - КЖУП "Буда-Кошелёвский коммунальник"',
   '/news/articles': 'Статьи - КЖУП "Буда-Кошелёвский коммунальник"',
   '/news/articles/boiler_maintenance': 'Профилактика и уход за котельными установками во время морозов - КЖУП "Буда-Кошелёвский коммунальник"',
-  '/news/articles/attractions_safety': 'Аттракцион должен быть безопасным! - КЖУП "Буда-Кошелёвский коммунальник"',
-'/news/union_conference': 'Прошла отчетная профсоюзная конференция - КЖУП "Буда-Кошелёвский коммунальник"',
+'/news/articles/attractions_safety': 'Аттракцион должен быть безопасным! - КЖУП "Буда-Кошелёвский коммунальник"',
+  '/news/articles/autonomous_fire_detectors': 'Автономные пожарные извещатели - КЖУП "Буда-Кошелёвский коммунальник"',
+ '/news/union_conference': 'Прошла отчетная профсоюзная конференция - КЖУП "Буда-Кошелёвский коммунальник"',
     '/news/cleanup_day': 'Прошел субботник по благоустройству территории - КЖУП "Буда-Кошелёвский коммунальник"',
     '/news/unified_safety_day': '24 сентября – Единый день безопасности - КЖУП "Буда-Кошелёвский коммунальник"',
     '/news/useful_to_know': 'Полезно знать - КЖУП "Буда-Кошелёвский коммунальник"',
@@ -226,6 +228,7 @@ function App() {
                 <Route path='/news/articles' element={<Articles />} />
                 <Route path='/news/articles/boiler_maintenance' element={<BoilerMaintenance />} />
                 <Route path='/news/articles/attractions_safety' element={<AttractionsSafety />} />
+                <Route path='/news/articles/autonomous_fire_detectors' element={<AutonomousFireDetectors />} />
                 <Route path='/news/useful_to_know' element={<UsefulToKnow />} />
                 <Route path='/news/useful_to_know/phone_scammers' element={<PhoneScammers />} />
                 <Route path='/news/useful_to_know/safe_internet_cards' element={<SafeInternetCards />} />
