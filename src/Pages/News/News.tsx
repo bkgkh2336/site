@@ -29,7 +29,7 @@ const News = () => {
 
     const ourNews: NewsItem[] = [
 {
-            title: "24 сентября – Единый день безопасности",
+            title: "24 сентября состоится Единый день безопасности",
             image: "/news/edinyy_den_bezopasnosti_banner.jpg",
             url: "/news/unified_safety_day",
             publishedDate: "21.09.2026",
