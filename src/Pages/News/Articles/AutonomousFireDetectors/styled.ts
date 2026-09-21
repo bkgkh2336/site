@@ -1,5 +1,4 @@
 import styled from 'styled-components';
-import { Calendar } from 'lucide-react';
 
 export const ArticleContainer = styled.div`
     max-width: 90%;
@@ -417,6 +416,7 @@ export const StepNumber = styled.div`
     font-size: 0.85rem;
     font-weight: 700;
     color: #28a745;
+    margin-left: 10px;
     margin-bottom: 4px;
 `;
 
@@ -561,9 +561,8 @@ export const FinalText = styled.p`
     font-size: 1.05rem;
     color: #333;
     line-height: 1.8;
-    max-width: 600px;
     margin: 0 auto 15px auto;
-    text-align: left;
+    text-align: center;
 
     @media (max-width: 480px) {
         font-size: 1rem;

@@ -80,7 +80,7 @@ const AutonomousFireDetectors = () => {
 
             <ArticleContent>
                 <ArticleImage
-                    src="/news/edinyy_den_bezopasnosti_banner.jpg"
+                    src="/articles/autonomous_fire_detectors.jpg    "
                     alt="Автономные пожарные извещатели"
                     loading="lazy"
                 />

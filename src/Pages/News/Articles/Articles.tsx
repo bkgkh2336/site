@@ -23,7 +23,7 @@ const Articles = () => {
 
     const articles: Article[] = [
         {
-            title: "Автономные пожарные извещатели — важный элемент пожарной безопасности",
+            title: "Автономные пожарные извещатели - важный элемент пожарной безопасности",
             image: "/articles/autonomous_fire_detectors.jpg",
             url: "/news/articles/autonomous_fire_detectors",
             publishedDate: "21.09.2026 14:00"
