@@ -45,11 +45,11 @@ const UnifiedSafetyDay = () => {
                 <InfoBlock>
                     <InfoItem>
                         <MapPin size={24} style={{ flexShrink: 0, color: '#28a745' }} />
-                        <span><strong>Место:</strong> Гомельская область, г. Буда-Кошелево, ул. Ленина, д. 58 (площадка магазина «Евроопт»)</span>
+                        <span><strong>Место:</strong> Гомельская область, г. Буда-Кошелево, ул. Озёрная 3А, актовый зал</span>
                     </InfoItem>
                     <InfoItem>
                         <Clock size={24} style={{ flexShrink: 0, color: '#28a745' }} />
-                        <span><strong>Время:</strong> 13:00–15:00</span>
+                        <span><strong>Время:</strong> 9:00</span>
                     </InfoItem>
                 </InfoBlock>
 
