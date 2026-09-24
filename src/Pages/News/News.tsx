@@ -36,6 +36,13 @@ const News = () => {
             isExternal: false
         },
         {
+            title: "Прошёл Единый день безопасности",
+            image: "/news/edinyy_den_bezopasnosti_banner.jpg",
+            url: "/news/safety_day_passed",
+            publishedDate: "24.09.2026",
+            isExternal: false
+        },
+        {
             title: "Буда-Кошелевщина встретила День Независимости",
             image: "https://sp-ao.shortpixel.ai/client/to_webp,q_glossy,ret_img,w_800,h_533/https://buda-koshelevo.net/wp-content/uploads/2026/07/20cd883511d3f60160201bf5c6e2ba37.jpg",
             url: "https://buda-koshelevo.net/krasota-sozidanie-bydyshee-bydakoshelevshina-vstretila-den-nezavisimosti/",
