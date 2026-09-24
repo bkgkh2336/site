@@ -127,27 +127,62 @@ export const MobileContactInfo = styled.a`
     }
 `;
 
-export const MobileMenuButton = styled.button`
+export const HamburgerButton = styled.button`
     display: none;
     background: none;
     border: none;
-    color: #28a745;
     cursor: pointer;
-    padding: 6px 8px;
+    padding: 8px;
     border-radius: 8px;
     transition: background-color 0.3s ease;
     flex-shrink: 0;
+    z-index: 1001;
     
     &:hover {
         background-color: rgba(40, 167, 69, 0.1);
     }
     
     @media (max-width: 1300px) {
-        display: block;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     
     @media (max-width: 768px) {
-        padding: 4px 6px;
+        padding: 6px;
+    }
+`;
+
+export const HamburgerIcon = styled.div<{ $open: boolean }>`
+    width: 24px;
+    height: 18px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    cursor: pointer;
+    
+    span {
+        display: block;
+        width: 100%;
+        height: 2px;
+        background-color: #28a745;
+        border-radius: 2px;
+        transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        transform-origin: center;
+        
+        &:nth-child(1) {
+            transform: ${({ $open }) => $open ? 'rotate(45deg) translate(4px, 4px)' : 'none'};
+        }
+        
+        &:nth-child(2) {
+            opacity: ${({ $open }) => $open ? 0 : 1};
+            transform: ${({ $open }) => $open ? 'scaleX(0)' : 'none'};
+        }
+        
+        &:nth-child(3) {
+            transform: ${({ $open }) => $open ? 'rotate(-45deg) translate(4px, -4px)' : 'none'};
+        }
     }
 `;
 
@@ -157,17 +192,15 @@ export const MobileMenuOverlay = styled.div`
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.4);
     z-index: 998;
-    animation: fadeIn 0.3s ease;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
     
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-        }
-        to {
-            opacity: 1;
-        }
+    &.visible {
+        opacity: 1;
+        visibility: visible;
     }
 `;
 
@@ -189,40 +222,110 @@ export const HeaderContainer = styled.div`
     }
 `;
 
-export const MobileMenu = styled.div`
-    height: fit-content;
-    max-height: 50vh;
-    width: 100%;
-    max-width: 350px;
-    align-self: flex-end;
+export const BottomSheet = styled.div<{ $open: boolean }>`
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 999;
     background: white;
-    border-radius: 25px;
-    border: 1px solid rgba(76, 175, 80, 0.2);
-    box-shadow: -4px 0 32px rgba(0, 0, 0, 0.15);
+    border-radius: 24px 24px 0 0;
+    box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.12),
+                0 -2px 12px rgba(0, 0, 0, 0.06);
+    max-height: 75vh;
     overflow-y: auto;
-    padding: 20px;
-    animation: slideIn 0.3s ease;
+    overscroll-behavior: none;
+    touch-action: pan-y;
+    transform: translateY(${({ $open }) => $open ? 0 : '100%'});
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     
-    @keyframes slideIn {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
+    &::-webkit-scrollbar {
+        width: 4px;
     }
     
-    > div {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
+    &::-webkit-scrollbar-thumb {
+        background: rgba(40, 167, 69, 0.3);
+        border-radius: 4px;
+    }
+`;
+
+export const BottomSheetHandle = styled.div`
+    display: flex;
+    justify-content: center;
+    padding: 12px 0 4px;
+    cursor: grab;
+    
+    &:active {
+        cursor: grabbing;
     }
     
     @media (max-width: 480px) {
-        width: 85%;
-        max-width: 320px;
+        padding: 8px 0 2px;
+    }
+`;
+
+export const BottomSheetHandleBar = styled.div`
+    width: 36px;
+    height: 4px;
+    background: rgba(40, 167, 69, 0.3);
+    border-radius: 4px;
+    transition: background 0.3s ease;
+    
+    &:hover {
+        background: rgba(40, 167, 69, 0.5);
+    }
+`;
+
+export const BottomSheetContent = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 16px 24px;
+    
+    @media (max-width: 480px) {
+        padding: 4px 12px 20px;
+    }
+`;
+
+export const SheetDivider = styled.div`
+    height: 1px;
+    background: rgba(40, 167, 69, 0.12);
+    margin: 8px 0;
+`;
+
+export const SheetContactSection = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 16px 20px;
+    border-top: 1px solid rgba(40, 167, 69, 0.1);
+    margin-top: 4px;
+    
+    @media (max-width: 480px) {
+        padding: 8px 12px 16px;
+    }
+`;
+
+export const SheetContactItem = styled.a`
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 12px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: #333;
+    font-weight: 600;
+    transition: background 0.2s ease;
+    
+    &:hover {
+        background: rgba(40, 167, 69, 0.06);
+    }
+    
+    @media (max-width: 480px) {
+        padding: 10px;
+        font-size: 0.9rem;
     }
 `;
 
@@ -264,8 +367,8 @@ export const Header_ = styled(Block_)`
         flex-wrap: wrap;
         justify-content: space-between;
         
-        > ${MobileContactInfo}, > ${MobileMenuButton} {
-            display: none;
+        > ${MobileActions} {
+            display: flex;
         }
     }
 `
