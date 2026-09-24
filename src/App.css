@@ -1,8 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=Lato:wght@300;400;600;700&display=swap');
-
 /* iOS Safari viewport height fix */
 html {
     height: -webkit-fill-available;
+    /* Резервный фон: не даём тёмного флеша до отрисовки секций */
+    background-color: #ffffff;
 }
 
 html, body {
@@ -268,6 +268,30 @@ body.bvi-color-brown-beige [class*="BVIPanelHeader"],
 body.bvi-color-green-darkgreen [class*="BVIPanelHeader"] {
     background: #28a745 !important;
     color: white !important;
+}
+
+/* ========================================
+   Отключение анимаций:
+   - системная настройка «уменьшить движение»
+   - версия для слабовидящих (BVI)
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+body.bvi-active *,
+body.bvi-active *::before,
+body.bvi-active *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
 }
 
 /* ========================================

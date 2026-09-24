@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useMemo } from 'react';
+import type { ReactNode } from 'react';
 import {
     Home,
     Phone,
@@ -20,6 +21,8 @@ import {
     CreditCard
 } from 'lucide-react';
 import { usefulToKnowArticles } from '../../data/usefulToKnowArticles';
+import { Reveal } from '../../Components/Reveal/Reveal';
+import { CountUp } from '../../Components/CountUp/CountUp';
 import {
     MainContainer,
     HeroSection,
@@ -95,11 +98,19 @@ import {
 const Main = () => {
     const navigate = useNavigate();
 
-    const stats = useMemo(() => [
-        { icon: <Users size={32} />, number: '70+', label: 'Лет опыта работы' },
-        { icon: <Home size={32} />, number: '500+', label: 'Обслуживаемых домов' },
-        { icon: <Award size={32} />, number: '24/7', label: 'Круглосуточная поддержка' },
-        { icon: <ShieldCheck size={32} />, number: '100%', label: 'Гарантия качества' }
+    interface StatItem {
+        icon: ReactNode;
+        countTo?: number;
+        suffix?: string;
+        text?: string;
+        label: string;
+    }
+
+    const stats = useMemo<StatItem[]>(() => [
+        { icon: <Users size={32} />, countTo: 70, suffix: '+', label: 'Лет опыта работы' },
+        { icon: <Home size={32} />, countTo: 500, suffix: '+', label: 'Обслуживаемых домов' },
+        { icon: <Award size={32} />, text: '24/7', label: 'Круглосуточная поддержка' },
+        { icon: <ShieldCheck size={32} />, countTo: 100, suffix: '%', label: 'Гарантия качества' }
     ], []);
 
     const services = useMemo(() => [
@@ -234,10 +245,12 @@ const Main = () => {
                 <QuickLinksContainer>
                     <QuickLinksGrid>
                         {quickLinks.map((link, index) => (
-                            <QuickLinkCard key={index} onClick={() => navigate(link.url)}>
-                                <QuickLinkIcon>{link.icon}</QuickLinkIcon>
-                                <QuickLinkTitle>{link.title}</QuickLinkTitle>
-                            </QuickLinkCard>
+                            <Reveal key={index} fill delay={index * 80}>
+                                <QuickLinkCard onClick={() => navigate(link.url)}>
+                                    <QuickLinkIcon>{link.icon}</QuickLinkIcon>
+                                    <QuickLinkTitle>{link.title}</QuickLinkTitle>
+                                </QuickLinkCard>
+                            </Reveal>
                         ))}
                     </QuickLinksGrid>
                 </QuickLinksContainer>
@@ -246,155 +259,180 @@ const Main = () => {
             <ContactsInfoSection>
                 <ContactsInfoContainer>
                     {contactsInfo.map((contact, index) => (
-                        <ContactInfoCard key={index}>
-                            <ContactInfoTitle>{contact.title}</ContactInfoTitle>
-                            <ContactInfoPhone href={contact.phoneLink}>
-                                <Phone size={18} />
-                                {contact.phone}
-                            </ContactInfoPhone>
-                            <ContactInfoSchedule>
-                                <Clock size={16} />
-                                {contact.schedule}
-                            </ContactInfoSchedule>
-                        </ContactInfoCard>
+                        <Reveal key={index} fill delay={index * 100}>
+                            <ContactInfoCard>
+                                <ContactInfoTitle>{contact.title}</ContactInfoTitle>
+                                <ContactInfoPhone href={contact.phoneLink}>
+                                    <Phone size={18} />
+                                    {contact.phone}
+                                </ContactInfoPhone>
+                                <ContactInfoSchedule>
+                                    <Clock size={16} />
+                                    {contact.schedule}
+                                </ContactInfoSchedule>
+                            </ContactInfoCard>
+                        </Reveal>
                     ))}
                 </ContactsInfoContainer>
             </ContactsInfoSection>
 
             <YearBannerSection>
-                <YearBannerContainer>
-                    <YearBannerImage
-                        src="/2026_.jpg"
-                        alt="2026 - Год белорусской женщины"
-                        loading="lazy"
-                        width="1200"
-                        height="400"
+                <Reveal style={{ width: '100%' }}>
+                    <YearBannerContainer>
+                        <YearBannerImage
+                            src="/2026_.jpg"
+                            alt="2026 - Год белорусской женщины"
+                            loading="lazy"
+                            width="1200"
+                            height="400"
 
-                    />
-                    <YearBannerContent>
-                        <YearBannerTitle>2026 — Год белорусской женщины</YearBannerTitle>
-                        <YearBannerText>
-                            Президент Беларуси Александр Лукашенко подписал Указ № 1, которым 2026 год объявлен Годом белорусской женщины.
-                        </YearBannerText>
-                        <YearBannerText>
-                            Документ принят в целях формирования национального образа женщины-труженицы, популяризации роли женщин в сохранении и развитии общества.
-                        </YearBannerText>
-                        <YearBannerLink
-                            href="https://buda-koshelevo.gov.by/ru/2026-ru"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            Подробнее <ArrowRight size={16} />
-                        </YearBannerLink>
-                    </YearBannerContent>
-                </YearBannerContainer>
+                        />
+                        <YearBannerContent>
+                            <YearBannerTitle>2026 — Год белорусской женщины</YearBannerTitle>
+                            <YearBannerText>
+                                Президент Беларуси Александр Лукашенко подписал Указ № 1, которым 2026 год объявлен Годом белорусской женщины.
+                            </YearBannerText>
+                            <YearBannerText>
+                                Документ принят в целях формирования национального образа женщины-труженицы, популяризации роли женщин в сохранении и развитии общества.
+                            </YearBannerText>
+                            <YearBannerLink
+                                href="https://buda-koshelevo.gov.by/ru/2026-ru"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                Подробнее <ArrowRight size={16} />
+                            </YearBannerLink>
+                        </YearBannerContent>
+                    </YearBannerContainer>
+                </Reveal>
             </YearBannerSection>
 
-
-
             <LoveBannerSection>
-                <LoveBannerContainer>
-                    <LoveBannerImage
-                        src="/Love.png"
-                        alt="Я здесь живу и мне есть чем гордиться"
-                        loading="lazy"
-                        width="1200"
-                        height="400"
-                    />
-                    <LoveBannerSticker>
-                        <LoveBannerHeart>❤️</LoveBannerHeart>
-                        <LoveBannerTitle>Я здесь живу и мне есть чем гордиться</LoveBannerTitle>
-                        <LoveBannerSubtext>КЖУП "Буда-Кошелёвский коммунальник"</LoveBannerSubtext>
-                    </LoveBannerSticker>
-                </LoveBannerContainer>
+                <Reveal style={{ width: '100%' }}>
+                    <LoveBannerContainer>
+                        <LoveBannerImage
+                            src="/Love.png"
+                            alt="Я здесь живу и мне есть чем гордиться"
+                            loading="lazy"
+                            width="1200"
+                            height="400"
+                        />
+                        <LoveBannerSticker>
+                            <LoveBannerHeart>❤️</LoveBannerHeart>
+                            <LoveBannerTitle>Я здесь живу и мне есть чем гордиться</LoveBannerTitle>
+                            <LoveBannerSubtext>КЖУП "Буда-Кошелёвский коммунальник"</LoveBannerSubtext>
+                        </LoveBannerSticker>
+                    </LoveBannerContainer>
+                </Reveal>
             </LoveBannerSection>
 
             <StatsSection>
                 <StatsContainer>
                     {stats.map((stat, index) => (
-                        <StatCard key={index}>
-                            <StatIcon>{stat.icon}</StatIcon>
-                            <StatNumber>{stat.number}</StatNumber>
-                            <StatLabel>{stat.label}</StatLabel>
-                        </StatCard>
+                        <Reveal key={index} fill delay={index * 80}>
+                            <StatCard>
+                                <StatIcon>{stat.icon}</StatIcon>
+                                <StatNumber>
+                                    {stat.text ?? <CountUp to={stat.countTo ?? 0} suffix={stat.suffix ?? ''} />}
+                                </StatNumber>
+                                <StatLabel>{stat.label}</StatLabel>
+                            </StatCard>
+                        </Reveal>
                     ))}
                 </StatsContainer>
             </StatsSection>
 
             <ServicesSection>
-                <SectionTitle>Наши услуги</SectionTitle>
-                <SectionSubtitle>
-                    Полный спектр жилищно-коммунальных услуг для вашего комфорта
-                </SectionSubtitle>
+                <Reveal>
+                    <SectionTitle>Наши услуги</SectionTitle>
+                </Reveal>
+                <Reveal delay={100}>
+                    <SectionSubtitle>
+                        Полный спектр жилищно-коммунальных услуг для вашего комфорта
+                    </SectionSubtitle>
+                </Reveal>
                 <ServicesGrid>
                     {services.map((service, index) => (
-                        <ServiceCard key={index} onClick={() => navigate(service.link)}>
-                            <StatIcon>{service.icon}</StatIcon>
-                            <ServiceTitle>{service.title}</ServiceTitle>
-                            <ServiceDescription>{service.description}</ServiceDescription>
-                            <ServiceLink>
-                                Подробнее <ArrowRight size={16} />
-                            </ServiceLink>
-                        </ServiceCard>
+                        <Reveal key={index} fill delay={index * 70}>
+                            <ServiceCard onClick={() => navigate(service.link)}>
+                                <StatIcon>{service.icon}</StatIcon>
+                                <ServiceTitle>{service.title}</ServiceTitle>
+                                <ServiceDescription>{service.description}</ServiceDescription>
+                                <ServiceLink>
+                                    Подробнее <ArrowRight size={16} />
+                                </ServiceLink>
+                            </ServiceCard>
+                        </Reveal>
                     ))}
                 </ServicesGrid>
             </ServicesSection>
 
             <WhySection>
-                <SectionTitle>Почему выбирают нас</SectionTitle>
-                <SectionSubtitle>
-                    Мы гордимся качеством предоставляемых услуг и доверием наших клиентов
-                </SectionSubtitle>
-                <WhyGrid>
-                    {whyUs.map((item, index) => (
-                        <WhyCard key={index}>
-                            <StatIcon>{item.icon}</StatIcon>
-                            <WhyTitle>{item.title}</WhyTitle>
-                            <WhyDescription>{item.description}</WhyDescription>
-                        </WhyCard>
-                    ))}
-                </WhyGrid>
+                <Reveal>
+                    <SectionTitle>Почему выбирают нас</SectionTitle>
+                </Reveal>
+                <Reveal delay={100}>
+                    <SectionSubtitle>
+                        Мы гордимся качеством предоставляемых услуг и доверием наших клиентов
+                    </SectionSubtitle>
+                </Reveal>
+                <Reveal delay={150}>
+                    <WhyGrid>
+                        {whyUs.map((item, index) => (
+                            <WhyCard key={index}>
+                                <StatIcon>{item.icon}</StatIcon>
+                                <WhyTitle>{item.title}</WhyTitle>
+                                <WhyDescription>{item.description}</WhyDescription>
+                            </WhyCard>
+                        ))}
+                    </WhyGrid>
+                </Reveal>
             </WhySection>
 
             <UsefulSection>
                 <UsefulContainer>
-                    <UsefulHeader>
-                        <UsefulTitle>Полезно знать</UsefulTitle>
-                        <UsefulLink onClick={() => navigate('/news/useful_to_know')}>
-                            Все материалы <ArrowRight size={18} />
-                        </UsefulLink>
-                    </UsefulHeader>
+                    <Reveal>
+                        <UsefulHeader>
+                            <UsefulTitle>Полезно знать</UsefulTitle>
+                            <UsefulLink onClick={() => navigate('/news/useful_to_know')}>
+                                Все материалы <ArrowRight size={18} />
+                            </UsefulLink>
+                        </UsefulHeader>
+                    </Reveal>
                     <UsefulGrid>
                         {usefulToKnowArticles.slice(usefulToKnowArticles.length - 4, usefulToKnowArticles.length).map((article, index) => (
-                            <UsefulCard
-                                key={index}
-                                onClick={() => {
-                                    if (article.externalUrl) {
-                                        window.open(article.externalUrl, '_blank', 'noopener,noreferrer');
-                                    } else if (article.url) {
-                                        navigate(`/news/useful_to_know/${article.url}`);
-                                    }
-                                }}
-                            >
-                                <UsefulCardImage src={article.image} alt={article.title} loading="lazy" />
-                                <UsefulCardTitle>{article.title}</UsefulCardTitle>
-                            </UsefulCard>
+                            <Reveal key={index} fill delay={index * 80}>
+                                <UsefulCard
+                                    onClick={() => {
+                                        if (article.externalUrl) {
+                                            window.open(article.externalUrl, '_blank', 'noopener,noreferrer');
+                                        } else if (article.url) {
+                                            navigate(`/news/useful_to_know/${article.url}`);
+                                        }
+                                    }}
+                                >
+                                    <UsefulCardImage src={article.image} alt={article.title} loading="lazy" />
+                                    <UsefulCardTitle>{article.title}</UsefulCardTitle>
+                                </UsefulCard>
+                            </Reveal>
                         ))}
                     </UsefulGrid>
                 </UsefulContainer>
             </UsefulSection>
 
             <CTASection>
-                <CTAContent>
-                    <CTATitle>Аварийно-диспетчерская служба</CTATitle>
-                    <CTASubtitle>
-                        Круглосуточная поддержка при возникновении аварийных ситуаций
-                    </CTASubtitle>
-                    <CTAPhone href="tel:+375233674507">
-                        <Phone size={28} />
-                        115
-                    </CTAPhone>
-                </CTAContent>
+                <Reveal>
+                    <CTAContent>
+                        <CTATitle>Аварийно-диспетчерская служба</CTATitle>
+                        <CTASubtitle>
+                            Круглосуточная поддержка при возникновении аварийных ситуаций
+                        </CTASubtitle>
+                        <CTAPhone href="tel:+375233674507">
+                            <Phone size={28} />
+                            115
+                        </CTAPhone>
+                    </CTAContent>
+                </Reveal>
             </CTASection>
         </MainContainer>
     );
