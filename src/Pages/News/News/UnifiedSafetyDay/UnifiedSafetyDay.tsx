@@ -49,7 +49,7 @@ const UnifiedSafetyDay = () => {
                     </InfoItem>
                     <InfoItem>
                         <Clock size={24} style={{ flexShrink: 0, color: '#28a745' }} />
-                        <span><strong>Время:</strong> 9:00</span>
+                        <span><strong>Время:</strong> 11:00</span>
                     </InfoItem>
                 </InfoBlock>
 
