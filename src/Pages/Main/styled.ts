@@ -20,6 +20,17 @@ const optimizedFadeIn = keyframes`
     }
 `;
 
+const heroIn = keyframes`
+    from {
+        opacity: 0;
+        transform: translateY(24px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+`;
+
 export const MainContainer = styled.div`
     width: 100%;
     animation: ${optimizedFadeIn} 0.6s ease-out;
@@ -212,6 +223,7 @@ export const YearBannerSection = styled.section`
 
 export const YearBannerContainer = styled.div`
     width: 90%;
+    margin: 0 auto;
     position: relative;
     display: flex;
     justify-content: center;
@@ -219,7 +231,7 @@ export const YearBannerContainer = styled.div`
     border-radius: 16px;
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    
+
     @media (max-width: 768px) {
         border-radius: 12px;
     }
@@ -374,6 +386,10 @@ export const YearBannerImage = styled.img`
 
 export const LoveBannerSection = styled(YearBannerSection)`
     padding: 40px;
+
+    @media (max-width: 768px) {
+        padding: 24px 20px;
+    }
 `;
 
 export const LoveBannerContainer = styled(YearBannerContainer)`
@@ -387,6 +403,16 @@ export const LoveBannerImage = styled(YearBannerImage)`
     width: 100%;
     height: auto;
     display: block;
+
+    /* Высоты 500/450px наследуются от баннера «2026» ради его текста —
+       здесь оверлея нет, хватает меньшей высоты */
+    @media (max-width: 768px) {
+        min-height: 340px;
+    }
+
+    @media (max-width: 480px) {
+        min-height: 320px;
+    }
 `;
 
 export const LoveBannerSticker = styled.div`
@@ -412,13 +438,17 @@ export const LoveBannerSticker = styled.div`
     }
 
     @media (max-width: 768px) {
-        padding: 24px 32px;
+        /* Явная ширина: без неё при left:50% элемент сжимается
+           по доступной правой половине контейнера */
+        width: min(85%, 420px);
+        padding: 26px 28px;
         border-radius: 20px;
         transform: translate(-50%, -50%) rotate(0deg);
     }
 
     @media (max-width: 480px) {
-        padding: 20px 24px;
+        width: min(88%, 400px);
+        padding: 24px 20px;
         border-radius: 16px;
     }
 `;
@@ -436,7 +466,7 @@ export const LoveBannerHeart = styled.span`
     }
 
     @media (max-width: 480px) {
-        font-size: 2rem;
+        font-size: 2.2rem;
     }
 `;
 
@@ -460,7 +490,7 @@ export const LoveBannerTitle = styled.span`
     }
 
     @media (max-width: 480px) {
-        font-size: 1.1rem;
+        font-size: 1.2rem;
     }
 `;
 
@@ -474,7 +504,7 @@ export const LoveBannerSubtext = styled.span`
     text-align: center;
 
     @media (max-width: 480px) {
-        font-size: 0.85rem;
+        font-size: 0.9rem;
     }
 `;
 
@@ -538,7 +568,8 @@ export const HeroTitle = styled.h1`
     line-height: 1.2;
     margin-bottom: 20px;
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-    
+    animation: ${heroIn} 0.7s ease-out 0.1s backwards;
+
     @media (max-width: 768px) {
         font-size: 2.2rem;
     }
@@ -550,7 +581,8 @@ export const HeroSubtitle = styled.p`
     line-height: 1.6;
     margin-bottom: 35px;
     color: rgba(255, 255, 255, 0.95);
-    
+    animation: ${heroIn} 0.7s ease-out 0.3s backwards;
+
     @media (max-width: 768px) {
         font-size: 1.1rem;
     }
@@ -560,6 +592,7 @@ export const HeroButtons = styled.div`
     display: flex;
     gap: 20px;
     flex-wrap: wrap;
+    animation: ${heroIn} 0.7s ease-out 0.5s backwards;
 `;
 
 export const PrimaryButton = styled.button`
@@ -604,10 +637,12 @@ export const SecondaryButton = styled(PrimaryButton)`
 export const HeroImage = styled.div`
     position: relative;
     
-    img {   
+    img {
         border-radius: 20px;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        animation: ${float} 6s ease-in-out infinite;
+        animation:
+            ${heroIn} 0.7s ease-out 0.7s backwards,
+            ${float} 6s ease-in-out 1.5s infinite;
     }
     
     @media (max-width: 968px) {
