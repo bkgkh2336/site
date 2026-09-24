@@ -189,7 +189,11 @@ function App() {
         <div style={{ overflow: 'auto', height: '100%', display: 'flex', flexDirection: 'column', paddingTop: headerHeight }}>
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
             <Breadcrumbs />
-            <Suspense fallback={<Loading />}>
+            <Suspense fallback={
+              <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Loading />
+              </div>
+            }>
               <Routes>
                 <Route path="/" element={<Main />} />
                 <Route path='/about_us' element={<About_us />} />
