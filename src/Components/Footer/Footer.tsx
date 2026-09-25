@@ -7,7 +7,7 @@ const Footer = () => {
         <Footer_ as="footer" role="contentinfo">
             <FooterCopyright>
                 <Copyright style={{ width: '1rem', height: '1rem', color: '#28a745' }} aria-hidden="true" /> 
-                <Text bold="bolder">КЖУП "Буда-Кошелёвский коммунальник" - {new Date().getFullYear()}</Text>
+                <Text bold="bolder">КЖУП "Буда-Кошелёвский коммунальник"</Text>
             </FooterCopyright>
             <FooterAddress as="address">
                 <FooterContactBlock>
@@ -18,7 +18,7 @@ const Footer = () => {
                 </FooterContactBlock>
                 <FooterContactBlock>
                     <MapPin style={{ width: '1rem', height: '1rem', color: '#28a745' }} aria-hidden="true" />
-                    <Text>247350, Гомельская область, г.Буда-Кошелево, ул.Озерная 3а</Text>
+                    <Text>г.Буда-Кошелево, ул.Озерная 3а</Text>
                 </FooterContactBlock>
                 <FooterContactBlock>
                     <Send style={{ width: '1rem', height: '1rem', color: '#0088cc' }} aria-hidden="true" />
