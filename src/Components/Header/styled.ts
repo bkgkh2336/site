@@ -17,7 +17,7 @@ export const Logo = styled(Block_)`
         display: none;
     }
     
-    @media (max-width: 1300px) {
+    @media (max-width: 1410px) {
         gap: 8px;
         
         img {
@@ -40,17 +40,19 @@ export const Logo = styled(Block_)`
         }
     }
     
-    @media (max-width: 480px) {
-        gap: 8px;
-        flex-basis: 100%;
+    @media (max-width: 515px) {
+        gap: 6px;
         
         img {
             height: 30px !important;
         }
         
         .full-name {
-            font-size: 0.7rem;
-            line-height: 1.3;
+            display: none;
+        }
+        
+        .short-name {
+            display: block;
         }
     }
 `;
@@ -59,7 +61,7 @@ export const Nav = styled(Block_)`
     gap: 10px;
     padding: 0;
     
-    @media (max-width: 1300px) {
+    @media (max-width: 1410px) {
         display: none;
     }
 `;
@@ -76,7 +78,7 @@ export const ContactInfo = styled(Block_)`
         }
     }
     
-    @media (max-width: 1300px) {
+    @media (max-width: 1410px) {
         display: none;
     }
 `;
@@ -84,12 +86,11 @@ export const ContactInfo = styled(Block_)`
 export const MobileActions = styled.div`
     display: none;
     
-    @media (max-width: 480px) {
+    @media (max-width: 1410px) {
         display: flex;
         gap: 8px;
         align-items: center;
-        flex-basis: 100%;
-        justify-content: space-between;
+        justify-content: center;
     }
 `;
 
@@ -113,7 +114,7 @@ export const MobileContactInfo = styled.a`
         background-color: rgba(40, 167, 69, 0.1);
     }
     
-    @media (max-width: 1300px) {
+    @media (max-width: 1410px) {
         display: flex;
     }
     
@@ -122,8 +123,12 @@ export const MobileContactInfo = styled.a`
         font-size: 0.9rem;
     }
     
-    @media (max-width: 480px) {
+    @media (max-width: 515px) {
         font-size: 0.85rem;
+        
+        span {
+            display: none;
+        }
     }
 `;
 
@@ -142,7 +147,7 @@ export const HamburgerButton = styled.button`
         background-color: rgba(40, 167, 69, 0.1);
     }
     
-    @media (max-width: 1300px) {
+    @media (max-width: 1410px) {
         display: flex;
         align-items: center;
         justify-content: center;
@@ -261,7 +266,7 @@ export const BottomSheetHandle = styled.div`
         cursor: grabbing;
     }
     
-    @media (max-width: 480px) {
+    @media (max-width: 515px) {
         padding: 8px 0 2px;
     }
 `;
@@ -284,7 +289,7 @@ export const BottomSheetContent = styled.div`
     gap: 4px;
     padding: 8px 16px 24px;
     
-    @media (max-width: 480px) {
+    @media (max-width: 515px) {
         padding: 4px 12px 20px;
     }
 `;
@@ -303,7 +308,7 @@ export const SheetContactSection = styled.div`
     border-top: 1px solid rgba(40, 167, 69, 0.1);
     margin-top: 4px;
     
-    @media (max-width: 480px) {
+    @media (max-width: 515px) {
         padding: 8px 12px 16px;
     }
 `;
@@ -323,7 +328,7 @@ export const SheetContactItem = styled.a`
         background: rgba(40, 167, 69, 0.06);
     }
     
-    @media (max-width: 480px) {
+    @media (max-width: 515px) {
         padding: 10px;
         font-size: 0.9rem;
     }
@@ -349,7 +354,7 @@ export const Header_ = styled(Block_)`
         border-color: rgba(76, 175, 80, 0.3);
     }
     
-    @media (max-width: 1300px) {
+    @media (max-width: 1410px) {
         padding: 10px 16px;
         justify-content: space-between;
         gap: 8px;
@@ -361,14 +366,10 @@ export const Header_ = styled(Block_)`
         gap: 6px;
     }
     
-    @media (max-width: 480px) {
+    @media (max-width: 515px) {
         padding: 8px 10px;
-        gap: 8px;
-        flex-wrap: wrap;
+        gap: 6px;
+        flex-wrap: nowrap;
         justify-content: space-between;
-        
-        > ${MobileActions} {
-            display: flex;
-        }
     }
 `
