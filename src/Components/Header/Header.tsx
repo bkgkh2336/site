@@ -37,7 +37,7 @@ const SheetHeaderBtn = styled.button<{ $active: boolean }>`
         background: rgba(40, 167, 69, 0.12);
     }
     
-    @media (max-width: 480px) {
+    @media (max-width: 515px) {
         padding: 12px 10px;
         font-size: 0.95rem;
     }
@@ -66,7 +66,7 @@ const SheetSubmenuBtn = styled.button<{ $active: boolean }>`
         background: rgba(40, 167, 69, 0.12);
     }
     
-    @media (max-width: 480px) {
+    @media (max-width: 515px) {
         padding: 10px;
         font-size: 0.85rem;
     }
@@ -294,14 +294,6 @@ const Header = (props: HeaderProps) => {
                         </a>
                     </ContactInfo>
 
-                    <HamburgerButton onClick={toggleBottomSheet} aria-label={isBottomSheetOpen ? "Закрыть меню" : "Открыть меню"}>
-                        <HamburgerIcon $open={isBottomSheetOpen}>
-                            <span />
-                            <span />
-                            <span />
-                        </HamburgerIcon>
-                    </HamburgerButton>
-
                     <MobileActions>
                         <MobileContactInfo href="tel:+375233674507" aria-label="Позвонить">
                             <Phone size={18} />
@@ -311,6 +303,14 @@ const Header = (props: HeaderProps) => {
                             <Send size={18} />
                         </MobileContactInfo>
                     </MobileActions>
+
+                    <HamburgerButton onClick={toggleBottomSheet} aria-label={isBottomSheetOpen ? "Закрыть меню" : "Открыть меню"}>
+                        <HamburgerIcon $open={isBottomSheetOpen}>
+                            <span />
+                            <span />
+                            <span />
+                        </HamburgerIcon>
+                    </HamburgerButton>
                 </Header_>
             </HeaderContainer>
 
