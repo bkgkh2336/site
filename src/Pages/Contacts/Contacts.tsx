@@ -6,7 +6,7 @@ import { Contacts_, ContentWrapper } from "./styled"
 import Department from './Department/Department'
 import Map from './Map/Map'
 import Loading from '../../Components/Loading/Loading'
-import { GetData } from '../../functions'
+import { GetData, SortLeadership } from '../../functions'
 
 interface ContactData {
     id: number;
@@ -17,6 +17,7 @@ interface ContactData {
     job_title?: string;
     phone?: string[];
     email?: string;
+    is_primary?: number | boolean;
 }
 
 interface PhoneData {
@@ -70,21 +71,10 @@ const Contacts = () => {
     const fetchContacts = async () => {
         try {
             const data = await GetData('contacts');
-            const primaryTitles = ['Директор', 'Первый заместитель директора - Главный инженер', 'Заместитель директора'];
-            
-            // Фильтруем и сортируем руководящий состав в правильном порядке
-            const filteredPrimary = data.filter((x: ContactData) => primaryTitles.includes(x.job_title || ''));
-            const sortedPrimary = filteredPrimary.sort((a : ContactData, b: ContactData) => {
-                const orderMap: { [key: string]: number } = {
-                    'Директор': 1,
-                    'Первый заместитель директора - Главный инженер': 2,
-                    'Заместитель директора': 3
-                };
-                return (orderMap[a.job_title || ''] || 999) - (orderMap[b.job_title || ''] || 999);
-            });
-            
-            setPrimaryContacts(sortedPrimary);
-            setContacts(data.filter((x: ContactData) => !primaryTitles.includes(x.job_title || '')));
+
+            // Руководство определяется флагом is_primary (управляется в админке)
+            setPrimaryContacts(SortLeadership(data.filter((x: ContactData) => x.is_primary)));
+            setContacts(data.filter((x: ContactData) => !x.is_primary));
         } catch {
             // Ошибка обрабатывается gracefully
         }

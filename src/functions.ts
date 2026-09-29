@@ -21,3 +21,15 @@ export const ResolveDepartmentImage = (src?: string): string => {
     if (src.startsWith('/') || /^https?:\/\//.test(src)) return src;
     return `/departments/${src}`;
 }
+
+// Порядок отображения руководства (только сортировка;
+// состав раздела определяется флагом is_primary)
+const leadershipOrder = ['Директор', 'Первый заместитель директора - Главный инженер', 'Заместитель директора'];
+
+export const SortLeadership = <T extends { job_title?: string }>(list: T[]): T[] => {
+    return [...list].sort((a, b) => {
+        const ai = leadershipOrder.indexOf(a.job_title || '');
+        const bi = leadershipOrder.indexOf(b.job_title || '');
+        return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+    });
+}

@@ -1,12 +1,12 @@
 <?php
-// 1. Настройки CORS и заголовки безопасности
+// 1. РќР°СЃС‚СЂРѕР№РєРё CORS Рё Р·Р°РіРѕР»РѕРІРєРё Р±РµР·РѕРїР°СЃРЅРѕСЃС‚Рё
 $allowedOrigin = $_SERVER['HTTP_ORIGIN'] ?? '';
 $allowedOrigins = ['https://bkgkh.by', 'https://www.bkgkh.by'];
 
 if (in_array($allowedOrigin, $allowedOrigins)) {
     header("Access-Control-Allow-Origin: $allowedOrigin");
 } else {
-    // Разрешаем локальную разработку, если нужно, или оставляем пустой заголовок
+    // Р Р°Р·СЂРµС€Р°РµРј Р»РѕРєР°Р»СЊРЅСѓСЋ СЂР°Р·СЂР°Р±РѕС‚РєСѓ, РµСЃР»Рё РЅСѓР¶РЅРѕ, РёР»Рё РѕСЃС‚Р°РІР»СЏРµРј РїСѓСЃС‚РѕР№ Р·Р°РіРѕР»РѕРІРѕРє
     header("Access-Control-Allow-Origin: https://bkgkh.by");
 }
 
@@ -15,22 +15,22 @@ header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-W
 header("Access-Control-Allow-Credentials: true");
 header("Content-Type: application/json; charset=utf-8");
 
-// Если это preflight-запрос, сразу отдаем 200 OK
+// Р•СЃР»Рё СЌС‚Рѕ preflight-Р·Р°РїСЂРѕСЃ, СЃСЂР°Р·Сѓ РѕС‚РґР°РµРј 200 OK
 if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
     http_response_code(200);
     exit;
 }
 
-// Отключаем отображение ошибок в продакшене (безопасность)
+// РћС‚РєР»СЋС‡Р°РµРј РѕС‚РѕР±СЂР°Р¶РµРЅРёРµ РѕС€РёР±РѕРє РІ РїСЂРѕРґР°РєС€РµРЅРµ (Р±РµР·РѕРїР°СЃРЅРѕСЃС‚СЊ)
 ini_set("display_errors", 0);
 error_reporting(0);
 
-// Секретный ключ для подписи сессий (ИЗМЕНИТЕ ЭТИ СИМВОЛЫ НА СВОИ ПЕРЕД ДЕПЛОЕМ)
+// РЎРµРєСЂРµС‚РЅС‹Р№ РєР»СЋС‡ РґР»СЏ РїРѕРґРїРёСЃРё СЃРµСЃСЃРёР№ (РР—РњР•РќРРўР• Р­РўР РЎРРњР’РћР›Р« РќРђ РЎР’РћР РџР•Р Р•Р” Р”Р•РџР›РћР•Рњ)
 define('SESSION_SECRET', 'bkgkh_secure_prod_key_2026_x92F8mQpZ');
-define('SESSION_EXPIRY', 3600); // 1 час
+define('SESSION_EXPIRY', 3600); // 1 С‡Р°СЃ
 
 /**
- * Генерация токена сессии (HMAC-SHA256)
+ * Р“РµРЅРµСЂР°С†РёСЏ С‚РѕРєРµРЅР° СЃРµСЃСЃРёРё (HMAC-SHA256)
  */
 function generateSessionToken($data) {
     $payload = json_encode([
@@ -44,7 +44,7 @@ function generateSessionToken($data) {
 }
 
 /**
- * Валидация токена сессии из куки
+ * Р’Р°Р»РёРґР°С†РёСЏ С‚РѕРєРµРЅР° СЃРµСЃСЃРёРё РёР· РєСѓРєРё
  */
 function validateSessionToken($token) {
     if (empty($token)) return null;
@@ -57,7 +57,7 @@ function validateSessionToken($token) {
     $payload = base64_decode($payloadB64);
     $signature = base64_decode($signatureB64);
     
-    // Проверяем подпись на подлинность
+    // РџСЂРѕРІРµСЂСЏРµРј РїРѕРґРїРёСЃСЊ РЅР° РїРѕРґР»РёРЅРЅРѕСЃС‚СЊ
     $expectedSignature = hash_hmac('sha256', $payload, SESSION_SECRET, true);
     if (!hash_equals($expectedSignature, $signature)) {
         return null;
@@ -65,7 +65,7 @@ function validateSessionToken($token) {
     
     $data = json_decode($payload, true);
     
-    // Проверяем таймштамп жизни сессии
+    // РџСЂРѕРІРµСЂСЏРµРј С‚Р°Р№РјС€С‚Р°РјРї Р¶РёР·РЅРё СЃРµСЃСЃРёРё
     if (!isset($data['exp']) || $data['exp'] < time()) {
         return null;
     }
@@ -74,7 +74,7 @@ function validateSessionToken($token) {
 }
 
 /**
- * Проверка авторизации через httpOnly куки
+ * РџСЂРѕРІРµСЂРєР° Р°РІС‚РѕСЂРёР·Р°С†РёРё С‡РµСЂРµР· httpOnly РєСѓРєРё
  */
 function checkAuth() {
     $token = $_COOKIE['admin_session'] ?? '';
@@ -83,7 +83,7 @@ function checkAuth() {
 }
 
 /**
- * Ошибка авторизации
+ * РћС€РёР±РєР° Р°РІС‚РѕСЂРёР·Р°С†РёРё
  */
 function authError() {
     http_response_code(401);
@@ -92,8 +92,8 @@ function authError() {
 }
 
 /**
- * Файл изображения ещё используется в contacts или departments.
- * Кандидаты покрывают все исторические форматы хранения: 'reception.png',
+ * Р¤Р°Р№Р» РёР·РѕР±СЂР°Р¶РµРЅРёСЏ РµС‰С‘ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ РІ contacts РёР»Рё departments.
+ * РљР°РЅРґРёРґР°С‚С‹ РїРѕРєСЂС‹РІР°СЋС‚ РІСЃРµ РёСЃС‚РѕСЂРёС‡РµСЃРєРёРµ С„РѕСЂРјР°С‚С‹ С…СЂР°РЅРµРЅРёСЏ: 'reception.png',
  * '/uploads/...', '/departments/...', '/contacts/...'.
  */
 function imageStillUsed($filename, $pdo, $excludeContactId = null) {
@@ -123,7 +123,7 @@ function imageStillUsed($filename, $pdo, $excludeContactId = null) {
 }
 
 /**
- * Найти файл изображения в одной из директорий public/{uploads,departments,contacts}
+ * РќР°Р№С‚Рё С„Р°Р№Р» РёР·РѕР±СЂР°Р¶РµРЅРёСЏ РІ РѕРґРЅРѕР№ РёР· РґРёСЂРµРєС‚РѕСЂРёР№ public/{uploads,departments,contacts}
  */
 function findImageFile($filename) {
     foreach (['uploads', 'departments', 'contacts'] as $dir) {
@@ -136,7 +136,7 @@ function findImageFile($filename) {
 }
 
 /**
- * Удаление файла изображения, если он больше не привязан ни к чему
+ * РЈРґР°Р»РµРЅРёРµ С„Р°Р№Р»Р° РёР·РѕР±СЂР°Р¶РµРЅРёСЏ, РµСЃР»Рё РѕРЅ Р±РѕР»СЊС€Рµ РЅРµ РїСЂРёРІСЏР·Р°РЅ РЅРё Рє С‡РµРјСѓ
  */
 function deleteImageIfUnused($imagePath, $pdo, $currentContactId = null) {
     if (empty($imagePath)) return false;
@@ -152,8 +152,8 @@ function deleteImageIfUnused($imagePath, $pdo, $currentContactId = null) {
 }
 
 /**
- * Удаление файла документа, если на него больше не ссылается ни одна запись.
- * Поддерживает исторический формат 'documents/...' и новый '/documents/...'.
+ * РЈРґР°Р»РµРЅРёРµ С„Р°Р№Р»Р° РґРѕРєСѓРјРµРЅС‚Р°, РµСЃР»Рё РЅР° РЅРµРіРѕ Р±РѕР»СЊС€Рµ РЅРµ СЃСЃС‹Р»Р°РµС‚СЃСЏ РЅРё РѕРґРЅР° Р·Р°РїРёСЃСЊ.
+ * РџРѕРґРґРµСЂР¶РёРІР°РµС‚ РёСЃС‚РѕСЂРёС‡РµСЃРєРёР№ С„РѕСЂРјР°С‚ 'documents/...' Рё РЅРѕРІС‹Р№ '/documents/...'.
  */
 function deleteDocumentFileIfUnused($srcPath, $pdo) {
     if (empty($srcPath)) return false;
@@ -172,7 +172,7 @@ function deleteDocumentFileIfUnused($srcPath, $pdo) {
     return true;
 }
 
-// 2. Путь к базе данных SQLite
+// 2. РџСѓС‚СЊ Рє Р±Р°Р·Рµ РґР°РЅРЅС‹С… SQLite
 $dbPath = __DIR__ . "/contacts.db";
 
 $validTables = [
@@ -188,7 +188,7 @@ try {
     $pdo = new PDO("sqlite:$dbPath");
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // 3. Роутинг запросов
+    // 3. Р РѕСѓС‚РёРЅРі Р·Р°РїСЂРѕСЃРѕРІ
     $requestUri = parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH);
 
     $afterApi = (strpos($requestUri, "/api/") !== false)
@@ -201,12 +201,12 @@ try {
 
     $method = $_SERVER["REQUEST_METHOD"];
 
-    // --- РОУТ: Авторизация (/api/login) ---
+    // --- Р РћРЈРў: РђРІС‚РѕСЂРёР·Р°С†РёСЏ (/api/login) ---
     if ($tableName === "login" && $method === "POST") {
         $data = json_decode(file_get_contents("php://input"), true);
         $password = $data["password"] ?? "";
         
-        // Ваш текущий рабочий хеш пароля
+        // Р’Р°С€ С‚РµРєСѓС‰РёР№ СЂР°Р±РѕС‡РёР№ С…РµС€ РїР°СЂРѕР»СЏ
         $passwordHash = '$2y$12$rarAoqlerZubcUTgR3ExDuLflIMyH22F5xnLbrCg1p38DQcpv5Q5C';
         
         if (password_verify($password, $passwordHash)) {
@@ -224,7 +224,7 @@ try {
                     'path' => '/',
                     'domain' => '', 
                     'secure' => $isSecure, 
-                    'httponly' => true, // Защита от кражи токена через XSS / JS
+                    'httponly' => true, // Р—Р°С‰РёС‚Р° РѕС‚ РєСЂР°Р¶Рё С‚РѕРєРµРЅР° С‡РµСЂРµР· XSS / JS
                     'samesite' => 'Lax'
                 ]
             );
@@ -232,12 +232,12 @@ try {
             echo json_encode(["success" => true, "message" => "Logged in"]);
         } else {
             http_response_code(401);
-            echo json_encode(["success" => false, "message" => "Неверный пароль"]);
+            echo json_encode(["success" => false, "message" => "РќРµРІРµСЂРЅС‹Р№ РїР°СЂРѕР»СЊ"]);
         }
         exit;
     }
     
-    // --- РОУТ: Проверка сессии (/api/verify) ---
+    // --- Р РћРЈРў: РџСЂРѕРІРµСЂРєР° СЃРµСЃСЃРёРё (/api/verify) ---
     if ($tableName === "verify" && $method === "GET") {
         $user = checkAuth();
         if ($user) {
@@ -249,7 +249,7 @@ try {
         exit;
     }
     
-    // --- РОУТ: Выход (/api/logout) ---
+    // --- Р РћРЈРў: Р’С‹С…РѕРґ (/api/logout) ---
     if ($tableName === "logout" && $method === "POST") {
         setcookie(
             'admin_session',
@@ -267,7 +267,7 @@ try {
         exit;
     }
     
-    // --- РОУТ: Очистка мусорных изображений (/api/cleanup) ---
+    // --- Р РћРЈРў: РћС‡РёСЃС‚РєР° РјСѓСЃРѕСЂРЅС‹С… РёР·РѕР±СЂР°Р¶РµРЅРёР№ (/api/cleanup) ---
     if ($tableName === "cleanup" && $method === "POST") {
         $user = checkAuth();
         if (!$user) authError();
@@ -294,7 +294,7 @@ try {
         exit;
     }
     
-    // --- РОУТ: Загрузка картинок и документов (/api/upload) ---
+    // --- Р РћРЈРў: Р—Р°РіСЂСѓР·РєР° РєР°СЂС‚РёРЅРѕРє Рё РґРѕРєСѓРјРµРЅС‚РѕРІ (/api/upload) ---
     if ($tableName === "upload" && $method === "POST") {
         $user = checkAuth();
         if (!$user) authError();
@@ -331,7 +331,7 @@ try {
         }
         
         if ($type === 'documents') {
-            // Документы — человекочитаемое имя файла, дедупликация при совпадении
+            // Р”РѕРєСѓРјРµРЅС‚С‹ вЂ” С‡РµР»РѕРІРµРєРѕС‡РёС‚Р°РµРјРѕРµ РёРјСЏ С„Р°Р№Р»Р°, РґРµРґСѓРїР»РёРєР°С†РёСЏ РїСЂРё СЃРѕРІРїР°РґРµРЅРёРё
             $base = pathinfo($fileName, PATHINFO_FILENAME);
             $base = preg_replace('/[^\p{L}\p{N}\s._-]+/u', '', $base);
             $base = trim(preg_replace('/\s+/', ' ', $base));
@@ -359,7 +359,7 @@ try {
         exit;
     }
 
-    // --- РОУТ: Удаление несохранённого файла (/api/cleanup-file) ---
+    // --- Р РћРЈРў: РЈРґР°Р»РµРЅРёРµ РЅРµСЃРѕС…СЂР°РЅС‘РЅРЅРѕРіРѕ С„Р°Р№Р»Р° (/api/cleanup-file) ---
     if ($tableName === "cleanup-file" && $method === "POST") {
         $user = checkAuth();
         if (!$user) authError();
@@ -377,7 +377,7 @@ try {
         exit;
     }
 
-    // --- РОУТ: Транспортные JOIN-запросы ---
+    // --- Р РћРЈРў: РўСЂР°РЅСЃРїРѕСЂС‚РЅС‹Рµ JOIN-Р·Р°РїСЂРѕСЃС‹ ---
     if ($method === "GET") {
         if ($tableName === "transport_services") {
             $sql = "SELECT tp.id, t.name, tp.unit, tp.price_no_nds FROM transport_price_population_and_budget tp JOIN transport_population_and_budget t ON tp.id_transport = t.id ORDER BY t.name, tp.id";
@@ -396,7 +396,7 @@ try {
         }
     }
 
-    // --- РОУТ: CRUD операции ---
+    // --- Р РћРЈРў: CRUD РѕРїРµСЂР°С†РёРё ---
     if (in_array($tableName, $validTables)) {
         if ($method === "GET") {
             $stmt = $pdo->query("SELECT * FROM $tableName");
@@ -412,7 +412,7 @@ try {
                 $allowedFields = [
                     'contacts' => ['name', 'surname', 'patronymic', 'job_title', 'email', 'src', 'is_primary'],
                     'phone_contacts' => ['contact_id', 'phone'],
-                    'departments' => ['name', 'description', 'head', 'email', 'src'],
+                    'departments' => ['name', 'email', 'src'],
                     'phone_departments' => ['id_department', 'phone', 'is_fax'],
                     'documents_group' => ['name'],
                     'documents' => ['name', 'id_group', 'src'],
@@ -462,7 +462,7 @@ try {
                 $allowedFields = [
                     'contacts' => ['name', 'surname', 'patronymic', 'job_title', 'email', 'src', 'is_primary'],
                     'phone_contacts' => ['contact_id', 'phone'],
-                    'departments' => ['name', 'description', 'head', 'email', 'src'],
+                    'departments' => ['name', 'email', 'src'],
                     'phone_departments' => ['id_department', 'phone', 'is_fax'],
                     'documents_group' => ['name'],
                     'documents' => ['name', 'id_group', 'src'],

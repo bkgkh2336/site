@@ -13,6 +13,7 @@ interface ContactData {
   patronymic?: string;
   job_title?: string;
   email?: string;
+  is_primary?: boolean;
 }
 
 interface ContactEditFormProps {
@@ -117,6 +118,28 @@ const ContactEditForm: React.FC<ContactEditFormProps> = ({
           onChange={(e) => onContactChange({ ...contact, email: e.target.value })}
           placeholder="Email"
         />
+      </Field>
+
+      <Field>
+        <label
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            cursor: 'pointer',
+            fontSize: 14,
+            fontWeight: 600,
+            color: '#495057'
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={!!contact.is_primary}
+            onChange={(e) => onContactChange({ ...contact, is_primary: e.target.checked })}
+            style={{ width: 17, height: 17, accentColor: '#28a745', cursor: 'pointer' }}
+          />
+          Руководящий состав
+        </label>
       </Field>
 
       <Field>

@@ -5,7 +5,7 @@ import Loading from '../../Components/Loading/Loading';
 import ViewToggle from '../../Components/ViewToggle/ViewToggle';
 import ContactEditForm from './EditForms/ContactEditForm';
 import DepartmentEditForm from './EditForms/DepartmentEditForm';
-import { ResolveDepartmentImage } from '../../functions';
+import { ResolveDepartmentImage, SortLeadership } from '../../functions';
 import {
   Card, SectionHeader, SectionTitle, ActionButton,
   Table, Th, Td, Tr, IconButton,
@@ -38,8 +38,6 @@ interface PhoneData {
 interface DepartmentData {
   id: number;
   name: string;
-  description?: string;
-  head?: string;
   email?: string;
 }
 
@@ -95,7 +93,7 @@ const ContactsManager: React.FC = () => {
         const phoneDepartments = await phoneDepRes.json();
 
         setContacts(contacts.filter((c: ContactData) => !c.is_primary) || []);
-        setPrimaryContacts(contacts.filter((c: ContactData) => c.is_primary) || []);
+        setPrimaryContacts(SortLeadership(contacts.filter((c: ContactData) => c.is_primary)) || []);
         setPhones(phones || []);
         setDepartments(departments || []);
         setPhoneDepartments(phoneDepartments || []);
@@ -232,7 +230,7 @@ const ContactsManager: React.FC = () => {
             job_title: editingContact.job_title,
             email: editingContact.email,
             src: editingContact.src ?? '',
-            is_primary: editingContact.is_primary
+            is_primary: editingContact.is_primary ? 1 : 0
           })
         }
       );
@@ -277,7 +275,7 @@ const ContactsManager: React.FC = () => {
         
         // Add to appropriate state based on is_primary
         if (savedContact.is_primary) {
-          setPrimaryContacts(prev => [...prev, savedContact]);
+          setPrimaryContacts(prev => SortLeadership([...prev, savedContact]));
         } else {
           setContacts(prev => [...prev, savedContact]);
         }
@@ -316,9 +314,13 @@ const ContactsManager: React.FC = () => {
           );
         }
         
-        // Update contacts state
-        setContacts(prev => prev.map(c => c.id === editingContact.id ? editingContact : c));
-        setPrimaryContacts(prev => prev.map(c => c.id === editingContact.id ? editingContact : c));
+        // Обновляем контакт и при смене флага переносим между разделами
+        setContacts(prev => prev
+          .filter(c => c.id !== editingContact.id)
+          .concat(editingContact.is_primary ? [] : [editingContact]));
+        setPrimaryContacts(prev => SortLeadership(prev
+          .filter(c => c.id !== editingContact.id)
+          .concat(editingContact.is_primary ? [editingContact] : [])));
       }
       
       // Refresh phones data
@@ -387,7 +389,7 @@ const ContactsManager: React.FC = () => {
 
   const handleAddForSection = () => {
     if (section === 'departments') {
-      setEditingDepartment({ id: 0, name: '', description: '', head: '', email: '', src: '' });
+      setEditingDepartment({ id: 0, name: '', email: '', src: '' });
       setEditingDeptPhones([]);
     } else {
       setEditingContact({
@@ -533,8 +535,6 @@ const ContactsManager: React.FC = () => {
           credentials: 'include',
           body: JSON.stringify({
             name: editingDepartment.name,
-            description: editingDepartment.description,
-            head: editingDepartment.head,
             email: editingDepartment.email,
             src: editingDepartment.src ?? ''
           })
@@ -701,12 +701,6 @@ const ContactsManager: React.FC = () => {
           <CategoryPanel>
             <CategoryPanelHeader>
               Разделы
-              <IconButton
-                onClick={handleAddForSection}
-                aria-label={section === 'departments' ? 'Добавить отдел' : 'Добавить сотрудника'}
-              >
-                <Plus />
-              </IconButton>
             </CategoryPanelHeader>
 
             {sectionItems.map(item => {
@@ -741,28 +735,30 @@ const ContactsManager: React.FC = () => {
                 {departments.length === 0 && (
                   <EmptyPanel>Нет отделов. Добавьте первый.</EmptyPanel>
                 )}
-                {departments.map(department => (
-                  <DocCard key={department.id}>
-                    {department.src ? (
-                      <AvatarImg
-                        src={ResolveDepartmentImage(department.src)}
-                        alt=""
-                        style={{ borderRadius: 10 }}
-                      />
-                    ) : (
-                      <DocCardIcon>
-                        <Building2 />
-                      </DocCardIcon>
-                    )}
-                    <DocCardInfo>
-                      <DocCardName>{department.name}</DocCardName>
-                      <DocCardMeta>
-                        {department.head || 'Руководитель не указан'}
-                        {phoneDepartments.filter(p => p.id_department === department.id).map(p => p.phone).length > 0 &&
-                          ` · ${phoneDepartments.filter(p => p.id_department === department.id).map(p => p.phone).join(', ')}`}
-                      </DocCardMeta>
-                      {department.email && <DocCardMeta>{department.email}</DocCardMeta>}
-                    </DocCardInfo>
+                {departments.map(department => {
+                  const deptPhones = phoneDepartments
+                    .filter(p => p.id_department === department.id)
+                    .map(p => p.phone);
+                  return (
+                    <DocCard key={department.id}>
+                      {department.src ? (
+                        <AvatarImg
+                          src={ResolveDepartmentImage(department.src)}
+                          alt=""
+                          style={{ borderRadius: 10 }}
+                        />
+                      ) : (
+                        <DocCardIcon>
+                          <Building2 />
+                        </DocCardIcon>
+                      )}
+                      <DocCardInfo>
+                        <DocCardName>{department.name}</DocCardName>
+                        {deptPhones.length > 0 && (
+                          <DocCardMeta>{deptPhones.join(', ')}</DocCardMeta>
+                        )}
+                        {department.email && <DocCardMeta>{department.email}</DocCardMeta>}
+                      </DocCardInfo>
                     <DocCardActions>
                       <IconButton
                         $tone="gray"
@@ -782,8 +778,9 @@ const ContactsManager: React.FC = () => {
                         <Trash2 />
                       </IconButton>
                     </DocCardActions>
-                  </DocCard>
-                ))}
+                    </DocCard>
+                  );
+                })}
               </>
             ) : (
               <>
@@ -891,8 +888,6 @@ const ContactsManager: React.FC = () => {
                   setEditingDepartment({
                     id: 0,
                     name: '',
-                    description: '',
-                    head: '',
                     email: '',
                     src: ''
                   });
