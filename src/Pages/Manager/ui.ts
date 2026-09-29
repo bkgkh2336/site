@@ -535,3 +535,12 @@ export const EmptyPanel = styled.p`
   border: 1px dashed #dee2e6;
   border-radius: 12px;
 `;
+
+export const AvatarImg = styled.img`
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid #e9ecef;
+`;

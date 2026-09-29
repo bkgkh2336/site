@@ -1,14 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Pencil, Plus, X } from 'lucide-react';
+import { Pencil, Plus, X, Crown, Users, Building2, Trash2, User } from 'lucide-react';
 import Text from '../../Components/Text/Text';
 import Loading from '../../Components/Loading/Loading';
+import ViewToggle from '../../Components/ViewToggle/ViewToggle';
 import ContactEditForm from './EditForms/ContactEditForm';
 import DepartmentEditForm from './EditForms/DepartmentEditForm';
+import { ResolveDepartmentImage } from '../../functions';
 import {
   Card, SectionHeader, SectionTitle, ActionButton,
   Table, Th, Td, Tr, IconButton,
-  ModalOverlay, ModalContent, ModalHeader, ModalBody, CloseButton
+  ModalOverlay, ModalContent, ModalHeader, ModalBody, CloseButton,
+  ToolbarRow, BoardView, CategoryPanel, CategoryPanelHeader,
+  CategoryItem, CategoryName, CategoryCount,
+  BoardMain, DocCard, DocCardIcon, DocCardInfo, DocCardName, DocCardMeta,
+  DocCardActions, EmptyPanel, AvatarImg
 } from './ui';
+
+type BoardSection = 'primary' | 'staff' | 'departments';
 
 interface ContactData {
   id: number;
@@ -57,6 +65,8 @@ const ContactsManager: React.FC = () => {
   const [editingDeptPhones, setEditingDeptPhones] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [view, setView] = useState<'cards' | 'table'>('cards');
+  const [section, setSection] = useState<BoardSection>('primary');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -375,6 +385,71 @@ const ContactsManager: React.FC = () => {
     setEditingPhones([]);
   };
 
+  const handleAddForSection = () => {
+    if (section === 'departments') {
+      setEditingDepartment({ id: 0, name: '', description: '', head: '', email: '', src: '' });
+      setEditingDeptPhones([]);
+    } else {
+      setEditingContact({
+        id: 0,
+        name: '',
+        surname: '',
+        patronymic: '',
+        job_title: '',
+        email: '',
+        src: '',
+        is_primary: section === 'primary'
+      });
+      setEditingPhones([]);
+    }
+  };
+
+  const handleQuickDeleteContact = async (contact: ContactData) => {
+    const fullName = `${contact.surname} ${contact.name}`.trim();
+    if (!window.confirm(`Удалить сотрудника «${fullName}»?`)) return;
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/backend/api.php/api/contacts/${contact.id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        setContacts(prev => prev.filter(c => c.id !== contact.id));
+        setPrimaryContacts(prev => prev.filter(c => c.id !== contact.id));
+        setEditingContact(null);
+      }
+    } catch (err) {
+      console.error('Delete contact error:', err);
+      alert('Ошибка при удалении сотрудника');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleQuickDeleteDepartment = async (department: DepartmentData) => {
+    if (!window.confirm(`Удалить отдел «${department.name}»?`)) return;
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/backend/api.php/api/departments/${department.id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        setDepartments(prev => prev.filter(d => d.id !== department.id));
+        setEditingDepartment(null);
+      }
+    } catch (err) {
+      console.error('Delete department error:', err);
+      alert('Ошибка при удалении отдела');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const handleEditDepartment = (department: DepartmentData) => {
     setEditingDepartment({ ...department });
     setEditingDeptPhones(phoneDepartments.filter(p => p.id_department === department.id).map(p => p.phone));
@@ -607,91 +682,254 @@ const ContactsManager: React.FC = () => {
     return <Text style={{ color: '#dc3545', textAlign: 'center' }}>{error}</Text>;
   }
 
+  const sectionItems: { key: BoardSection; label: string; icon: React.ReactNode; count: number }[] = [
+    { key: 'primary', label: 'Руководство', icon: <Crown />, count: primaryContacts.length },
+    { key: 'staff', label: 'Сотрудники', icon: <Users />, count: contacts.length },
+    { key: 'departments', label: 'Отделы', icon: <Building2 />, count: departments.length },
+  ];
+  const activeItem = sectionItems.find(s => s.key === section) || sectionItems[0];
+  const sectionContacts = section === 'primary' ? primaryContacts : contacts;
+
   return (
     <>
-      <Card>
-        <SectionHeader>
-          <SectionTitle>Сотрудники</SectionTitle>
-          <ActionButton onClick={handleAddContact}>
-            <Plus /> Добавить сотрудника
-          </ActionButton>
-        </SectionHeader>
+      <ToolbarRow>
+        <ViewToggle view={view} onViewChange={setView} />
+      </ToolbarRow>
 
-        <Table>
-          <thead>
-            <tr>
-              <Th>Фамилия</Th>
-              <Th>Имя</Th>
-              <Th>Должность</Th>
-              <Th>Телефоны</Th>
-              <Th>Email</Th>
-              <Th style={{ width: 50 }}></Th>
-            </tr>
-          </thead>
-          <tbody>
-            {[...primaryContacts, ...contacts].map(contact => (
-              <Tr key={contact.id}>
-                <Td>{contact.surname}</Td>
-                <Td>{contact.name} {contact.patronymic || ''}</Td>
-                <Td>{contact.job_title || '-'}</Td>
-                <Td>{phones.filter(p => p.contact_id === contact.id).map(p => p.phone).join(', ') || '-'}</Td>
-                <Td>{contact.email || '-'}</Td>
-                <Td>
-                  <IconButton onClick={() => handleEditContact(contact)} aria-label="Редактировать">
-                    <Pencil />
-                  </IconButton>
-                </Td>
-              </Tr>
-            ))}
-          </tbody>
-        </Table>
-      </Card>
+      {view === 'cards' ? (
+        <BoardView>
+          <CategoryPanel>
+            <CategoryPanelHeader>
+              Разделы
+              <IconButton
+                onClick={handleAddForSection}
+                aria-label={section === 'departments' ? 'Добавить отдел' : 'Добавить сотрудника'}
+              >
+                <Plus />
+              </IconButton>
+            </CategoryPanelHeader>
 
-      <Card>
-        <SectionHeader>
-          <SectionTitle>Отделы</SectionTitle>
-          <ActionButton
-            onClick={() => {
-              setEditingDepartment({
-                id: 0,
-                name: '',
-                description: '',
-                head: '',
-                email: '',
-                src: ''
-              });
-              setEditingDeptPhones([]);
-            }}
-          >
-            <Plus /> Добавить отдел
-          </ActionButton>
-        </SectionHeader>
+            {sectionItems.map(item => {
+              const active = section === item.key;
+              return (
+                <CategoryItem
+                  key={item.key}
+                  $active={active}
+                  onClick={() => setSection(item.key)}
+                >
+                  {item.icon}
+                  <CategoryName>{item.label}</CategoryName>
+                  <CategoryCount $active={active}>{item.count}</CategoryCount>
+                </CategoryItem>
+              );
+            })}
+          </CategoryPanel>
 
-        <Table>
-          <thead>
-            <tr>
-              <Th>Название</Th>
-              <Th>Телефоны</Th>
-              <Th>Email</Th>
-              <Th style={{ width: 50 }}></Th>
-            </tr>
-          </thead>
-          <tbody>
-            {departments.map(department => (
-              <Tr key={department.id}>
-                <Td>{department.name}</Td>
-                <Td>{phoneDepartments.filter(p => p.id_department === department.id).map(p => p.phone).join(', ') || '-'}</Td>
-                <Td>{department.email || '-'}</Td>
-                <Td>
-                  <IconButton onClick={() => handleEditDepartment(department)} aria-label="Редактировать">
-                    <Pencil />
-                  </IconButton>
-                </Td>
-              </Tr>
-            ))}
-          </tbody>
-        </Table>
-      </Card>
+          <BoardMain>
+            <SectionHeader>
+              <SectionTitle>
+                {activeItem.icon}
+                {activeItem.label}
+              </SectionTitle>
+              <ActionButton onClick={handleAddForSection}>
+                <Plus /> {section === 'departments' ? 'Добавить отдел' : 'Добавить сотрудника'}
+              </ActionButton>
+            </SectionHeader>
+
+            {section === 'departments' ? (
+              <>
+                {departments.length === 0 && (
+                  <EmptyPanel>Нет отделов. Добавьте первый.</EmptyPanel>
+                )}
+                {departments.map(department => (
+                  <DocCard key={department.id}>
+                    {department.src ? (
+                      <AvatarImg
+                        src={ResolveDepartmentImage(department.src)}
+                        alt=""
+                        style={{ borderRadius: 10 }}
+                      />
+                    ) : (
+                      <DocCardIcon>
+                        <Building2 />
+                      </DocCardIcon>
+                    )}
+                    <DocCardInfo>
+                      <DocCardName>{department.name}</DocCardName>
+                      <DocCardMeta>
+                        {department.head || 'Руководитель не указан'}
+                        {phoneDepartments.filter(p => p.id_department === department.id).map(p => p.phone).length > 0 &&
+                          ` · ${phoneDepartments.filter(p => p.id_department === department.id).map(p => p.phone).join(', ')}`}
+                      </DocCardMeta>
+                      {department.email && <DocCardMeta>{department.email}</DocCardMeta>}
+                    </DocCardInfo>
+                    <DocCardActions>
+                      <IconButton
+                        $tone="gray"
+                        onClick={() => handleEditDepartment(department)}
+                        title="Редактировать"
+                        aria-label="Редактировать"
+                      >
+                        <Pencil />
+                      </IconButton>
+                      <IconButton
+                        $tone="red"
+                        onClick={() => handleQuickDeleteDepartment(department)}
+                        title="Удалить"
+                        aria-label="Удалить"
+                        disabled={isDeleting}
+                      >
+                        <Trash2 />
+                      </IconButton>
+                    </DocCardActions>
+                  </DocCard>
+                ))}
+              </>
+            ) : (
+              <>
+                {sectionContacts.length === 0 && (
+                  <EmptyPanel>
+                    {section === 'primary'
+                      ? 'Нет сотрудников в руководстве. Добавьте первого.'
+                      : 'Нет сотрудников. Добавьте первого.'}
+                  </EmptyPanel>
+                )}
+                {sectionContacts.map(contact => {
+                  const contactPhones = phones
+                    .filter(p => p.contact_id === contact.id)
+                    .map(p => p.phone);
+                  return (
+                    <DocCard key={contact.id}>
+                      {contact.src ? (
+                        <AvatarImg src={contact.src} alt="" />
+                      ) : (
+                        <DocCardIcon>
+                          <User />
+                        </DocCardIcon>
+                      )}
+                      <DocCardInfo>
+                        <DocCardName>
+                          {contact.surname} {contact.name} {contact.patronymic || ''}
+                        </DocCardName>
+                        <DocCardMeta>
+                          {contact.job_title || 'Сотрудник'}
+                          {contactPhones.length > 0 ? ` · ${contactPhones.join(', ')}` : ''}
+                        </DocCardMeta>
+                        {contact.email && <DocCardMeta>{contact.email}</DocCardMeta>}
+                      </DocCardInfo>
+                      <DocCardActions>
+                        <IconButton
+                          $tone="gray"
+                          onClick={() => handleEditContact(contact)}
+                          title="Редактировать"
+                          aria-label="Редактировать"
+                        >
+                          <Pencil />
+                        </IconButton>
+                        <IconButton
+                          $tone="red"
+                          onClick={() => handleQuickDeleteContact(contact)}
+                          title="Удалить"
+                          aria-label="Удалить"
+                          disabled={isDeleting}
+                        >
+                          <Trash2 />
+                        </IconButton>
+                      </DocCardActions>
+                    </DocCard>
+                  );
+                })}
+              </>
+            )}
+          </BoardMain>
+        </BoardView>
+      ) : (
+        <>
+          <Card>
+            <SectionHeader>
+              <SectionTitle>Сотрудники</SectionTitle>
+              <ActionButton onClick={handleAddContact}>
+                <Plus /> Добавить сотрудника
+              </ActionButton>
+            </SectionHeader>
+
+            <Table>
+              <thead>
+                <tr>
+                  <Th>Фамилия</Th>
+                  <Th>Имя</Th>
+                  <Th>Должность</Th>
+                  <Th>Телефоны</Th>
+                  <Th>Email</Th>
+                  <Th style={{ width: 50 }}></Th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...primaryContacts, ...contacts].map(contact => (
+                  <Tr key={contact.id}>
+                    <Td>{contact.surname}</Td>
+                    <Td>{contact.name} {contact.patronymic || ''}</Td>
+                    <Td>{contact.job_title || '-'}</Td>
+                    <Td>{phones.filter(p => p.contact_id === contact.id).map(p => p.phone).join(', ') || '-'}</Td>
+                    <Td>{contact.email || '-'}</Td>
+                    <Td>
+                      <IconButton onClick={() => handleEditContact(contact)} aria-label="Редактировать">
+                        <Pencil />
+                      </IconButton>
+                    </Td>
+                  </Tr>
+                ))}
+              </tbody>
+            </Table>
+          </Card>
+
+          <Card>
+            <SectionHeader>
+              <SectionTitle>Отделы</SectionTitle>
+              <ActionButton
+                onClick={() => {
+                  setEditingDepartment({
+                    id: 0,
+                    name: '',
+                    description: '',
+                    head: '',
+                    email: '',
+                    src: ''
+                  });
+                  setEditingDeptPhones([]);
+                }}
+              >
+                <Plus /> Добавить отдел
+              </ActionButton>
+            </SectionHeader>
+
+            <Table>
+              <thead>
+                <tr>
+                  <Th>Название</Th>
+                  <Th>Телефоны</Th>
+                  <Th>Email</Th>
+                  <Th style={{ width: 50 }}></Th>
+                </tr>
+              </thead>
+              <tbody>
+                {departments.map(department => (
+                  <Tr key={department.id}>
+                    <Td>{department.name}</Td>
+                    <Td>{phoneDepartments.filter(p => p.id_department === department.id).map(p => p.phone).join(', ') || '-'}</Td>
+                    <Td>{department.email || '-'}</Td>
+                    <Td>
+                      <IconButton onClick={() => handleEditDepartment(department)} aria-label="Редактировать">
+                        <Pencil />
+                      </IconButton>
+                    </Td>
+                  </Tr>
+                ))}
+              </tbody>
+            </Table>
+          </Card>
+        </>
+      )}
 
       {editingContact && (
         <ModalOverlay onClick={(e) => e.target === e.currentTarget && handleCancelEdit()}>
