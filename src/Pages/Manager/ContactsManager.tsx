@@ -229,6 +229,7 @@ const ContactsManager: React.FC = () => {
     
     const formData = new FormData();
     formData.append('image', file);
+    formData.append('type', 'contacts');
     
     try {
       const response = await fetch('/backend/api.php/api/upload', {
@@ -439,7 +440,7 @@ const ContactsManager: React.FC = () => {
   };
 
   const handleCancelEdit = () => {
-    if (editingContact?.src && editingContact.src.startsWith('/uploads/')) {
+    if (editingContact?.src) {
       const originalContact = contacts.find(c => c.id === editingContact.id);
       if (!originalContact || originalContact.src !== editingContact.src) {
         cleanupTempImage();
@@ -500,6 +501,7 @@ const ContactsManager: React.FC = () => {
     
     const formData = new FormData();
     formData.append('image', file);
+    formData.append('type', 'departments');
     
     try {
       const response = await fetch('/backend/api.php/api/upload', {
@@ -676,7 +678,7 @@ const ContactsManager: React.FC = () => {
 
   const handleCancelDeptEdit = async () => {
     // Delete uploaded image if not saved
-    if (editingDepartment?.src && editingDepartment.src.startsWith('/uploads/')) {
+    if (editingDepartment?.src) {
       const originalDept = departments.find(d => d.id === editingDepartment.id);
       if (!originalDept || originalDept.src !== editingDepartment.src) {
         await cleanupTempImage();
