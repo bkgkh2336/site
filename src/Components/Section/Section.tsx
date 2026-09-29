@@ -1,4 +1,4 @@
-import { useEffect, useState, memo } from "react";
+import { useEffect, useRef, useState, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import Text from "../Text/Text";
 import Section_tooltip from "../Section_tooltip/Section_tooltip";
@@ -22,8 +22,8 @@ interface ListProps {
 
 const Section = (props: SectionProps) => {
     const [isVisibleCard, setIsVisibleCard] = useState(false);
-    const [isHidingCard, setIsHidingCard] = useState(false);
     const [isMobileExpanded, setIsMobileExpanded] = useState(false);
+    const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const navigate = useNavigate();
 
     // Проверяем активность раздела
@@ -97,7 +97,6 @@ const Section = (props: SectionProps) => {
         
         if (props.isMobileMenu && props.list && props.list.length > 0) {
             // В мобильном меню переключаем раскрытие списка
-            console.log('Toggling mobile menu expansion:', !isMobileExpanded);
             setIsMobileExpanded(!isMobileExpanded);
         } else if (props.url) {
             // Если есть URL и это не подменю, переходим
@@ -105,14 +104,30 @@ const Section = (props: SectionProps) => {
         }
     };
 
-    useEffect(() => {
-        if (isHidingCard) {
-            setTimeout(() => {
-                setIsVisibleCard(false);
-                setIsHidingCard(false);
-            }, 300);
+    // Открытие/закрытие дропдауна с защитой от гонки:
+    // возврат на пункт за время закрытия отменяет таймер
+    const handleMouseEnter = () => {
+        if (hideTimerRef.current) {
+            clearTimeout(hideTimerRef.current);
+            hideTimerRef.current = null;
         }
-    }, [isHidingCard]);
+        setIsVisibleCard(true);
+    };
+
+    const handleMouseLeave = () => {
+        hideTimerRef.current = setTimeout(() => {
+            setIsVisibleCard(false);
+            hideTimerRef.current = null;
+        }, 300);
+    };
+
+    useEffect(() => {
+        return () => {
+            if (hideTimerRef.current) {
+                clearTimeout(hideTimerRef.current);
+            }
+        };
+    }, []);
 
     // Для мобильного меню используем click вместо hover
     if (props.isMobileMenu) {
@@ -177,23 +192,11 @@ const Section = (props: SectionProps) => {
     }
 
     // Для desktop меню оставляем hover
-    const triggerTranslate = () => {
-        const match = document.cookie.match(/googtrans=\/auto\/(\w+)/);
-        const lang = match ? match[1] : null;
-        if (lang && lang !== 'ru') {
-            const combo = document.querySelector('.goog-te-combo') as HTMLSelectElement;
-            if (combo && combo.value !== lang) {
-                combo.value = lang;
-                combo.dispatchEvent(new Event('change', { bubbles: true }));
-            }
-        }
-    };
-
     return (
         <div
             onClick={() => props.url && handleNavigation(props.url)}
-            onMouseEnter={() => { setIsVisibleCard(true); triggerTranslate(); }}
-            onMouseLeave={() => setIsHidingCard(true)}
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
         >
             <Button style={{ boxShadow: 'none' }}>
                 {props.src &&
