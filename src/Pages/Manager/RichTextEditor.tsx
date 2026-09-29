@@ -374,8 +374,38 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         color?: string | null;
         backgroundColor?: string | null;
     };
-    const curFont = String(textStyle.fontFamily || '').replace(/['"]/g, '').trim();
-    const curSize = String(textStyle.fontSize || '').trim();
+
+    // Fallback: what the selected text actually looks like (inherited from CSS),
+    // so the selects always show a real value like in Word.
+    let computedFont = '';
+    let computedSize = '';
+    try {
+        const { node, offset } = editor.view.domAtPos(editor.state.selection.from);
+        let el: Element | null = null;
+        if (node.nodeType === 3) {
+            el = node.parentElement;
+        } else {
+            const child = node.childNodes[offset] || node.childNodes[offset - 1];
+            if (child) el = child.nodeType === 3 ? child.parentElement : (child as Element);
+            else el = node as Element;
+        }
+        if (el && el.nodeType === 1 && typeof window !== 'undefined') {
+            const cs = window.getComputedStyle(el);
+            const family = (cs.fontFamily || '').split(',')[0].replace(/['"]/g, '').trim();
+            if (!/^(depends on user agent|inherit|initial|normal|auto|medium)$/i.test(family)) {
+                computedFont = family;
+            }
+            const sizeMatch = (cs.fontSize || '').match(/^(\d+(?:\.\d+)?)px$/);
+            if (sizeMatch && parseFloat(sizeMatch[1]) > 0) {
+                computedSize = `${Math.round(parseFloat(sizeMatch[1]))}px`;
+            }
+        }
+    } catch {
+        // headless/domAtPos failures — keep empty
+    }
+
+    const curFont = String(textStyle.fontFamily || '').replace(/['"]/g, '').trim() || computedFont;
+    const curSize = String(textStyle.fontSize || '').trim() || computedSize;
     const fonts = curFont && !FONT_OPTIONS.includes(curFont) ? [curFont, ...FONT_OPTIONS] : FONT_OPTIONS;
     const sizes = curSize && !SIZE_OPTIONS.includes(curSize) ? [curSize, ...SIZE_OPTIONS] : SIZE_OPTIONS;
 
