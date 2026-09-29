@@ -9,8 +9,6 @@ import {
 interface DepartmentData {
   id: number;
   name: string;
-  description?: string;
-  head?: string;
   email?: string;
   src?: string;
 }
@@ -80,26 +78,6 @@ const DepartmentEditForm: React.FC<DepartmentEditFormProps> = ({
           value={department.name}
           onChange={(e) => onDepartmentChange({ ...department, name: e.target.value })}
           placeholder="Название отдела"
-        />
-      </Field>
-
-      <Field>
-        <FieldLabel>Руководитель:</FieldLabel>
-        <Input
-          value={department.head || ''}
-          onChange={(e) => onDepartmentChange({ ...department, head: e.target.value })}
-          placeholder="ФИО руководителя"
-        />
-      </Field>
-
-      <Field>
-        <FieldLabel>Описание:</FieldLabel>
-        <Input
-          value={department.description || ''}
-          onChange={(e) => onDepartmentChange({ ...department, description: e.target.value })}
-          placeholder="Описание отдела"
-          as="textarea"
-          style={{ minHeight: 80, resize: 'vertical' }}
         />
       </Field>
 
