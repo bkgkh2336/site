@@ -151,6 +151,27 @@ function deleteImageIfUnused($imagePath, $pdo, $currentContactId = null) {
     return true;
 }
 
+/**
+ * Удаление файла документа, если на него больше не ссылается ни одна запись.
+ * Поддерживает исторический формат 'documents/...' и новый '/documents/...'.
+ */
+function deleteDocumentFileIfUnused($srcPath, $pdo) {
+    if (empty($srcPath)) return false;
+
+    $filename = basename($srcPath);
+    $filePath = __DIR__ . "/../public/documents/" . $filename;
+    if (!file_exists($filePath)) return false;
+
+    $candidates = [$filename, "documents/$filename", "/documents/$filename"];
+    $ph = implode(",", array_fill(0, count($candidates), "?"));
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM documents WHERE src IN ($ph)");
+    $stmt->execute($candidates);
+    if ((int)$stmt->fetchColumn() > 0) return false;
+
+    unlink($filePath);
+    return true;
+}
+
 // 2. Путь к базе данных SQLite
 $dbPath = __DIR__ . "/contacts.db";
 
@@ -273,44 +294,59 @@ try {
         exit;
     }
     
-    // --- РОУТ: Загрузка картинок (/api/upload) ---
+    // --- РОУТ: Загрузка картинок и документов (/api/upload) ---
     if ($tableName === "upload" && $method === "POST") {
         $user = checkAuth();
         if (!$user) authError();
         
-        if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
-            http_response_code(400);
-            echo json_encode(["success" => false, "message" => "No image uploaded"]);
-            exit;
-        }
-        
         $type = $_POST['type'] ?? '';
-        if (!in_array($type, ['contacts', 'departments'], true)) {
+        if (!in_array($type, ['contacts', 'departments', 'documents'], true)) {
             http_response_code(400);
-            echo json_encode(["success" => false, "message" => "Invalid image type"]);
+            echo json_encode(["success" => false, "message" => "Invalid upload type"]);
             exit;
         }
         
-        $file = $_FILES['image'];
+        $file = $_FILES['file'] ?? $_FILES['image'] ?? null;
+        if (!$file || $file['error'] !== UPLOAD_ERR_OK) {
+            http_response_code(400);
+            echo json_encode(["success" => false, "message" => "No file uploaded"]);
+            exit;
+        }
+        
         $fileName = basename($file['name']);
         $fileExt = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
         
-        $allowedExts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        $allowedExts = $type === 'documents'
+            ? ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'rtf', 'odt', 'ods']
+            : ['jpg', 'jpeg', 'png', 'gif', 'webp'];
         if (!in_array($fileExt, $allowedExts)) {
             http_response_code(400);
             echo json_encode(["success" => false, "message" => "Invalid file type"]);
             exit;
         }
         
-        $newFileName = uniqid() . '_' . time() . '.' . $fileExt;
         $uploadDir = __DIR__ . "/../public/$type/";
-        $uploadPath = $uploadDir . $newFileName;
-        
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0755, true);
         }
         
-        if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
+        if ($type === 'documents') {
+            // Документы — человекочитаемое имя файла, дедупликация при совпадении
+            $base = pathinfo($fileName, PATHINFO_FILENAME);
+            $base = preg_replace('/[^\p{L}\p{N}\s._-]+/u', '', $base);
+            $base = trim(preg_replace('/\s+/', ' ', $base));
+            if ($base === '') $base = 'document_' . time();
+            $newFileName = $base . '.' . $fileExt;
+            $i = 1;
+            while (file_exists($uploadDir . $newFileName) && $i < 1000) {
+                $newFileName = $base . ' (' . $i . ').' . $fileExt;
+                $i++;
+            }
+        } else {
+            $newFileName = uniqid() . '_' . time() . '.' . $fileExt;
+        }
+        
+        if (move_uploaded_file($file['tmp_name'], $uploadDir . $newFileName)) {
             echo json_encode([
                 "success" => true, 
                 "path" => "/" . $type . "/" . $newFileName,
@@ -320,6 +356,24 @@ try {
             http_response_code(500);
             echo json_encode(["success" => false, "message" => "Failed to upload file"]);
         }
+        exit;
+    }
+
+    // --- РОУТ: Удаление несохранённого файла (/api/cleanup-file) ---
+    if ($tableName === "cleanup-file" && $method === "POST") {
+        $user = checkAuth();
+        if (!$user) authError();
+        
+        $data = json_decode(file_get_contents("php://input"), true);
+        $src = $data['src'] ?? '';
+        if (!empty($src)) {
+            if (str_starts_with($src, '/documents/') || str_starts_with($src, 'documents/')) {
+                deleteDocumentFileIfUnused($src, $pdo);
+            } else {
+                deleteImageIfUnused($src, $pdo);
+            }
+        }
+        echo json_encode(["success" => true]);
         exit;
     }
 
@@ -358,10 +412,10 @@ try {
                 $allowedFields = [
                     'contacts' => ['name', 'surname', 'patronymic', 'job_title', 'email', 'src', 'is_primary'],
                     'phone_contacts' => ['contact_id', 'phone'],
-                    'departments' => ['name', 'description', 'head', 'phone', 'email'],
+                    'departments' => ['name', 'description', 'head', 'email', 'src'],
                     'phone_departments' => ['id_department', 'phone', 'is_fax'],
-                    'documents_group' => ['name', 'description'],
-                    'documents' => ['name', 'group_id', 'file_path', 'description'],
+                    'documents_group' => ['name'],
+                    'documents' => ['name', 'id_group', 'src'],
                     'ventilation_services' => ['name', 'description', 'price', 'unit'],
                     'waste_services' => ['name', 'description', 'price', 'unit'],
                     'electro_services' => ['name', 'description', 'price', 'unit'],
@@ -406,12 +460,12 @@ try {
             $data = json_decode(file_get_contents("php://input"), true);
             if (!empty($data)) {
                 $allowedFields = [
-                    'contacts' => ['name', 'surname', 'patronymic', 'job_title', 'email', 'src'],
+                    'contacts' => ['name', 'surname', 'patronymic', 'job_title', 'email', 'src', 'is_primary'],
                     'phone_contacts' => ['contact_id', 'phone'],
-                    'departments' => ['name', 'description', 'email', 'src'],
+                    'departments' => ['name', 'description', 'head', 'email', 'src'],
                     'phone_departments' => ['id_department', 'phone', 'is_fax'],
-                    'documents_group' => ['name', 'description'],
-                    'documents' => ['name', 'group_id', 'file_path', 'description'],
+                    'documents_group' => ['name'],
+                    'documents' => ['name', 'id_group', 'src'],
                     'ventilation_services' => ['name', 'description', 'price', 'unit'],
                     'waste_services' => ['name', 'description', 'price', 'unit'],
                     'electro_services' => ['name', 'description', 'price', 'unit'],
@@ -432,7 +486,7 @@ try {
                 $fields = []; $values = [];
                 
                 $oldData = null;
-                if ($tableName === 'contacts' || $tableName === 'departments') {
+                if (in_array($tableName, ['contacts', 'departments', 'documents'])) {
                     $stmt = $pdo->prepare("SELECT src FROM $tableName WHERE id = ?");
                     $stmt->execute([$id]);
                     $oldData = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -455,10 +509,16 @@ try {
                 $sql = "UPDATE $tableName SET " . implode(", ", $fields) . " WHERE id = ?";
                 $pdo->prepare($sql)->execute($values);
                 
-                if (($tableName === 'contacts' || $tableName === 'departments') && $oldData) {
+                if ($oldData && ($tableName === 'contacts' || $tableName === 'departments')) {
                     $newSrc = $data['src'] ?? '';
                     if (($oldData['src'] ?? '') !== $newSrc) {
                         deleteImageIfUnused($oldData['src'] ?? '', $pdo, $id);
+                    }
+                }
+                if ($oldData && $tableName === 'documents') {
+                    $newSrc = $data['src'] ?? '';
+                    if (($oldData['src'] ?? '') !== $newSrc) {
+                        deleteDocumentFileIfUnused($oldData['src'] ?? '', $pdo);
                     }
                 }
                 
@@ -470,7 +530,7 @@ try {
             if (!$user) authError();
             
             $oldData = null;
-            if ($tableName === 'contacts' || $tableName === 'departments') {
+            if (in_array($tableName, ['contacts', 'departments', 'documents'])) {
                 $stmt = $pdo->prepare("SELECT src FROM $tableName WHERE id = ?");
                 $stmt->execute([$id]);
                 $oldData = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -480,7 +540,11 @@ try {
             $pdo->prepare($sql)->execute([$id]);
             
             if ($oldData && !empty($oldData['src'])) {
-                deleteImageIfUnused($oldData['src'], $pdo);
+                if ($tableName === 'documents') {
+                    deleteDocumentFileIfUnused($oldData['src'], $pdo);
+                } else {
+                    deleteImageIfUnused($oldData['src'], $pdo);
+                }
             }
             
             echo json_encode(["message" => "Deleted"]);

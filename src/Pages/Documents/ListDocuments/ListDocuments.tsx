@@ -16,12 +16,14 @@ interface ListDocumentsProps {
 }
 
 export const ListDocuments = (props: ListDocumentsProps) => {
+    const normalizeSrc = (src: string) => (src.startsWith('/') ? src : `/${src}`);
+
     const handleDownload = (e: React.MouseEvent, src: string, name: string) => {
         e.preventDefault();
         e.stopPropagation();
         
         const link = document.createElement('a');
-        link.href = src;
+        link.href = normalizeSrc(src);
         link.download = name;
         link.target = '_blank';
         document.body.appendChild(link);
@@ -46,7 +48,7 @@ export const ListDocuments = (props: ListDocumentsProps) => {
             {props.documents.map((document, i) => (
                 <DocumentCard 
                     key={i} 
-                    href={document.src} 
+                    href={normalizeSrc(document.src)} 
                     target="_blank"
                     rel="noopener noreferrer"
                 >

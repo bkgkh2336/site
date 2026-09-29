@@ -1,9 +1,13 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { LoginForm, Input, ErrorMessage } from './styled';
-import H1 from '../../Components/H1/H1';
-import Button from '../../Components/Button/Button';
-import Block from '../../Components/Block/Block';
+import { Users, Wrench, FileText, Newspaper, LogIn, LogOut, Lock, User } from 'lucide-react';
+import {
+  LoginPage, LoginCard, LoginLogo, LoginTitle, LoginSubtitle,
+  LoginForm, InputWrap, Input, ErrorMessage,
+  Shell, Toolbar, ToolbarTitle, UserArea, UserBadge, TabNav, TabButton
+} from './styled';
+import { Card, ActionButton } from './ui';
 import ContactsManager from './ContactsManager';
+import DocumentsManager from './DocumentsManager';
 
 type SectionType = 'contacts' | 'services' | 'documents' | 'news';
 
@@ -33,7 +37,7 @@ const Manager: React.FC = () => {
 
   const handleLogin = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!password.trim()) {
       setError('Введите пароль');
       return;
@@ -82,10 +86,10 @@ const Manager: React.FC = () => {
   }, []);
 
   const sections = useMemo(() => [
-    { key: 'contacts' as SectionType, label: 'Контакты' },
-    { key: 'services' as SectionType, label: 'Услуги' },
-    { key: 'documents' as SectionType, label: 'Документы' },
-    { key: 'news' as SectionType, label: 'Новости' },
+    { key: 'contacts' as SectionType, label: 'Контакты', icon: <Users /> },
+    { key: 'services' as SectionType, label: 'Услуги', icon: <Wrench /> },
+    { key: 'documents' as SectionType, label: 'Документы', icon: <FileText /> },
+    { key: 'news' as SectionType, label: 'Новости', icon: <Newspaper /> },
   ], []);
 
   const renderSectionContent = useMemo(() => {
@@ -93,63 +97,83 @@ const Manager: React.FC = () => {
       case 'contacts':
         return <ContactsManager />;
       case 'services':
-        return <p>Редактирование услуг</p>;
+        return <Card><p>Редактирование услуг</p></Card>;
       case 'documents':
-        return <p>Редактирование документов</p>;
+        return <DocumentsManager />;
       case 'news':
-        return <p>Редактирование новостей</p>;
+        return <Card><p>Редактирование новостей</p></Card>;
       default:
-        return <p>Выберите раздел для редактирования</p>;
+        return <Card><p>Выберите раздел для редактирования</p></Card>;
     }
   }, [activeSection]);
 
   if (!isAuthorized) {
     return (
-      <div>
-        <H1>Вход в панель управления</H1>
-        <LoginForm onSubmit={handleLogin}>
-          <Input
-            type="password"
-            placeholder="Введите пароль"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            disabled={isLoading}
-            autoComplete="current-password"
-          />
-          {error && <ErrorMessage role="alert">{error}</ErrorMessage>}
-          <Button style={{ opacity: isLoading ? 0.7 : 1 }}>
-            {isLoading ? 'Загрузка...' : 'Войти'}
-          </Button>
-        </LoginForm>
-      </div>
+      <LoginPage>
+        <LoginCard>
+          <LoginLogo src="/logo.png" alt="Логотип" />
+          <LoginTitle>Панель управления</LoginTitle>
+          <LoginSubtitle>КЖУП «Буда-Кошелёвский коммунальник»</LoginSubtitle>
+          <LoginForm onSubmit={handleLogin}>
+            <InputWrap>
+              <Lock aria-hidden="true" />
+              <Input
+                type="password"
+                placeholder="Введите пароль"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
+                autoComplete="current-password"
+                aria-label="Пароль"
+              />
+            </InputWrap>
+            {error && <ErrorMessage role="alert">{error}</ErrorMessage>}
+            <ActionButton type="submit" disabled={isLoading}>
+              <LogIn />
+              {isLoading ? 'Загрузка...' : 'Войти'}
+            </ActionButton>
+          </LoginForm>
+        </LoginCard>
+      </LoginPage>
     );
   }
 
   return (
-    <div>
-      <H1>Панель управления</H1>
-      
-      <Block style={{ gap: 10, marginBottom: 20, flexWrap: 'wrap' }}>
+    <Shell>
+      <Toolbar>
+        <ToolbarTitle>
+          <User aria-hidden="true" />
+          Панель управления
+        </ToolbarTitle>
+        <UserArea>
+          <UserBadge>
+            <User />
+            admin
+          </UserBadge>
+          <ActionButton $variant="danger" onClick={handleLogout}>
+            <LogOut />
+            Выйти
+          </ActionButton>
+        </UserArea>
+      </Toolbar>
+
+      <TabNav role="tablist" aria-label="Разделы панели управления">
         {sections.map((section) => (
-          <Button
+          <TabButton
             key={section.key}
+            role="tab"
+            aria-selected={activeSection === section.key}
+            $active={activeSection === section.key}
             onClick={() => setActiveSection(section.key)}
-            style={{
-              backgroundColor: activeSection === section.key ? '#28a745' : '#6c757d',
-            }}
-            aria-pressed={activeSection === section.key}
           >
+            {section.icon}
             {section.label}
-          </Button>
+          </TabButton>
         ))}
-      </Block>
+      </TabNav>
 
-      <Block>
-        {renderSectionContent}
-      </Block>
-
-      <Button onClick={handleLogout} style={{ marginTop: '20px' }}>Выйти</Button>
-    </div>
+      {renderSectionContent}
+    </Shell>
   );
 };
 
