@@ -1,6 +1,9 @@
 import React from 'react';
 import { Input } from '../styled';
-import Button from '../../../Components/Button/Button';
+import { Trash2, Plus, Save, X, ImageOff } from 'lucide-react';
+import {
+  Field, FieldLabel, FieldHint, ModalActions, ActionButton, FileInput
+} from '../ui';
 
 interface ContactData {
   id: number;
@@ -42,117 +45,114 @@ const ContactEditForm: React.FC<ContactEditFormProps> = ({
   onImageUpload
 }) => {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-      <div>
-        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Фото:</label>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
+      <Field>
+        <FieldLabel>Фото:</FieldLabel>
         {contact.src && (
-          <div style={{ marginBottom: 10 }}>
-            <img 
-              src={contact.src} 
-              alt="Фото контакта" 
-              style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: '50%', marginBottom: 5 }}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <img
+              src={contact.src}
+              alt="Фото контакта"
+              style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: '50%' }}
             />
-            <Button 
+            <ActionButton
+              $variant="danger"
               onClick={() => onContactChange({ ...contact, src: undefined })}
-              style={{ backgroundColor: '#dc3545', padding: '5px 10px', fontSize: 12 }}
             >
-              Удалить фото
-            </Button>
+              <ImageOff /> Удалить фото
+            </ActionButton>
           </div>
         )}
-        <input
+        <FileInput
           type="file"
           accept="image/*"
           onChange={(e) => {
             const file = e.target.files?.[0];
             if (file) onImageUpload(file);
           }}
-          style={{ marginTop: 5 }}
         />
-      </div>
-      <div>
-        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Фамилия:</label>
+        <FieldHint>JPEG, PNG, GIF, WebP, до 5 МБ</FieldHint>
+      </Field>
+
+      <Field>
+        <FieldLabel>Фамилия:</FieldLabel>
         <Input
           value={contact.surname}
           onChange={(e) => onContactChange({ ...contact, surname: e.target.value })}
           placeholder="Фамилия"
         />
-      </div>
-      <div>
-        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Имя:</label>
+      </Field>
+
+      <Field>
+        <FieldLabel>Имя:</FieldLabel>
         <Input
           value={contact.name}
           onChange={(e) => onContactChange({ ...contact, name: e.target.value })}
           placeholder="Имя"
         />
-      </div>
-      <div>
-        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Отчество:</label>
+      </Field>
+
+      <Field>
+        <FieldLabel>Отчество:</FieldLabel>
         <Input
           value={contact.patronymic || ''}
           onChange={(e) => onContactChange({ ...contact, patronymic: e.target.value })}
           placeholder="Отчество"
         />
-      </div>
-      <div>
-        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Должность:</label>
+      </Field>
+
+      <Field>
+        <FieldLabel>Должность:</FieldLabel>
         <Input
           value={contact.job_title || ''}
           onChange={(e) => onContactChange({ ...contact, job_title: e.target.value })}
           placeholder="Должность"
         />
-      </div>
-      <div>
-        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Email:</label>
+      </Field>
+
+      <Field>
+        <FieldLabel>Email:</FieldLabel>
         <Input
           value={contact.email || ''}
           onChange={(e) => onContactChange({ ...contact, email: e.target.value })}
           placeholder="Email"
         />
-      </div>
-      <div>
-        <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Телефоны:</label>
+      </Field>
+
+      <Field>
+        <FieldLabel>Телефоны:</FieldLabel>
         {phones.map((phone, index) => (
-          <div key={index} style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+          <div key={index} style={{ display: 'flex', gap: 10 }}>
             <Input
               value={phone}
               onChange={(e) => onPhoneChange(index, e.target.value)}
               placeholder="Номер телефона"
             />
             {phones.length > 1 && (
-              <Button onClick={() => onRemovePhone(index)} style={{ backgroundColor: '#dc3545' }}>
-                Удалить
-              </Button>
+              <ActionButton $variant="danger" onClick={() => onRemovePhone(index)}>
+                <Trash2 />
+              </ActionButton>
             )}
           </div>
         ))}
-        <Button onClick={onAddPhone} style={{ marginTop: '10px' }}>
-          + Добавить телефон
-        </Button>
-      </div>
-      <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
-        <Button 
-          onClick={onSave} 
-          disabled={isSaving || isDeleting}
-          style={{ opacity: isSaving ? 0.7 : 1 }}
-        >
+        <ActionButton $variant="ghost" onClick={onAddPhone} style={{ alignSelf: 'flex-start' }}>
+          <Plus /> Добавить телефон
+        </ActionButton>
+      </Field>
+
+      <ModalActions>
+        <ActionButton onClick={onSave} disabled={isSaving || isDeleting}>
+          <Save />
           {isSaving ? 'Сохранение...' : 'Сохранить'}
-        </Button>
-        <Button 
-          onClick={onCancel} 
-          disabled={isSaving || isDeleting}
-          style={{ backgroundColor: '#6c757d' }}
-        >
-          Отмена
-        </Button>
-        <Button 
-          onClick={onDelete} 
-          disabled={isSaving || isDeleting}
-          style={{ backgroundColor: '#dc3545', opacity: isDeleting ? 0.7 : 1 }}
-        >
+        </ActionButton>
+        <ActionButton $variant="secondary" onClick={onCancel} disabled={isSaving || isDeleting}>
+          <X /> Отмена
+        </ActionButton>
+        <ActionButton $variant="danger" onClick={onDelete} disabled={isSaving || isDeleting}>
+          <Trash2 />
           {isDeleting ? 'Удаление...' : 'Удалить'}
-        </Button>
-      </div>
+        </ActionButton>
+      </ModalActions>
     </div>
   );
 };

@@ -1,103 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
 import { Pencil, Plus, X } from 'lucide-react';
-import Block from '../../Components/Block/Block';
 import Text from '../../Components/Text/Text';
 import Loading from '../../Components/Loading/Loading';
-import Button from '../../Components/Button/Button';
 import ContactEditForm from './EditForms/ContactEditForm';
 import DepartmentEditForm from './EditForms/DepartmentEditForm';
-
-const Table = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-  margin: 15px 0;
-`;
-
-const Th = styled.th`
-  text-align: left;
-  padding: 12px 16px;
-  background: #f8f9fa;
-  border-bottom: 2px solid #dee2e6;
-  font-weight: 600;
-  color: #495057;
-`;
-
-const Td = styled.td`
-  padding: 12px 16px;
-  border-bottom: 1px solid #dee2e6;
-  vertical-align: middle;
-`;
-
-const Tr = styled.tr`
-  transition: background 0.15s ease;
-  
-  &:hover {
-    background: #f8fff9;
-  }
-`;
-
-const EditButton = styled.button`
-  background: #28a745;
-  color: white;
-  border: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.15s ease;
-
-  &:hover {
-    background: #218838;
-    transform: scale(1.05);
-  }
-
-  svg {
-    width: 16px;
-    height: 16px;
-  }
-`;
-
-const ModalOverlay = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-`;
-
-const ModalContent = styled.div`
-  background: white;
-  padding: 30px;
-  border-radius: 12px;
-  max-width: 600px;
-  width: 90%;
-  max-height: 90vh;
-  overflow-y: auto;
-  position: relative;
-`;
-
-const CloseButton = styled.button`
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #6c757d;
-  
-  &:hover {
-    color: #000;
-  }
-`;
+import {
+  Card, SectionHeader, SectionTitle, ActionButton,
+  Table, Th, Td, Tr, IconButton,
+  ModalOverlay, ModalContent, ModalHeader, ModalBody, CloseButton
+} from './ui';
 
 interface ContactData {
   id: number;
@@ -698,112 +609,115 @@ const ContactsManager: React.FC = () => {
 
   return (
     <>
-      <Block style={{ justifyContent: 'space-between', alignItems: 'center' }}>
-        <Text bold='bolder' style={{ color: "rgb(40, 167, 69)", fontSize: 24 }}>Сотрудники</Text>
-        <Button 
-          style={{ backgroundColor: '#28a745' }}
-          onClick={handleAddContact}
-        >
-          <Plus size={16} style={{ marginRight: 6 }} /> Добавить сотрудника
-        </Button>
-      </Block>
+      <Card>
+        <SectionHeader>
+          <SectionTitle>Сотрудники</SectionTitle>
+          <ActionButton onClick={handleAddContact}>
+            <Plus /> Добавить сотрудника
+          </ActionButton>
+        </SectionHeader>
 
-      <Table>
-        <thead>
-          <tr>
-            <Th>Фамилия</Th>
-            <Th>Имя</Th>
-            <Th>Должность</Th>
-            <Th>Телефоны</Th>
-            <Th>Email</Th>
-            <Th style={{ width: 50 }}></Th>
-          </tr>
-        </thead>
-        <tbody>
-          {[...primaryContacts, ...contacts].map(contact => (
-            <Tr key={contact.id}>
-              <Td>{contact.surname}</Td>
-              <Td>{contact.name} {contact.patronymic || ''}</Td>
-              <Td>{contact.job_title || '-'}</Td>
-              <Td>{phones.filter(p => p.contact_id === contact.id).map(p => p.phone).join(', ') || '-'}</Td>
-              <Td>{contact.email || '-'}</Td>
-              <Td>
-                <EditButton onClick={() => handleEditContact(contact)}>
-                  <Pencil />
-                </EditButton>
-              </Td>
-            </Tr>
-          ))}
-        </tbody>
-      </Table>
+        <Table>
+          <thead>
+            <tr>
+              <Th>Фамилия</Th>
+              <Th>Имя</Th>
+              <Th>Должность</Th>
+              <Th>Телефоны</Th>
+              <Th>Email</Th>
+              <Th style={{ width: 50 }}></Th>
+            </tr>
+          </thead>
+          <tbody>
+            {[...primaryContacts, ...contacts].map(contact => (
+              <Tr key={contact.id}>
+                <Td>{contact.surname}</Td>
+                <Td>{contact.name} {contact.patronymic || ''}</Td>
+                <Td>{contact.job_title || '-'}</Td>
+                <Td>{phones.filter(p => p.contact_id === contact.id).map(p => p.phone).join(', ') || '-'}</Td>
+                <Td>{contact.email || '-'}</Td>
+                <Td>
+                  <IconButton onClick={() => handleEditContact(contact)} aria-label="Редактировать">
+                    <Pencil />
+                  </IconButton>
+                </Td>
+              </Tr>
+            ))}
+          </tbody>
+        </Table>
+      </Card>
 
-      <br />
+      <Card>
+        <SectionHeader>
+          <SectionTitle>Отделы</SectionTitle>
+          <ActionButton
+            onClick={() => {
+              setEditingDepartment({
+                id: 0,
+                name: '',
+                description: '',
+                head: '',
+                email: '',
+                src: ''
+              });
+              setEditingDeptPhones([]);
+            }}
+          >
+            <Plus /> Добавить отдел
+          </ActionButton>
+        </SectionHeader>
 
-       <Block style={{ justifyContent: 'space-between', alignItems: 'center' }}>
-        <Text bold='bolder' style={{ color: "rgb(40, 167, 69)", fontSize: 24 }}>Отделы</Text>
-        <Button 
-          style={{ backgroundColor: '#28a745' }}
-          onClick={() => {
-            setEditingDepartment({ 
-              id: 0, 
-              name: '', 
-              description: '', 
-              head: '', 
-              email: '', 
-              src: '' 
-            });
-            setEditingDeptPhones([]);
-          }}
-        >
-          <Plus size={16} style={{ marginRight: 6 }} /> Добавить отдел
-        </Button>
-      </Block>
-
-      <Table>
-        <thead>
-          <tr>
-            <Th>Название</Th>
-            <Th>Телефоны</Th>
-            <Th>Email</Th>
-            <Th style={{ width: 50 }}></Th>
-          </tr>
-        </thead>
-        <tbody>
-          {departments.map(department => (
-            <Tr key={department.id}>
-              <Td>{department.name}</Td>
-              <Td>{phoneDepartments.filter(p => p.id_department === department.id).map(p => p.phone).join(', ') || '-'}</Td>
-              <Td>{department.email || '-'}</Td>
-              <Td>
-                <EditButton onClick={() => handleEditDepartment(department)}>
-                  <Pencil />
-                </EditButton>
-              </Td>
-            </Tr>
-          ))}
-        </tbody>
-      </Table>
+        <Table>
+          <thead>
+            <tr>
+              <Th>Название</Th>
+              <Th>Телефоны</Th>
+              <Th>Email</Th>
+              <Th style={{ width: 50 }}></Th>
+            </tr>
+          </thead>
+          <tbody>
+            {departments.map(department => (
+              <Tr key={department.id}>
+                <Td>{department.name}</Td>
+                <Td>{phoneDepartments.filter(p => p.id_department === department.id).map(p => p.phone).join(', ') || '-'}</Td>
+                <Td>{department.email || '-'}</Td>
+                <Td>
+                  <IconButton onClick={() => handleEditDepartment(department)} aria-label="Редактировать">
+                    <Pencil />
+                  </IconButton>
+                </Td>
+              </Tr>
+            ))}
+          </tbody>
+        </Table>
+      </Card>
 
       {editingContact && (
         <ModalOverlay onClick={(e) => e.target === e.currentTarget && handleCancelEdit()}>
           <ModalContent>
-            <CloseButton onClick={handleCancelEdit}>
-              <X size={24} />
-            </CloseButton>
-            <ContactEditForm
-              contact={editingContact}
-              phones={editingPhones}
-              isSaving={isSaving}
-              isDeleting={isDeleting}
-              onContactChange={handleContactChange}
-              onPhoneChange={handlePhoneChange}
-              onAddPhone={handleAddPhone}
-              onRemovePhone={handleRemovePhone}
-              onSave={handleSaveContact}
-              onCancel={handleCancelEdit}
-              onDelete={handleDeleteContact}
-              onImageUpload={handleImageUpload}
-            />
+            <ModalHeader>
+              {editingContact.id ? 'Редактирование сотрудника' : 'Новый сотрудник'}
+              <CloseButton onClick={handleCancelEdit} aria-label="Закрыть">
+                <X />
+              </CloseButton>
+            </ModalHeader>
+            <ModalBody>
+              <ContactEditForm
+                contact={editingContact}
+                phones={editingPhones}
+                isSaving={isSaving}
+                isDeleting={isDeleting}
+                onContactChange={handleContactChange}
+                onPhoneChange={handlePhoneChange}
+                onAddPhone={handleAddPhone}
+                onRemovePhone={handleRemovePhone}
+                onSave={handleSaveContact}
+                onCancel={handleCancelEdit}
+                onDelete={handleDeleteContact}
+                onImageUpload={handleImageUpload}
+              />
+            </ModalBody>
           </ModalContent>
         </ModalOverlay>
       )}
@@ -811,23 +725,28 @@ const ContactsManager: React.FC = () => {
       {editingDepartment && (
         <ModalOverlay onClick={(e) => e.target === e.currentTarget && handleCancelDeptEdit()}>
           <ModalContent>
-            <CloseButton onClick={handleCancelDeptEdit}>
-              <X size={24} />
-            </CloseButton>
-            <DepartmentEditForm
-              department={editingDepartment}
-              phones={editingDeptPhones}
-              isSaving={isSaving}
-              isDeleting={isDeleting}
-              onDepartmentChange={handleDepartmentChange}
-              onPhoneChange={handleDeptPhoneChange}
-              onAddPhone={handleAddDeptPhone}
-              onRemovePhone={handleRemoveDeptPhone}
-              onSave={handleSaveDepartment}
-              onCancel={handleCancelDeptEdit}
-              onDelete={handleDeleteDepartment}
-              onImageUpload={handleImageUploadDepartment}
-            />
+            <ModalHeader>
+              {editingDepartment.id ? 'Редактирование отдела' : 'Новый отдел'}
+              <CloseButton onClick={handleCancelDeptEdit} aria-label="Закрыть">
+                <X />
+              </CloseButton>
+            </ModalHeader>
+            <ModalBody>
+              <DepartmentEditForm
+                department={editingDepartment}
+                phones={editingDeptPhones}
+                isSaving={isSaving}
+                isDeleting={isDeleting}
+                onDepartmentChange={handleDepartmentChange}
+                onPhoneChange={handleDeptPhoneChange}
+                onAddPhone={handleAddDeptPhone}
+                onRemovePhone={handleRemoveDeptPhone}
+                onSave={handleSaveDepartment}
+                onCancel={handleCancelDeptEdit}
+                onDelete={handleDeleteDepartment}
+                onImageUpload={handleImageUploadDepartment}
+              />
+            </ModalBody>
           </ModalContent>
         </ModalOverlay>
       )}
