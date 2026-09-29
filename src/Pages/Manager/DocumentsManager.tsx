@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Pencil, Plus, X } from 'lucide-react';
+import { Pencil, Plus, X, Folder, FileText, ExternalLink, Trash2 } from 'lucide-react';
 import Text from '../../Components/Text/Text';
 import Loading from '../../Components/Loading/Loading';
+import ViewToggle from '../../Components/ViewToggle/ViewToggle';
 import DocumentEditForm, { DocumentData, GroupOption } from './EditForms/DocumentEditForm';
 import { Input } from './styled';
 import {
   Card, SectionHeader, SectionTitle, ActionButton, ModalActions,
   Table, Th, Td, Tr, IconButton,
   ModalOverlay, ModalContent, ModalHeader, ModalBody, CloseButton,
-  FileLink
+  FileLink, ToolbarRow, BoardView, CategoryPanel, CategoryPanelHeader,
+  CategoryItem, CategoryName, CategoryCount, CategoryEdit,
+  BoardMain, DocCard, DocCardIcon, DocCardInfo, DocCardName, DocCardMeta,
+  DocCardActions, IconLink, EmptyPanel
 } from './ui';
 
 const normalizeDocSrc = (src: string) => (src.startsWith('/') ? src : `/${src}`);
@@ -22,6 +26,8 @@ const DocumentsManager: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [editingGroup, setEditingGroup] = useState<GroupOption | null>(null);
   const [editingDocument, setEditingDocument] = useState<DocumentData | null>(null);
+  const [view, setView] = useState<'cards' | 'table'>('cards');
+  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -36,8 +42,10 @@ const DocumentsManager: React.FC = () => {
           throw new Error('Ошибка загрузки данных');
         }
 
-        setGroups(await groupsRes.json());
+        const loadedGroups: GroupOption[] = await groupsRes.json();
+        setGroups(loadedGroups);
         setDocuments(await documentsRes.json());
+        setSelectedGroupId(loadedGroups[0]?.id ?? null);
         setError('');
       } catch (err) {
         console.error('Load error:', err);
@@ -116,6 +124,7 @@ const DocumentsManager: React.FC = () => {
       const data = await response.json();
       if (isNew) {
         setGroups(prev => [...prev, { id: data.id, name }]);
+        setSelectedGroupId(data.id);
       } else {
         setGroups(prev => prev.map(g => g.id === editingGroup.id ? { ...g, name } : g));
       }
@@ -147,7 +156,11 @@ const DocumentsManager: React.FC = () => {
       if (!response.ok && handleSessionExpired(response.status)) return;
 
       if (response.ok) {
-        setGroups(prev => prev.filter(g => g.id !== editingGroup.id));
+        const remaining = groups.filter(g => g.id !== editingGroup.id);
+        setGroups(remaining);
+        if (selectedGroupId === editingGroup.id) {
+          setSelectedGroupId(remaining[0]?.id ?? null);
+        }
         setEditingGroup(null);
       }
     } catch (err) {
@@ -161,7 +174,12 @@ const DocumentsManager: React.FC = () => {
   // --- Документы ---
 
   const handleAddDocument = () => {
-    setEditingDocument({ id: 0, name: '', id_group: groups[0]?.id || 0, src: '' });
+    setEditingDocument({
+      id: 0,
+      name: '',
+      id_group: selectedGroupId ?? groups[0]?.id ?? 0,
+      src: ''
+    });
   };
 
   const handleEditDocument = (document: DocumentData) => {
@@ -259,6 +277,7 @@ const DocumentsManager: React.FC = () => {
       const data = await response.json();
       if (isNew) {
         setDocuments(prev => [...prev, { ...payload, id: data.id }]);
+        setSelectedGroupId(payload.id_group);
       } else {
         setDocuments(prev => prev.map(d => d.id === editingDocument.id ? { ...payload, id: editingDocument.id } : d));
       }
@@ -271,12 +290,10 @@ const DocumentsManager: React.FC = () => {
     }
   };
 
-  const handleDeleteDocument = async () => {
-    if (!editingDocument) return;
-
+  const deleteDocumentById = async (doc: DocumentData) => {
     setIsDeleting(true);
     try {
-      const response = await fetch(`/backend/api.php/api/documents/${editingDocument.id}`, {
+      const response = await fetch(`/backend/api.php/api/documents/${doc.id}`, {
         method: 'DELETE',
         credentials: 'include'
       });
@@ -284,7 +301,7 @@ const DocumentsManager: React.FC = () => {
       if (!response.ok && handleSessionExpired(response.status)) return;
 
       if (response.ok) {
-        setDocuments(prev => prev.filter(d => d.id !== editingDocument.id));
+        setDocuments(prev => prev.filter(d => d.id !== doc.id));
         setEditingDocument(null);
       }
     } catch (err) {
@@ -293,6 +310,16 @@ const DocumentsManager: React.FC = () => {
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  const handleDeleteDocument = async () => {
+    if (!editingDocument) return;
+    await deleteDocumentById(editingDocument);
+  };
+
+  const handleQuickDeleteDocument = async (doc: DocumentData) => {
+    if (!window.confirm(`Удалить документ «${doc.name}»?`)) return;
+    await deleteDocumentById(doc);
   };
 
   const handleCancelDocument = async () => {
@@ -308,6 +335,9 @@ const DocumentsManager: React.FC = () => {
 
   const groupName = (id: number) => groups.find(g => g.id === id)?.name || '—';
 
+  const selectedGroup = groups.find(g => g.id === selectedGroupId);
+  const selectedDocuments = documents.filter(d => d.id_group === selectedGroupId);
+
   if (isLoading) {
     return <Loading />;
   }
@@ -318,86 +348,204 @@ const DocumentsManager: React.FC = () => {
 
   return (
     <>
-      <Card>
-        <SectionHeader>
-          <SectionTitle>Категории</SectionTitle>
-          <ActionButton onClick={handleAddGroup}>
-            <Plus /> Добавить категорию
-          </ActionButton>
-        </SectionHeader>
+      <ToolbarRow>
+        <ViewToggle view={view} onViewChange={setView} />
+      </ToolbarRow>
 
-        <Table>
-          <thead>
-            <tr>
-              <Th>Название</Th>
-              <Th style={{ width: 140 }}>Документов</Th>
-              <Th style={{ width: 60 }}></Th>
-            </tr>
-          </thead>
-          <tbody>
-            {groups.map(group => (
-              <Tr key={group.id}>
-                <Td>{group.name}</Td>
-                <Td>{documents.filter(d => d.id_group === group.id).length}</Td>
-                <Td>
-                  <IconButton onClick={() => handleEditGroup(group)} aria-label="Редактировать">
+      {view === 'cards' ? (
+        <BoardView>
+          <CategoryPanel>
+            <CategoryPanelHeader>
+              Категории
+              <IconButton onClick={handleAddGroup} aria-label="Добавить категорию">
+                <Plus />
+              </IconButton>
+            </CategoryPanelHeader>
+
+            {groups.length === 0 && (
+              <EmptyPanel>Нет категорий. Создайте первую.</EmptyPanel>
+            )}
+
+            {groups.map(group => {
+              const active = selectedGroupId === group.id;
+              return (
+                <CategoryItem
+                  key={group.id}
+                  $active={active}
+                  onClick={() => setSelectedGroupId(group.id)}
+                >
+                  <Folder />
+                  <CategoryName>{group.name}</CategoryName>
+                  <CategoryCount $active={active}>
+                    {documents.filter(d => d.id_group === group.id).length}
+                  </CategoryCount>
+                  <CategoryEdit
+                    $active={active}
+                    role="button"
+                    tabIndex={0}
+                    title="Переименовать / удалить"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditGroup(group);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.stopPropagation();
+                        handleEditGroup(group);
+                      }
+                    }}
+                  >
                     <Pencil />
-                  </IconButton>
-                </Td>
-              </Tr>
-            ))}
-          </tbody>
-        </Table>
-      </Card>
+                  </CategoryEdit>
+                </CategoryItem>
+              );
+            })}
+          </CategoryPanel>
 
-      <Card>
-        <SectionHeader>
-          <SectionTitle>Документы</SectionTitle>
-          <ActionButton
-            onClick={handleAddDocument}
-            disabled={groups.length === 0}
-          >
-            <Plus /> Добавить документ
-          </ActionButton>
-        </SectionHeader>
+          <BoardMain>
+            <SectionHeader>
+              <SectionTitle>
+                <Folder style={{ width: 22, height: 22 }} />
+                {selectedGroup ? selectedGroup.name : 'Документы'}
+              </SectionTitle>
+              <ActionButton onClick={handleAddDocument} disabled={!groups.length}>
+                <Plus /> Добавить документ
+              </ActionButton>
+            </SectionHeader>
 
-        {groups.length === 0 && (
-          <Text style={{ color: '#6c757d' }}>Сначала создайте хотя бы одну категорию</Text>
-        )}
+            {groups.length === 0 && (
+              <EmptyPanel>Сначала создайте хотя бы одну категорию</EmptyPanel>
+            )}
 
-        <Table>
-          <thead>
-            <tr>
-              <Th>Название</Th>
-              <Th>Категория</Th>
-              <Th>Файл</Th>
-              <Th style={{ width: 60 }}></Th>
-            </tr>
-          </thead>
-          <tbody>
-            {documents.map(document => (
-              <Tr key={document.id}>
-                <Td>{document.name}</Td>
-                <Td>{groupName(document.id_group)}</Td>
-                <Td>
-                  <FileLink
-                    href={normalizeDocSrc(document.src)}
+            {groups.length > 0 && selectedDocuments.length === 0 && (
+              <EmptyPanel>В этой категории пока нет документов</EmptyPanel>
+            )}
+
+            {selectedDocuments.map(doc => (
+              <DocCard key={doc.id}>
+                <DocCardIcon>
+                  <FileText />
+                </DocCardIcon>
+                <DocCardInfo>
+                  <DocCardName>{doc.name}</DocCardName>
+                  <DocCardMeta>{doc.src.split('/').pop()}</DocCardMeta>
+                </DocCardInfo>
+                <DocCardActions>
+                  <IconLink
+                    href={normalizeDocSrc(doc.src)}
                     target="_blank"
                     rel="noopener noreferrer"
+                    title="Открыть"
+                    aria-label="Открыть"
                   >
-                    {document.src.split('/').pop()}
-                  </FileLink>
-                </Td>
-                <Td>
-                  <IconButton onClick={() => handleEditDocument(document)} aria-label="Редактировать">
+                    <ExternalLink />
+                  </IconLink>
+                  <IconButton
+                    $tone="gray"
+                    onClick={() => handleEditDocument(doc)}
+                    title="Редактировать"
+                    aria-label="Редактировать"
+                  >
                     <Pencil />
                   </IconButton>
-                </Td>
-              </Tr>
+                  <IconButton
+                    $tone="red"
+                    onClick={() => handleQuickDeleteDocument(doc)}
+                    title="Удалить"
+                    aria-label="Удалить"
+                    disabled={isDeleting}
+                  >
+                    <Trash2 />
+                  </IconButton>
+                </DocCardActions>
+              </DocCard>
             ))}
-          </tbody>
-        </Table>
-      </Card>
+          </BoardMain>
+        </BoardView>
+      ) : (
+        <>
+          <Card>
+            <SectionHeader>
+              <SectionTitle>Категории</SectionTitle>
+              <ActionButton onClick={handleAddGroup}>
+                <Plus /> Добавить категорию
+              </ActionButton>
+            </SectionHeader>
+
+            <Table>
+              <thead>
+                <tr>
+                  <Th>Название</Th>
+                  <Th style={{ width: 140 }}>Документов</Th>
+                  <Th style={{ width: 60 }}></Th>
+                </tr>
+              </thead>
+              <tbody>
+                {groups.map(group => (
+                  <Tr key={group.id}>
+                    <Td>{group.name}</Td>
+                    <Td>{documents.filter(d => d.id_group === group.id).length}</Td>
+                    <Td>
+                      <IconButton onClick={() => handleEditGroup(group)} aria-label="Редактировать">
+                        <Pencil />
+                      </IconButton>
+                    </Td>
+                  </Tr>
+                ))}
+              </tbody>
+            </Table>
+          </Card>
+
+          <Card>
+            <SectionHeader>
+              <SectionTitle>Документы</SectionTitle>
+              <ActionButton
+                onClick={handleAddDocument}
+                disabled={groups.length === 0}
+              >
+                <Plus /> Добавить документ
+              </ActionButton>
+            </SectionHeader>
+
+            {groups.length === 0 && (
+              <Text style={{ color: '#6c757d' }}>Сначала создайте хотя бы одну категорию</Text>
+            )}
+
+            <Table>
+              <thead>
+                <tr>
+                  <Th>Название</Th>
+                  <Th>Категория</Th>
+                  <Th>Файл</Th>
+                  <Th style={{ width: 60 }}></Th>
+                </tr>
+              </thead>
+              <tbody>
+                {documents.map(document => (
+                  <Tr key={document.id}>
+                    <Td>{document.name}</Td>
+                    <Td>{groupName(document.id_group)}</Td>
+                    <Td>
+                      <FileLink
+                        href={normalizeDocSrc(document.src)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {document.src.split('/').pop()}
+                      </FileLink>
+                    </Td>
+                    <Td>
+                      <IconButton onClick={() => handleEditDocument(document)} aria-label="Редактировать">
+                        <Pencil />
+                      </IconButton>
+                    </Td>
+                  </Tr>
+                ))}
+              </tbody>
+            </Table>
+          </Card>
+        </>
+      )}
 
       {editingGroup && (
         <ModalOverlay onClick={(e) => e.target === e.currentTarget && setEditingGroup(null)}>
