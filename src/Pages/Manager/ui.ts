@@ -134,27 +134,45 @@ export const ActionButton = styled.button<{ $variant?: ButtonVariant }>`
   }
 `;
 
-export const IconButton = styled.button<{ $tone?: 'green' | 'red' }>`
-  background: ${({ $tone }) => ($tone === 'red' ? '#dc3545' : '#28a745')};
-  color: #fff;
-  border: none;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  cursor: pointer;
+const iconControlStyles = css`
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s ease, transform 0.1s ease;
-
-  &:hover {
-    background: ${({ $tone }) => ($tone === 'red' ? '#c82333' : '#218838')};
-    transform: scale(1.05);
-  }
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
 
   svg {
     width: 16px;
     height: 16px;
+  }
+`;
+
+export const IconButton = styled.button<{ $tone?: 'green' | 'red' | 'gray' }>`
+  ${iconControlStyles};
+  background: ${({ $tone }) => ($tone === 'red' ? '#dc3545' : $tone === 'gray' ? '#f1f3f5' : '#28a745')};
+  color: ${({ $tone }) => ($tone === 'gray' ? '#495057' : '#ffffff')};
+
+  &:hover {
+    background: ${({ $tone }) => ($tone === 'red' ? '#c82333' : $tone === 'gray' ? '#e9ecef' : '#218838')};
+    color: ${({ $tone }) => ($tone === 'gray' ? '#212529' : '#ffffff')};
+    transform: scale(1.05);
+  }
+`;
+
+export const IconLink = styled.a<{ $tone?: 'green' | 'red' | 'gray' }>`
+  ${iconControlStyles};
+  background: ${({ $tone }) => ($tone === 'red' ? '#dc3545' : $tone === 'gray' ? '#f1f3f5' : '#28a745')};
+  color: ${({ $tone }) => ($tone === 'gray' ? '#495057' : '#ffffff')};
+
+  &:hover {
+    background: ${({ $tone }) => ($tone === 'red' ? '#c82333' : $tone === 'gray' ? '#e9ecef' : '#218838')};
+    color: ${({ $tone }) => ($tone === 'gray' ? '#212529' : '#ffffff')};
+    transform: scale(1.05);
   }
 `;
 
@@ -295,4 +313,225 @@ export const FileInput = styled.input`
       background: #e9ecef;
     }
   }
+`;
+
+// --- Вид «доска»: панель категорий + карточки документов ---
+
+export const ToolbarRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+`;
+
+export const BoardView = styled.div`
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+
+  @media (max-width: 900px) {
+    flex-direction: column;
+    gap: 16px;
+  }
+`;
+
+export const CategoryPanel = styled.aside`
+  width: 270px;
+  flex-shrink: 0;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: sticky;
+  top: 16px;
+
+  @media (max-width: 900px) {
+    width: 100%;
+    position: static;
+  }
+`;
+
+export const CategoryPanelHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 6px 10px;
+  border-bottom: 2px solid #e7f3e9;
+  margin-bottom: 6px;
+  font-weight: 700;
+  font-size: 16px;
+  color: #198754;
+`;
+
+export const CategoryItem = styled.button<{ $active?: boolean }>`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid ${({ $active }) => ($active ? 'transparent' : 'rgba(40, 167, 69, 0.1)')};
+  border-radius: 10px;
+  background: ${({ $active }) => ($active ? '#28a745' : '#ffffff')};
+  color: ${({ $active }) => ($active ? '#ffffff' : '#495057')};
+  font-size: 15px;
+  font-weight: ${({ $active }) => ($active ? 600 : 500)};
+  text-align: left;
+  cursor: pointer;
+  box-shadow: ${({ $active }) => ($active ? '0 4px 12px rgba(40, 167, 69, 0.3)' : '0 1px 2px rgba(0, 0, 0, 0.04)')};
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    background: ${({ $active }) => ($active ? '#218838' : '#e7f3e9')};
+    color: ${({ $active }) => ($active ? '#ffffff' : '#0c3e14')};
+    border-color: ${({ $active }) => ($active ? 'transparent' : '#28a745')};
+  }
+
+  svg {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+  }
+`;
+
+export const CategoryName = styled.span`
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+export const CategoryCount = styled.span<{ $active?: boolean }>`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 12px;
+  background: ${({ $active }) => ($active ? 'rgba(255, 255, 255, 0.2)' : '#e7f3e9')};
+  color: ${({ $active }) => ($active ? '#ffffff' : '#28a745')};
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+`;
+
+export const CategoryEdit = styled.span<{ $active?: boolean }>`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  flex-shrink: 0;
+  background: ${({ $active }) => ($active ? 'rgba(255, 255, 255, 0.2)' : '#f1f3f5')};
+  color: ${({ $active }) => ($active ? '#ffffff' : '#6c757d')};
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background: #ffffff;
+    color: #198754;
+  }
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+`;
+
+export const BoardMain = styled.div`
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+`;
+
+export const DocCard = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: #ffffff;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    border-color: #28a745;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.12);
+  }
+
+  @media (max-width: 560px) {
+    flex-wrap: wrap;
+  }
+`;
+
+export const DocCardIcon = styled.div`
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #e7f3e9;
+  color: #28a745;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  svg {
+    width: 22px;
+    height: 22px;
+  }
+`;
+
+export const DocCardInfo = styled.div`
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+`;
+
+export const DocCardName = styled.div`
+  font-weight: 600;
+  font-size: 15px;
+  color: #212529;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+export const DocCardMeta = styled.div`
+  font-size: 13px;
+  color: #6c757d;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+export const DocCardActions = styled.div`
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+
+  @media (max-width: 560px) {
+    width: 100%;
+    justify-content: flex-end;
+  }
+`;
+
+export const EmptyPanel = styled.p`
+  margin: 8px 0;
+  padding: 24px 16px;
+  text-align: center;
+  color: #6c757d;
+  font-size: 14px;
+  background: #ffffff;
+  border: 1px dashed #dee2e6;
+  border-radius: 12px;
 `;
