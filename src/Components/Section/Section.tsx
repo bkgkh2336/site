@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import Text from "../Text/Text";
 import Section_tooltip from "../Section_tooltip/Section_tooltip";
+import { TooltipItem } from "../Section_tooltip/styled";
 import Button from "../Button/Button";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
@@ -73,6 +74,22 @@ const Section = (props: SectionProps) => {
 
     const isExternalUrl = (url: string) => {
         return url.startsWith('http://') || url.startsWith('https://');
+    };
+
+    const normalizePath = (url: string) => {
+        const trimmed = url.trim();
+        const base = trimmed === '' || trimmed === ' '
+            ? '/'
+            : (trimmed.startsWith('/') ? trimmed : `/${trimmed}`);
+        return base.length > 1 ? base.replace(/\/+$/, '') : base;
+    };
+
+    // Активен ли конкретный подпункт: точное совпадение или вложенная страница
+    const isItemActive = (itemUrl: string) => {
+        if (!props.currentPath || isExternalUrl(itemUrl)) return false;
+        const current = normalizePath(props.currentPath);
+        const item = normalizePath(itemUrl);
+        return current === item || (item !== '/' && current.startsWith(`${item}/`));
     };
 
     const handleNavigation = (url: string) => {
@@ -210,23 +227,15 @@ const Section = (props: SectionProps) => {
                 </Text>
             </Button>
             {props.list && props.list.length > 0 &&
-                <Section_tooltip style={{ display: isVisibleCard ? 'flex' : 'none' }}>
+                <Section_tooltip $visible={isVisibleCard}>
                     {props.list.map((item) => (
-                        <Button
+                        <TooltipItem
                             key={item.caption}
-                            style={{ width: "100%" }}
+                            $active={isItemActive(item.url)}
                             onClick={() => handleNavigation(item.url)}
                         >
-                            <Text
-                                style={{
-                                    textAlign: 'left',
-                                    width: '100%',
-                                    display: 'block'
-                                }}
-                            >
-                                {item.caption}
-                            </Text>
-                        </Button>
+                            {item.caption}
+                        </TooltipItem>
                     ))}
                 </Section_tooltip>
             }
