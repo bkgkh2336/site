@@ -25,6 +25,7 @@ const Section = (props: SectionProps) => {
     const [isVisibleCard, setIsVisibleCard] = useState(false);
     const [isMobileExpanded, setIsMobileExpanded] = useState(false);
     const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const rootRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
 
     // Проверяем активность раздела
@@ -138,6 +139,41 @@ const Section = (props: SectionProps) => {
         }, 300);
     };
 
+    const cancelHideTimer = () => {
+        if (hideTimerRef.current) {
+            clearTimeout(hideTimerRef.current);
+            hideTimerRef.current = null;
+        }
+    };
+
+    // Закрытие дропдауна кликом мимо и по Escape (пока он открыт)
+    useEffect(() => {
+        if (!isVisibleCard) {
+            return;
+        }
+
+        const handleDocumentClick = (e: MouseEvent) => {
+            if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
+                cancelHideTimer();
+                setIsVisibleCard(false);
+            }
+        };
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                cancelHideTimer();
+                setIsVisibleCard(false);
+            }
+        };
+
+        document.addEventListener('click', handleDocumentClick);
+        document.addEventListener('keydown', handleKeyDown);
+        return () => {
+            document.removeEventListener('click', handleDocumentClick);
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isVisibleCard]);
+
     useEffect(() => {
         return () => {
             if (hideTimerRef.current) {
@@ -145,6 +181,16 @@ const Section = (props: SectionProps) => {
             }
         };
     }, []);
+
+    // Клик по разделу: подменю — toggle, обычный пункт — навигация
+    const handleRootClick = () => {
+        if (props.list && props.list.length > 0) {
+            cancelHideTimer();
+            setIsVisibleCard(visible => !visible);
+        } else if (props.url) {
+            handleNavigation(props.url);
+        }
+    };
 
     // Для мобильного меню используем click вместо hover
     if (props.isMobileMenu) {
@@ -211,7 +257,8 @@ const Section = (props: SectionProps) => {
     // Для desktop меню оставляем hover
     return (
         <div
-            onClick={() => props.url && handleNavigation(props.url)}
+            ref={rootRef}
+            onClick={handleRootClick}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >
@@ -225,6 +272,17 @@ const Section = (props: SectionProps) => {
                 <Text style={{ color: active ? '#28a745' : 'inherit', fontWeight: active ? '700' : 'normal' }}>
                     {props.caption}
                 </Text>
+                {props.list && props.list.length > 0 &&
+                    <ChevronDown
+                        size={14}
+                        style={{
+                            marginLeft: 2,
+                            verticalAlign: 'middle',
+                            color: active ? '#28a745' : '#6c757d',
+                            transform: isVisibleCard ? 'rotate(180deg)' : 'rotate(0deg)',
+                            transition: 'transform 0.2s ease'
+                        }}
+                    />}
             </Button>
             {props.list && props.list.length > 0 &&
                 <Section_tooltip $visible={isVisibleCard}>
@@ -232,7 +290,11 @@ const Section = (props: SectionProps) => {
                         <TooltipItem
                             key={item.caption}
                             $active={isItemActive(item.url)}
-                            onClick={() => handleNavigation(item.url)}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleNavigation(item.url);
+                                setIsVisibleCard(false);
+                            }}
                         >
                             {item.caption}
                         </TooltipItem>
