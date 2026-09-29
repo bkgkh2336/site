@@ -18,28 +18,35 @@ import {
     ExternalLink as ExternalLinkStyled
 } from "./styled";
 import H1 from "../../../../Components/H1/H1";
+import Loading from "../../../../Components/Loading/Loading";
+import NotFound from "../../../NotFound/NotFound";
+import { useArticle } from "../../../../data/useArticle";
+import { formatArticleDate } from "../../../../data/articles";
 
 const UnifiedSafetyDay = () => {
-    const publishedDate = "21.09.2026";
+    const { article, isLoading } = useArticle('news', 'unified_safety_day');
+
+    if (isLoading) return <Loading />;
+    if (!article) return <NotFound />;
 
     return (
         <ArticleContainer>
-            <H1 style={{ marginBottom: '20px' }}>24 сентября состоится Единый день безопасности</H1>
+            <H1 style={{ marginBottom: '20px' }}>{article.title}</H1>
 
             <PublicationDate>
                 <Calendar size={16} />
-                <span>Опубликовано: {publishedDate}</span>
+                <span>Опубликовано: {formatArticleDate(article.published_at)}</span>
             </PublicationDate>
 
             <ArticleContent>
                 <ArticleImage
-                    src="/news/edinyy_den_bezopasnosti_banner.jpg"
+                    src={article.cover || ''}
                     alt="Единый день безопасности"
                     loading="lazy"
                 />
 
                 <HighlightedText>
-                    24 сентября 2026 года в Буда-Кошелёве состоится Единый день безопасности!
+                    {article.summary}
                 </HighlightedText>
 
                 <InfoBlock>

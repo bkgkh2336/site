@@ -16,9 +16,13 @@ import {
 } from "./styled";
 import H1 from "../../../../Components/H1/H1";
 import ImageLightbox from "../../../../Components/ImageLightbox/ImageLightbox";
+import Loading from "../../../../Components/Loading/Loading";
+import NotFound from "../../../NotFound/NotFound";
+import { useArticle } from "../../../../data/useArticle";
+import { formatArticleDate } from "../../../../data/articles";
 
 const CleanupDay = () => {
-    const publishedDate = "10.09.2026";
+    const { article, isLoading } = useArticle('news', 'cleanup_day');
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
@@ -62,24 +66,27 @@ const CleanupDay = () => {
         setCurrentImageIndex(index);
     };
 
+    if (isLoading) return <Loading />;
+    if (!article) return <NotFound />;
+
     return (
         <ArticleContainer>
-            <H1 style={{ marginBottom: '20px' }}>Прошел субботник по благоустройству территории</H1>
+            <H1 style={{ marginBottom: '20px' }}>{article.title}</H1>
 
             <PublicationDate>
                 <Calendar size={16} />
-                <span>Опубликовано: {publishedDate}</span>
+                <span>Опубликовано: {formatArticleDate(article.published_at)}</span>
             </PublicationDate>
 
             <ArticleContent>
                 <ArticleImage
-                    src="/news/CleanupDay_05_09_26/img1.jpg"
-                    alt="Прошел субботник по благоустройству территории"
+                    src={article.cover || galleryImages[0].src}
+                    alt={article.title}
                     loading="lazy"
                 />
 
                 <HighlightedText>
-                    5 сентября 2026 года в КЖУП «Буда-Кошелёвский коммунальник» прошёл субботник.
+                    {article.summary}
                 </HighlightedText>
 
                 <ArticleText>

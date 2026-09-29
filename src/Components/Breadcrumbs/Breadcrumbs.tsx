@@ -59,6 +59,7 @@ const pageHierarchy: PageMap = {
     '/news/useful_to_know/waste_removal_guide': { name: 'Вывоз коммунальных отходов', parent: [{ name: 'Пресс-центр' }, { name: 'Полезно знать', url: '/news/useful_to_know' }] },
     '/news/useful_to_know/yard_recycling_guide': { name: 'Раздельный сбор отходов', parent: [{ name: 'Пресс-центр' }, { name: 'Полезно знать', url: '/news/useful_to_know' }] },
     '/news/useful_to_know/landscaping_guide': { name: 'Благоустройство', parent: [{ name: 'Пресс-центр' }, { name: 'Полезно знать', url: '/news/useful_to_know' }] },
+    '/news/useful_to_know/gsz_portal': { name: 'Портал государственной службы занятости', parent: [{ name: 'Пресс-центр' }, { name: 'Полезно знать', url: '/news/useful_to_know' }] },
     '/news/useful_to_know/phone_scammers_guide': { name: 'Как не попасться на удочку телефонных мошенников?', parent: [{ name: 'Пресс-центр' }, { name: 'Полезно знать', url: '/news/useful_to_know' }] },
     '/news/useful_to_know/phishing': { name: 'Фишинг', parent: [{ name: 'Пресс-центр' }, { name: 'Полезно знать', url: '/news/useful_to_know' }] },
     '/news/useful_to_know/vishing': { name: 'Вишинг', parent: [{ name: 'Пресс-центр' }, { name: 'Полезно знать', url: '/news/useful_to_know' }] },

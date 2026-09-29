@@ -35,23 +35,30 @@ import {
     PublicationDate
 } from "./styled";
 import H1 from "../../../../Components/H1/H1";
+import Loading from "../../../../Components/Loading/Loading";
+import NotFound from "../../../NotFound/NotFound";
+import { useArticle } from "../../../../data/useArticle";
+import { formatArticleDate } from "../../../../data/articles";
 
 const BoilerMaintenance = () => {
-    const publishedDate = "28.01.2026 19:00";
-    
+    const { article, isLoading } = useArticle('articles', 'boiler_maintenance');
+
+    if (isLoading) return <Loading />;
+    if (!article) return <NotFound />;
+
     return (
         <ArticleContainer>
-            <H1 style={{ marginBottom: '20px' }}>Профилактика и уход за котельными установками во время морозов</H1>
+            <H1 style={{ marginBottom: '20px' }}>{article.title}</H1>
             
             <PublicationDate>
                 <Calendar size={16} />
-                <span>Опубликовано: {publishedDate}</span>
+                <span>Опубликовано: {formatArticleDate(article.published_at, true)}</span>
             </PublicationDate>
             
             <ArticleContent>
                 <ArticleImage 
-                    src="/articles/prevention_and_maintenance_of_boiler_installations_during_frosts.jpg"
-                    alt="Профилактика и уход за котельными установками во время морозов"
+                    src={article.cover || ''}
+                    alt={article.title}
                     loading="lazy"
                 />
                 

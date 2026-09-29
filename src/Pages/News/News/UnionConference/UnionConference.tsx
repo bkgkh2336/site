@@ -29,9 +29,13 @@ import {
 } from "./styled";
 import H1 from "../../../../Components/H1/H1";
 import ImageLightbox from "../../../../Components/ImageLightbox/ImageLightbox";
+import Loading from "../../../../Components/Loading/Loading";
+import NotFound from "../../../NotFound/NotFound";
+import { useArticle } from "../../../../data/useArticle";
+import { formatArticleDate } from "../../../../data/articles";
 
 const UnionConference = () => {
-    const publishedDate = "13.02.2026";
+    const { article, isLoading } = useArticle('news', 'union_conference');
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
@@ -90,24 +94,27 @@ const UnionConference = () => {
         setCurrentImageIndex(index);
     };
 
+    if (isLoading) return <Loading />;
+    if (!article) return <NotFound />;
+
     return (
         <ArticleContainer>
-            <H1 style={{ marginBottom: '20px' }}>Прошла отчетная профсоюзная конференция</H1>
+            <H1 style={{ marginBottom: '20px' }}>{article.title}</H1>
 
             <PublicationDate>
                 <Calendar size={16} />
-                <span>Опубликовано: {publishedDate}</span>
+                <span>Опубликовано: {formatArticleDate(article.published_at)}</span>
             </PublicationDate>
 
             <ArticleContent>
                 <ArticleImage
-                    src="/news/UnionConference_12_02_26/img1.jpg"
-                    alt="Прошла отчетная профсоюзная конференция"
+                    src={article.cover || galleryImages[0].src}
+                    alt={article.title}
                     loading="lazy"
                 />
 
                 <HighlightedText>
-                    Вчера, 12 февраля 2026 года, прошла отчетная профсоюзная конференция КЖУП "Буда-Кошелёвский коммунальник".
+                    {article.summary}
                 </HighlightedText>
 
                 <SectionTitle>

@@ -191,10 +191,10 @@ export const ModalOverlay = styled.div`
   padding: 20px;
 `;
 
-export const ModalContent = styled.div`
+export const ModalContent = styled.div<{ $wide?: boolean }>`
   background: white;
   border-radius: 16px;
-  max-width: 600px;
+  max-width: ${({ $wide }) => ($wide ? '960px' : '600px')};
   width: 100%;
   max-height: 90vh;
   overflow: hidden;

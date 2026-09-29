@@ -16,9 +16,13 @@ import {
 } from "./styled";
 import H1 from "../../../../Components/H1/H1";
 import ImageLightbox from "../../../../Components/ImageLightbox/ImageLightbox";
+import Loading from "../../../../Components/Loading/Loading";
+import NotFound from "../../../NotFound/NotFound";
+import { useArticle } from "../../../../data/useArticle";
+import { formatArticleDate } from "../../../../data/articles";
 
 const SafetyDayPassed = () => {
-    const publishedDate = "24.09.2026";
+    const { article, isLoading } = useArticle('news', 'safety_day_passed');
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
@@ -54,24 +58,27 @@ const SafetyDayPassed = () => {
         setCurrentImageIndex(index);
     };
 
+    if (isLoading) return <Loading />;
+    if (!article) return <NotFound />;
+
     return (
         <ArticleContainer>
-            <H1 style={{ marginBottom: '20px' }}>Прошёл Единый день безопасности</H1>
+            <H1 style={{ marginBottom: '20px' }}>{article.title}</H1>
 
             <PublicationDate>
                 <Calendar size={16} />
-                <span>Опубликовано: {publishedDate}</span>
+                <span>Опубликовано: {formatArticleDate(article.published_at)}</span>
             </PublicationDate>
 
             <ArticleContent>
                 <ArticleImage
-                    src="/news/edinyy_den_bezopasnosti_banner.jpg"
+                    src={article.cover || ''}
                     alt="Единый день безопасности"
                     loading="lazy"
                 />
 
                 <HighlightedText>
-                    24 сентября 2026 года прошёл Единый день безопасности!
+                    {article.summary}
                 </HighlightedText>
 
                 <ArticleText>

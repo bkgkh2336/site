@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
     Home,
@@ -20,7 +20,8 @@ import {
     Calendar,
     CreditCard
 } from 'lucide-react';
-import { usefulToKnowArticles } from '../../data/usefulToKnowArticles';
+import { GetData } from '../../functions';
+import { ArticleData, articlePath } from '../../data/articles';
 import { Reveal } from '../../Components/Reveal/Reveal';
 import { CountUp } from '../../Components/CountUp/CountUp';
 import {
@@ -97,6 +98,34 @@ import {
 
 const Main = () => {
     const navigate = useNavigate();
+    const [usefulCards, setUsefulCards] = useState<Array<{
+        title: string;
+        image: string;
+        url?: string;
+        externalUrl?: string;
+    }>>([]);
+
+    useEffect(() => {
+        (async () => {
+            const all: ArticleData[] = await GetData('articles');
+            const list = all
+                .filter(a => a.section === 'useful_to_know')
+                .map(a =>
+                    a.is_external === 1
+                        ? {
+                              title: a.title,
+                              image: a.cover || '/main.png',
+                              externalUrl: a.external_url || '#'
+                          }
+                        : {
+                              title: a.title,
+                              image: a.cover || '/main.png',
+                              url: articlePath('useful_to_know', a.slug)
+                          }
+                );
+            setUsefulCards(list.slice(-4));
+        })();
+    }, []);
 
     interface StatItem {
         icon: ReactNode;
@@ -400,14 +429,14 @@ const Main = () => {
                         </UsefulHeader>
                     </Reveal>
                     <UsefulGrid>
-                        {usefulToKnowArticles.slice(usefulToKnowArticles.length - 4, usefulToKnowArticles.length).map((article, index) => (
+                        {usefulCards.map((article, index) => (
                             <Reveal key={index} fill delay={index * 80}>
                                 <UsefulCard
                                     onClick={() => {
                                         if (article.externalUrl) {
                                             window.open(article.externalUrl, '_blank', 'noopener,noreferrer');
                                         } else if (article.url) {
-                                            navigate(`/news/useful_to_know/${article.url}`);
+                                            navigate(article.url);
                                         }
                                     }}
                                 >

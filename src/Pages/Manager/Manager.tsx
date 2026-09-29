@@ -8,6 +8,7 @@ import {
 import { Card, ActionButton } from './ui';
 import ContactsManager from './ContactsManager';
 import DocumentsManager from './DocumentsManager';
+import NewsManager from './NewsManager';
 
 type SectionType = 'contacts' | 'services' | 'documents' | 'news';
 
@@ -101,7 +102,7 @@ const Manager: React.FC = () => {
       case 'documents':
         return <DocumentsManager />;
       case 'news':
-        return <Card><p>Редактирование новостей</p></Card>;
+        return <NewsManager />;
       default:
         return <Card><p>Выберите раздел для редактирования</p></Card>;
     }
