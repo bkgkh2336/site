@@ -21,6 +21,13 @@
     "prepare-deploy": "npm run build && shx mkdir -p dist/backend && shx cp backend/.env dist/backend/ && shx cp backend/.htaccess dist/backend/ && shx cp backend/api.php dist/backend/ && shx cp backend/contacts.db dist/backend/ && shx cp .htaccess dist/"
   },
   "dependencies": {
+    "@tiptap/extension-image": "^3.31.3",
+    "@tiptap/extension-placeholder": "^3.31.3",
+    "@tiptap/extension-table": "^3.31.3",
+    "@tiptap/extension-text-style": "^3.31.3",
+    "@tiptap/pm": "^3.31.3",
+    "@tiptap/react": "^3.31.3",
+    "@tiptap/starter-kit": "^3.31.3",
     "lucide-react": "^0.561.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",

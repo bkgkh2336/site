@@ -7,6 +7,7 @@ Allow: /
 Disallow: /backend/
 Disallow: /dist/
 Disallow: /node_modules/
+Disallow: /manager
 
 # Разрешаем важные страницы
 Allow: /services
@@ -22,9 +23,17 @@ Sitemap: https://bkgkh.by/sitemap.xml
 # Основные поисковые системы
 User-agent: Yandex
 Allow: /
+Disallow: /backend/
+Disallow: /dist/
+Disallow: /node_modules/
+Disallow: /manager
 
 User-agent: Googlebot
 Allow: /
+Disallow: /backend/
+Disallow: /dist/
+Disallow: /node_modules/
+Disallow: /manager
 
 # Скорость сканирования для Yandex
 User-agent: Yandex

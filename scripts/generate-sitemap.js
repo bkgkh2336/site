@@ -45,14 +45,18 @@ const pages = [
   // Новости
   { url: '/news', priority: '0.8', changefreq: 'weekly' },
   { url: '/news/union_conference', priority: '0.6', changefreq: 'monthly' },
+  { url: '/news/cleanup_day', priority: '0.6', changefreq: 'monthly' },
+  { url: '/news/unified_safety_day', priority: '0.6', changefreq: 'monthly' },
+  { url: '/news/safety_day_passed', priority: '0.6', changefreq: 'monthly' },
   { url: '/news/articles', priority: '0.7', changefreq: 'weekly' },
   { url: '/news/articles/boiler_maintenance', priority: '0.6', changefreq: 'monthly' },
   { url: '/news/articles/attractions_safety', priority: '0.6', changefreq: 'monthly' },
+  { url: '/news/articles/autonomous_fire_detectors', priority: '0.6', changefreq: 'monthly' },
   { url: '/news/useful_to_know', priority: '0.7', changefreq: 'weekly' },
   { url: '/news/useful_to_know/gsz_portal', priority: '0.6', changefreq: 'monthly' },
-
-  // Панель управления
-  { url: '/manager', priority: '0.3', changefreq: 'monthly' },
+  { url: '/news/useful_to_know/phone_scammers_guide', priority: '0.6', changefreq: 'monthly' },
+  { url: '/news/useful_to_know/phishing', priority: '0.6', changefreq: 'monthly' },
+  { url: '/news/useful_to_know/vishing', priority: '0.6', changefreq: 'monthly' },
   { url: '/news/useful_to_know/phone_scammers', priority: '0.6', changefreq: 'monthly' },
   { url: '/news/useful_to_know/safe_internet_cards', priority: '0.6', changefreq: 'monthly' },
   { url: '/news/useful_to_know/pomogut_by', priority: '0.6', changefreq: 'monthly' },

@@ -46,27 +46,8 @@ const Surveys = lazy(() => import('./Pages/ForCitizens/Surveys/Surveys'))
 const Cybersecurity = lazy(() => import('./Pages/ForCitizens/Cybersecurity/Cybersecurity'))
 const News = lazy(() => import('./Pages/News/News'))
 const Articles = lazy(() => import('./Pages/News/Articles/Articles'))
-const BoilerMaintenance = lazy(() => import('./Pages/News/Articles/BoilerMaintenance/BoilerMaintenance'))
-const AttractionsSafety = lazy(() => import('./Pages/News/Articles/AttractionsSafety/AttractionsSafety'))
-const AutonomousFireDetectors = lazy(() => import('./Pages/News/Articles/AutonomousFireDetectors/AutonomousFireDetectors'))
-const UnionConference = lazy(() => import('./Pages/News/News/UnionConference/UnionConference'))
-const CleanupDay = lazy(() => import('./Pages/News/News/CleanupDay/CleanupDay'))
-const UnifiedSafetyDay = lazy(() => import('./Pages/News/News/UnifiedSafetyDay/UnifiedSafetyDay'))
-const SafetyDayPassed = lazy(() => import('./Pages/News/News/SafetyDayPassed/SafetyDayPassed'))
 const UsefulToKnow = lazy(() => import('./Pages/News/UsefulToKnow/UsefulToKnow'))
-const PhoneScammers = lazy(() => import('./Pages/News/UsefulToKnow/PhoneScammers/PhoneScammers'))
-const SafeInternetCards = lazy(() => import('./Pages/News/UsefulToKnow/SafeInternetCards/SafeInternetCards'))
-const PomogutBy = lazy(() => import('./Pages/News/UsefulToKnow/PomogutBy/PomogutBy'))
-const BoilerSafety = lazy(() => import('./Pages/News/UsefulToKnow/BoilerSafety/BoilerSafety'))
-const CompostingGuide = lazy(() => import('./Pages/News/UsefulToKnow/CompostingGuide/CompostingGuide'))
-const WasteContainersGuide = lazy(() => import('./Pages/News/UsefulToKnow/WasteContainersGuide/WasteContainersGuide'))
-const WasteRemovalGuide = lazy(() => import('./Pages/News/UsefulToKnow/WasteRemovalGuide/WasteRemovalGuide'))
-const YardRecyclingGuide = lazy(() => import('./Pages/News/UsefulToKnow/YardRecyclingGuide/YardRecyclingGuide'))
-const LandscapingGuide = lazy(() => import('./Pages/News/UsefulToKnow/LandscapingGuide/LandscapingGuide'))
-const GSZPortal = lazy(() => import('./Pages/News/UsefulToKnow/GSZPortal/GSZPortal'))
-const Phishing = lazy(() => import('./Pages/News/UsefulToKnow/Phishing/Phishing'))
-const Vishing = lazy(() => import('./Pages/News/UsefulToKnow/Vishing/Vishing'))
-const PhoneScammersGuide = lazy(() => import('./Pages/News/UsefulToKnow/PhoneScammersGuide/PhoneScammersGuide'))
+const ArticlePage = lazy(() => import('./Pages/News/ArticlePage/ArticlePage'))
 const Requisites = lazy(() => import('./Pages/Requisites/Requisites'))
 const WorkSchedule = lazy(() => import('./Pages/WorkSchedule/WorkSchedule'))
 const NotFound = lazy(() => import('./Pages/NotFound/NotFound'))
@@ -228,28 +209,11 @@ function App() {
                 <Route path='/surveys' element={<Surveys />} />
                 <Route path='/cybersecurity' element={<Cybersecurity />} />
                 <Route path='/news' element={<News />} />
-                <Route path='/news/union_conference' element={<UnionConference />} />
-                <Route path='/news/cleanup_day' element={<CleanupDay />} />
-                <Route path='/news/unified_safety_day' element={<UnifiedSafetyDay />} />
-                <Route path='/news/safety_day_passed' element={<SafetyDayPassed />} />
                 <Route path='/news/articles' element={<Articles />} />
-                <Route path='/news/articles/boiler_maintenance' element={<BoilerMaintenance />} />
-                <Route path='/news/articles/attractions_safety' element={<AttractionsSafety />} />
-                <Route path='/news/articles/autonomous_fire_detectors' element={<AutonomousFireDetectors />} />
                 <Route path='/news/useful_to_know' element={<UsefulToKnow />} />
-                <Route path='/news/useful_to_know/phone_scammers' element={<PhoneScammers />} />
-                <Route path='/news/useful_to_know/safe_internet_cards' element={<SafeInternetCards />} />
-                <Route path='/news/useful_to_know/pomogut_by' element={<PomogutBy />} />
-                <Route path='/news/useful_to_know/boiler_safety' element={<BoilerSafety />} />
-                <Route path='/news/useful_to_know/composting_guide' element={<CompostingGuide />} />
-                <Route path='/news/useful_to_know/waste_containers_guide' element={<WasteContainersGuide />} />
-                <Route path='/news/useful_to_know/waste_removal_guide' element={<WasteRemovalGuide />} />
-                <Route path='/news/useful_to_know/yard_recycling_guide' element={<YardRecyclingGuide />} />
-                <Route path='/news/useful_to_know/landscaping_guide' element={<LandscapingGuide />} />
-                <Route path='/news/useful_to_know/gsz_portal' element={<GSZPortal />} />
-                <Route path='/news/useful_to_know/phone_scammers_guide' element={<PhoneScammersGuide />} />
-                <Route path='/news/useful_to_know/phishing' element={<Phishing />} />
-                <Route path='/news/useful_to_know/vishing' element={<Vishing />} />
+                <Route path='/news/articles/:slug' element={<ArticlePage section="articles" />} />
+                <Route path='/news/useful_to_know/:slug' element={<ArticlePage section="useful_to_know" />} />
+                <Route path='/news/:slug' element={<ArticlePage section="news" />} />
                 <Route path='/manager' element={<Manager />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>

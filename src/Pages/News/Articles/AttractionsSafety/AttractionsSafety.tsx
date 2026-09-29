@@ -25,22 +25,29 @@ import {
     PublicationDate
 } from "./styled";
 import H1 from "../../../../Components/H1/H1";
+import Loading from "../../../../Components/Loading/Loading";
+import NotFound from "../../../NotFound/NotFound";
+import { useArticle } from "../../../../data/useArticle";
+import { formatArticleDate } from "../../../../data/articles";
 
 const AttractionsSafety = () => {
-    const publishedDate = "13.05.2026 14:00";
+    const { article, isLoading } = useArticle('articles', 'attractions_safety');
+
+    if (isLoading) return <Loading />;
+    if (!article) return <NotFound />;
 
     return (
         <ArticleContainer>
-            <H1 style={{ marginBottom: '20px' }}>Аттракцион должен быть безопасным!</H1>
+            <H1 style={{ marginBottom: '20px' }}>{article.title}</H1>
 
             <PublicationDate>
                 <Calendar size={16} />
-                <span>Опубликовано: {publishedDate}</span>
+                <span>Опубликовано: {formatArticleDate(article.published_at, true)}</span>
             </PublicationDate>
 
             <ArticleContent>
                 <ArticleImage
-                    src="/articles/attractions.jpg"
+                    src={article.cover || ''}
                     alt="Безопасность аттракционов"
                     loading="lazy"
                 />
