@@ -92,32 +92,63 @@ function authError() {
 }
 
 /**
+ * Файл изображения ещё используется в contacts или departments.
+ * Кандидаты покрывают все исторические форматы хранения: 'reception.png',
+ * '/uploads/...', '/departments/...', '/contacts/...'.
+ */
+function imageStillUsed($filename, $pdo, $excludeContactId = null) {
+    $candidates = [
+        $filename,
+        "/uploads/$filename",
+        "/departments/$filename",
+        "/contacts/$filename"
+    ];
+    $ph = implode(",", array_fill(0, count($candidates), "?"));
+
+    $sql = "SELECT COUNT(*) FROM contacts WHERE src IN ($ph)";
+    $params = $candidates;
+    if ($excludeContactId !== null) {
+        $sql .= " AND id != ?";
+        $params[] = $excludeContactId;
+    }
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    $count = (int)$stmt->fetchColumn();
+
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM departments WHERE src IN ($ph)");
+    $stmt->execute($candidates);
+    $count += (int)$stmt->fetchColumn();
+
+    return $count > 0;
+}
+
+/**
+ * Найти файл изображения в одной из директорий public/{uploads,departments,contacts}
+ */
+function findImageFile($filename) {
+    foreach (['uploads', 'departments', 'contacts'] as $dir) {
+        $path = __DIR__ . "/../public/$dir/$filename";
+        if (file_exists($path)) {
+            return $path;
+        }
+    }
+    return null;
+}
+
+/**
  * Удаление файла изображения, если он больше не привязан ни к чему
  */
 function deleteImageIfUnused($imagePath, $pdo, $currentContactId = null) {
     if (empty($imagePath)) return false;
-    
+
     $filename = basename($imagePath);
-    $filePath = __DIR__ . '/../public/uploads/' . $filename;
-    
-    if (!file_exists($filePath)) return false;
-    
-    // Проверка в contacts
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM contacts WHERE src = ? AND id != ?");
-    $stmt->execute([$imagePath, $currentContactId ?? 0]);
-    $count = $stmt->fetchColumn();
-    
-    // Проверка в departments
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM departments WHERE src = ?");
-    $stmt->execute([$imagePath]);
-    $count += $stmt->fetchColumn();
-    
-    if ($count == 0) {
-        unlink($filePath);
-        return true;
-    }
-    
-    return false;
+    $filePath = findImageFile($filename);
+    if ($filePath === null) return false;
+
+    if (imageStillUsed($filename, $pdo, $currentContactId)) return false;
+
+    unlink($filePath);
+    return true;
 }
 
 // 2. Путь к базе данных SQLite
@@ -220,33 +251,20 @@ try {
         $user = checkAuth();
         if (!$user) authError();
         
-        $uploadDir = __DIR__ . '/../public/uploads/';
-        if (!is_dir($uploadDir)) {
-            echo json_encode(["success" => true, "message" => "No uploads directory"]);
-            exit;
-        }
-        
-        $files = scandir($uploadDir);
         $deletedCount = 0;
         
-        foreach ($files as $file) {
-            if ($file === '.' || $file === '..') continue;
+        foreach (['uploads', 'departments', 'contacts'] as $dir) {
+            $dirPath = __DIR__ . "/../public/$dir/";
+            if (!is_dir($dirPath)) continue;
             
-            $filePath = $uploadDir . $file;
-            if (!is_file($filePath)) continue;
-            
-            $imagePath = '/uploads/' . $file;
-            
-            $stmt = $pdo->prepare("SELECT COUNT(*) FROM contacts WHERE src = ?");
-            $stmt->execute([$imagePath]);
-            $count = $stmt->fetchColumn();
-            
-            $stmt = $pdo->prepare("SELECT COUNT(*) FROM departments WHERE src = ?");
-            $stmt->execute([$imagePath]);
-            $count += $stmt->fetchColumn();
-            
-            if ($count == 0) {
-                unlink($filePath);
+            $files = scandir($dirPath);
+            foreach ($files as $file) {
+                if ($file === '.' || $file === '..') continue;
+                if (!is_file($dirPath . $file)) continue;
+                
+                if (imageStillUsed($file, $pdo)) continue;
+                
+                unlink($dirPath . $file);
                 $deletedCount++;
             }
         }
@@ -266,6 +284,13 @@ try {
             exit;
         }
         
+        $type = $_POST['type'] ?? '';
+        if (!in_array($type, ['contacts', 'departments'], true)) {
+            http_response_code(400);
+            echo json_encode(["success" => false, "message" => "Invalid image type"]);
+            exit;
+        }
+        
         $file = $_FILES['image'];
         $fileName = basename($file['name']);
         $fileExt = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
@@ -278,9 +303,9 @@ try {
         }
         
         $newFileName = uniqid() . '_' . time() . '.' . $fileExt;
-        $uploadPath = __DIR__ . '/../public/uploads/' . $newFileName;
+        $uploadDir = __DIR__ . "/../public/$type/";
+        $uploadPath = $uploadDir . $newFileName;
         
-        $uploadDir = dirname($uploadPath);
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0755, true);
         }
@@ -288,7 +313,7 @@ try {
         if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
             echo json_encode([
                 "success" => true, 
-                "path" => "/uploads/" . $newFileName,
+                "path" => "/" . $type . "/" . $newFileName,
                 "filename" => $newFileName
             ]);
         } else {

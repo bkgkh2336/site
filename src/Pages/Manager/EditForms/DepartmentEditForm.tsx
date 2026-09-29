@@ -1,6 +1,7 @@
 import React from 'react';
 import { Input } from '../styled';
 import Button from '../../../Components/Button/Button';
+import { ResolveDepartmentImage } from '../../../functions';
 
 interface DepartmentData {
   id: number;
@@ -47,7 +48,7 @@ const DepartmentEditForm: React.FC<DepartmentEditFormProps> = ({
         {department.src && (
           <div style={{ marginBottom: 10 }}>
             <img 
-              src={department.src} 
+              src={ResolveDepartmentImage(department.src)} 
               alt="Фото отдела" 
               style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 8, marginBottom: 5 }}
             />

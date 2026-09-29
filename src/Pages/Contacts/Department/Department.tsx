@@ -2,6 +2,7 @@ import { Contact_ } from "../Contact/styled";
 import Text from "../../../Components/Text/Text"
 import Block from "../../../Components/Block/Block";
 import { Mail, Phone, Printer } from "lucide-react";
+import { ResolveDepartmentImage } from "../../../functions";
 
 interface ContactProps {
     src?: string;
@@ -24,7 +25,7 @@ const Department = (props: ContactProps) => {
                         objectFit: 'cover', 
                         objectPosition: 'center top' 
                     }}
-                    src={`departments/${props.src}`}
+                    src={ResolveDepartmentImage(props.src)}
                     alt={props.name}
                 />
             }
