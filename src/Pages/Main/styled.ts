@@ -72,7 +72,7 @@ export const QuickLinkCard = styled.div`
     align-items: center;
     gap: 15px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
     
     &:hover {
         background: linear-gradient(135deg, rgba(40, 167, 69, 0.1) 0%, rgba(32, 201, 151, 0.1) 100%);
@@ -143,7 +143,7 @@ export const ContactInfoCard = styled.div`
     padding: 20px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     border-left: 4px solid #28a745;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     
     &:hover {
         box-shadow: 0 4px 16px rgba(40, 167, 69, 0.15);
@@ -255,7 +255,6 @@ export const YearBannerContent = styled.div`
         rgba(0, 0, 0, 0.55) 50%,
         rgba(0, 0, 0, 0.65) 100%
     );
-    backdrop-filter: blur(2px);
     z-index: 2;
     
     @media (max-width: 968px) {
@@ -344,7 +343,7 @@ export const YearBannerLink = styled.a`
     padding: 12px 28px;
     background: rgba(40, 167, 69, 0.9);
     border-radius: 50px;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     
@@ -421,7 +420,6 @@ export const LoveBannerSticker = styled.div`
     left: 50%;
     transform: translate(-50%, -50%) rotate(-2deg);
     background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(12px);
     border-radius: 24px;
     padding: 32px 48px;
     display: flex;
@@ -605,7 +603,7 @@ export const PrimaryButton = styled.button`
     border: none;
     border-radius: 50px;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     display: flex;
     align-items: center;
@@ -686,7 +684,7 @@ export const StatCard = styled.div`
     background: linear-gradient(135deg, rgba(40, 167, 69, 0.05) 0%, rgba(32, 201, 151, 0.05) 100%);
     border-radius: 16px;
     border: 1px solid rgba(40, 167, 69, 0.1);
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -980,7 +978,7 @@ export const CTAPhone = styled.a`
     backdrop-filter: blur(10px);
     border-radius: 50px;
     border: 2px solid white;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, color 0.3s ease;
     
     &:hover {
         background: white;
@@ -1045,7 +1043,7 @@ export const UsefulLink = styled.button`
     align-items: center;
     gap: 8px;
     padding: 0;
-    transition: all 0.3s ease;
+    transition: color 0.3s ease;
     
     &:hover {
         color: #1e7e34;
@@ -1072,7 +1070,7 @@ export const UsefulCard = styled.div`
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
     border: 1px solid rgba(40, 167, 69, 0.15);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
     
     &:hover {
         transform: translateY(-8px);

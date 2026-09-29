@@ -311,11 +311,11 @@ const Main = () => {
                 <Reveal style={{ width: '100%' }}>
                     <LoveBannerContainer>
                         <LoveBannerImage
-                            src="/Love.png"
+                            src="/Love.jpg"
                             alt="Я здесь живу и мне есть чем гордиться"
                             loading="lazy"
-                            width="1200"
-                            height="400"
+                            width="1600"
+                            height="899"
                         />
                         <LoveBannerSticker>
                             <LoveBannerHeart>❤️</LoveBannerHeart>
