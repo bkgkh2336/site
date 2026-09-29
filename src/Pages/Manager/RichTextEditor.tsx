@@ -307,6 +307,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         ],
         content,
         editable: !disabled,
+        shouldRerenderOnTransaction: true,
         onUpdate: ({ editor: e }) => {
             onChange(e.getHTML());
             setTick(t => t + 1);
@@ -373,8 +374,8 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         color?: string | null;
         backgroundColor?: string | null;
     };
-    const curFont = textStyle.fontFamily || '';
-    const curSize = textStyle.fontSize || '';
+    const curFont = String(textStyle.fontFamily || '').replace(/['"]/g, '').trim();
+    const curSize = String(textStyle.fontSize || '').trim();
     const fonts = curFont && !FONT_OPTIONS.includes(curFont) ? [curFont, ...FONT_OPTIONS] : FONT_OPTIONS;
     const sizes = curSize && !SIZE_OPTIONS.includes(curSize) ? [curSize, ...SIZE_OPTIONS] : SIZE_OPTIONS;
 
