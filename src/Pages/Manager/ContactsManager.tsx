@@ -239,7 +239,11 @@ const ContactsManager: React.FC = () => {
       
       if (response.ok) {
         const data = await response.json();
-        setEditingContact({ ...editingContact, src: data.url });
+        if (data.success && data.path) {
+          setEditingContact({ ...editingContact, src: data.path });
+        } else {
+          alert(`Ошибка загрузки: ${data.message || 'неизвестная ошибка'}`);
+        }
       } else {
         const errorText = await response.text();
         alert(`Ошибка загрузки: ${errorText}`);
@@ -247,6 +251,17 @@ const ContactsManager: React.FC = () => {
     } catch (err) {
       console.error('Upload error:', err);
       alert('Ошибка при загрузке изображения');
+    }
+  };
+
+  const cleanupTempImage = async () => {
+    try {
+      await fetch('/backend/api.php/api/cleanup', {
+        method: 'POST',
+        credentials: 'include'
+      });
+    } catch (err) {
+      console.error('Failed to cleanup temp image:', err);
     }
   };
 
@@ -294,7 +309,7 @@ const ContactsManager: React.FC = () => {
             patronymic: editingContact.patronymic,
             job_title: editingContact.job_title,
             email: editingContact.email,
-            src: editingContact.src,
+            src: editingContact.src ?? '',
             is_primary: editingContact.is_primary
           })
         }
@@ -304,7 +319,7 @@ const ContactsManager: React.FC = () => {
         const responseText = await response.text();
         if (response.status === 401) {
           alert('Сессия истекла. Пожалуйста, войдите снова.');
-          window.location.href = '/admin/login';
+          window.location.href = '/manager';
           return;
         } else {
           alert(`Ошибка сохранения: ${response.status} ${responseText}`);
@@ -424,6 +439,12 @@ const ContactsManager: React.FC = () => {
   };
 
   const handleCancelEdit = () => {
+    if (editingContact?.src && editingContact.src.startsWith('/uploads/')) {
+      const originalContact = contacts.find(c => c.id === editingContact.id);
+      if (!originalContact || originalContact.src !== editingContact.src) {
+        cleanupTempImage();
+      }
+    }
     setEditingContact(null);
     setEditingPhones([]);
   };
@@ -489,7 +510,11 @@ const ContactsManager: React.FC = () => {
       
       if (response.ok) {
         const data = await response.json();
-        setEditingDepartment({ ...editingDepartment, src: data.path });
+        if (data.success && data.path) {
+          setEditingDepartment({ ...editingDepartment, src: data.path });
+        } else {
+          alert(`Ошибка загрузки: ${data.message || 'неизвестная ошибка'}`);
+        }
       } else {
         const errorText = await response.text();
         alert(`Ошибка загрузки: ${errorText}`);
@@ -523,7 +548,7 @@ const ContactsManager: React.FC = () => {
             description: editingDepartment.description,
             head: editingDepartment.head,
             email: editingDepartment.email,
-            src: editingDepartment.src
+            src: editingDepartment.src ?? ''
           })
         }
       );
@@ -532,7 +557,7 @@ const ContactsManager: React.FC = () => {
         const responseText = await response.text();
         if (response.status === 401) {
           alert('Сессия истекла. Пожалуйста, войдите снова.');
-          window.location.href = '/admin/login';
+          window.location.href = '/manager';
           return;
         } else {
           alert(`Ошибка сохранения: ${response.status} ${responseText}`);
@@ -654,18 +679,7 @@ const ContactsManager: React.FC = () => {
     if (editingDepartment?.src && editingDepartment.src.startsWith('/uploads/')) {
       const originalDept = departments.find(d => d.id === editingDepartment.id);
       if (!originalDept || originalDept.src !== editingDepartment.src) {
-        // Image was uploaded but not saved, try to delete it
-        const filename = editingDepartment.src.split('/').pop();
-        try {
-          await fetch(`/backend/api.php/api/cleanup-temp`, {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filename })
-          });
-        } catch (err) {
-          console.error('Failed to cleanup temp image:', err);
-        }
+        await cleanupTempImage();
       }
     }
     setEditingDepartment(null);
