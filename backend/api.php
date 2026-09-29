@@ -407,7 +407,7 @@ try {
                 $fields = []; $values = [];
                 
                 $oldData = null;
-                if ($tableName === 'contacts') {
+                if ($tableName === 'contacts' || $tableName === 'departments') {
                     $stmt = $pdo->prepare("SELECT src FROM $tableName WHERE id = ?");
                     $stmt->execute([$id]);
                     $oldData = $stmt->fetch(PDO::FETCH_ASSOC);
