@@ -15,6 +15,7 @@ export interface ArticleData {
     cover: string | null;
     gallery: string | null;
     body: string | null;
+    custom_content: string | null;
     is_external: number;
     external_url: string | null;
     sort_order: number;

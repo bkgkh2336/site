@@ -11,11 +11,14 @@ import {
     Bold, Italic, Underline, Strikethrough,
     Heading2, Heading3, Heading4,
     List, ListOrdered, Quote, Minus,
-    Link2, Unlink, ImagePlus, Table2, Undo2, Redo2, Film, Eraser
+    Link2, Unlink, ImagePlus, Table2, Undo2, Redo2, Film, Eraser, Plus
 } from 'lucide-react';
 import Video from './VideoNode';
+import CustomBlock from './BlockNodes';
 import FontWeight from './FontWeightAttr';
 import { articleBodyCss } from '../../styles/articleBody';
+import { BLOCK_SCHEMAS, createBlock, type Block, type BlockType } from '../../data/customContent';
+import { type BlockApi } from '../../data/customBody';
 
 const Toolbar = styled.div`
     position: sticky;
@@ -160,6 +163,62 @@ const PanelTitle = styled.div`
     margin-bottom: 8px;
 `;
 
+const InsertTrigger = styled.button`
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 30px;
+    padding: 0 10px;
+    border: 1px dashed #28a745;
+    border-radius: 6px;
+    background: #f6ffef;
+    color: #0c5c2f;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover {
+        background: #eafbe0;
+    }
+
+    &:disabled {
+        opacity: 0.4;
+        cursor: default;
+    }
+
+    svg {
+        width: 14px;
+        height: 14px;
+    }
+`;
+
+const InsertMenuList = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-height: 320px;
+    overflow-y: auto;
+`;
+
+const InsertMenuItem = styled.button`
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 7px 9px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: #212529;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+
+    &:hover {
+        background: #e9ecef;
+    }
+`;
+
 const SwatchGrid = styled.div`
     display: grid;
     grid-template-columns: repeat(8, 1fr);
@@ -253,11 +312,14 @@ const EditorBox = styled.div`
         padding: 14px 16px;
     }
 
-    .rte-content .ProseMirror {
+    /*
+     * :where() keeps article body typography specificity at zero so the real
+     * block styles (BlocksView inside node views) win inside the editor and
+     * blocks look exactly like on the public page.
+     */
+    :where(.rte-content .ProseMirror) {
         outline: none;
         min-height: clamp(420px, calc(100vh - 380px), 900px);
-
-        ${articleBodyCss}
 
         p.is-empty::before,
         p.tiptap-empty::before,
@@ -270,6 +332,38 @@ const EditorBox = styled.div`
             pointer-events: none;
         }
     }
+
+    /*
+     * Body typography applies only to TipTap's own text nodes — never inside
+     * spec blocks, so blocks keep exactly the look they have in the preview.
+     */
+    :where(.rte-content .ProseMirror)
+        :not(.kb-block-node)
+        :not(.kb-block-node *) {
+        ${articleBodyCss}
+    }
+
+    .rte-content .ProseMirror .kb-block-node {
+        position: relative;
+        margin: 14px 0;
+        cursor: pointer;
+        user-select: none;
+
+        &.is-selected,
+        &.ProseMirror-selectednode {
+            outline: none;
+        }
+
+        &--broken {
+            padding: 10px 14px;
+            border: 1.5px dashed #dc3545;
+            border-radius: 10px;
+            background: #fff5f5;
+            color: #a1283a;
+            font-size: 13px;
+            font-weight: 600;
+        }
+    }
 `;
 
 interface RichTextEditorProps {
@@ -278,6 +372,12 @@ interface RichTextEditorProps {
     onImageUpload: (file: File) => Promise<string | null>;
     placeholder?: string;
     disabled?: boolean;
+    /** Block types offered in the "Вставить блок" toolbar menu. */
+    insertBlocks?: BlockType[];
+    /** Opens the host's edit modal for an atom block (insert or click). */
+    onEditBlock?: (block: Block, api: BlockApi) => void;
+    /** Page key (e.g. "news/union_conference") — picks block style variants. */
+    pageKey?: string;
 }
 
 const RichTextEditor: React.FC<RichTextEditorProps> = ({
@@ -285,11 +385,15 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     onChange,
     onImageUpload,
     placeholder = 'Текст статьи…',
-    disabled = false
+    disabled = false,
+    insertBlocks,
+    onEditBlock,
+    pageKey
 }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [, setTick] = useState(0);
-    const [palette, setPalette] = useState<'text' | 'bg' | null>(null);
+    const [palette, setPalette] = useState<'text' | 'bg' | 'insert' | null>(null);
+    const handlersRef = useRef<{ openBlock: (pos: number) => void }>({ openBlock: () => undefined });
 
     const editor: Editor | null = useEditor({
         extensions: [
@@ -305,12 +409,20 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             FontWeight,
             Image.configure({ inline: false, allowBase64: false }),
             Video,
+            CustomBlock.configure({ pageKey: pageKey || '' }),
             TableKit.configure({ table: { resizable: false } }),
             Placeholder.configure({ placeholder })
         ],
         content,
         editable: !disabled,
         shouldRerenderOnTransaction: true,
+        editorProps: {
+            handleClickOn: (_view, _name, node, pos) => {
+                if (node.type.name === 'customBlock') {
+                    handlersRef.current.openBlock(pos);
+                }
+            }
+        },
         onUpdate: ({ editor: e }) => {
             onChange(e.getHTML());
             setTick(t => t + 1);
@@ -334,6 +446,61 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         document.addEventListener('mousedown', handle);
         return () => document.removeEventListener('mousedown', handle);
     }, [palette]);
+
+    const openBlock = (pos: number) => {
+        if (!editor || !onEditBlock) return;
+        const node = editor.state.doc.nodeAt(pos);
+        if (!node || node.type.name !== 'customBlock') return;
+        let block: Block | null = null;
+        try {
+            const parsed = JSON.parse(node.attrs.payload) as Block;
+            if (parsed && typeof parsed.type === 'string') block = parsed;
+        } catch {
+            /* ignore broken payload */
+        }
+        if (!block) return;
+        onEditBlock(block, {
+            update: next => {
+                if (!editor) return;
+                editor
+                    .chain()
+                    .setNodeSelection(pos)
+                    .updateAttributes('customBlock', {
+                        blockType: next.type,
+                        payload: JSON.stringify(next)
+                    })
+                    .run();
+                setTick(t => t + 1);
+            },
+            remove: () => {
+                if (!editor) return;
+                const current = editor.state.doc.nodeAt(pos);
+                if (!current) return;
+                editor.chain().deleteRange({ from: pos, to: pos + current.nodeSize }).run();
+                setTick(t => t + 1);
+            }
+        });
+    };
+    handlersRef.current.openBlock = openBlock;
+
+    const insertBlock = (type: BlockType) => {
+        if (!editor) return;
+        const block = createBlock(type);
+        const payload = JSON.stringify(block);
+        editor
+            .chain()
+            .focus()
+            .insertContent({ type: 'customBlock', attrs: { blockType: type, payload } })
+            .run();
+        setTick(t => t + 1);
+        let found = -1;
+        editor.state.doc.descendants((node, pos) => {
+            if (node.type.name === 'customBlock' && node.attrs.payload === payload) {
+                found = pos;
+            }
+        });
+        if (found >= 0) openBlock(found);
+    };
 
     if (!editor) return null;
 
@@ -639,6 +806,40 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
                     {btn('Вставить изображение', false, <ImagePlus />, () => fileInputRef.current?.click())}
                     {btn('Вставить видео', false, <Film />, insertVideo)}
                 </ToolGroup>
+                {insertBlocks && insertBlocks.length > 0 && (
+                    <ToolGroup>
+                        <PaletteWrap data-palette>
+                            <InsertTrigger
+                                type="button"
+                                title="Вставить спец-блок"
+                                disabled={disabled}
+                                aria-expanded={palette === 'insert'}
+                                onClick={() => setPalette(p => (p === 'insert' ? null : 'insert'))}
+                            >
+                                <Plus /> Вставить блок
+                            </InsertTrigger>
+                            {palette === 'insert' && (
+                                <SwatchPanel $align="left" style={{ width: 250 }}>
+                                    <PanelTitle>Структурный блок</PanelTitle>
+                                    <InsertMenuList>
+                                        {insertBlocks.map(type => (
+                                            <InsertMenuItem
+                                                key={type}
+                                                type="button"
+                                                onClick={() => {
+                                                    insertBlock(type);
+                                                    setPalette(null);
+                                                }}
+                                            >
+                                                {BLOCK_SCHEMAS[type]?.label || type}
+                                            </InsertMenuItem>
+                                        ))}
+                                    </InsertMenuList>
+                                </SwatchPanel>
+                            )}
+                        </PaletteWrap>
+                    </ToolGroup>
+                )}
             </Toolbar>
 
             <EditorBox>

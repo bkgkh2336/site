@@ -32,6 +32,7 @@ $pdo->exec('CREATE TABLE IF NOT EXISTS articles (
     cover TEXT DEFAULT \'\',
     gallery TEXT DEFAULT \'[]\',
     body TEXT DEFAULT \'\',
+    custom_content TEXT DEFAULT \'\',
     is_external INTEGER DEFAULT 0,
     external_url TEXT DEFAULT \'\',
     sort_order INTEGER DEFAULT 0,

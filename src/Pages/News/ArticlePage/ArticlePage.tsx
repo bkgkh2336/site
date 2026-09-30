@@ -12,8 +12,11 @@ import {
     formatArticleDate, isCustomArticle, parseGallery
 } from '../../../data/articles';
 import { useArticle } from '../../../data/useArticle';
+import { splitBodyHtml } from '../../../data/customBody';
+import BlocksView from '../Blocks/BlocksView';
+import RichChunk from '../RichChunk';
 import {
-    PublicationDate, HeroImage, Lead, ArticleBody, GalleryCard, GalleryImage
+    PublicationDate, HeroImage, Lead, GalleryCard, GalleryImage
 } from './styled';
 
 interface ArticlePageProps {
@@ -48,6 +51,7 @@ const ArticlePage = ({ section }: ArticlePageProps) => {
     const gallery = parseGallery(article.gallery);
     const showHero = article.cover && section !== 'useful_to_know';
     const lightboxImages = gallery.map(item => ({ src: item.src, alt: item.alt || '' }));
+    const bodyParts = article.body ? splitBodyHtml(article.body) : [];
 
     return (
         <ArticleLayout backUrl={SECTION_FEED_PATHS[section]}>
@@ -66,7 +70,13 @@ const ArticlePage = ({ section }: ArticlePageProps) => {
 
             {article.summary && <Lead>{article.summary}</Lead>}
 
-            {article.body && <ArticleBody dangerouslySetInnerHTML={{ __html: article.body }} />}
+            {bodyParts.map((part, index) =>
+                part.block ? (
+                    <BlocksView key={index} blocks={[part.block]} />
+                ) : (
+                    <RichChunk key={index} html={part.html || ''} />
+                )
+            )}
 
             {gallery.length > 0 && (
                 <GalleryCard>
