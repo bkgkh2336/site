@@ -18,13 +18,15 @@ import FontWeight from './FontWeightAttr';
 import { articleBodyCss } from '../../styles/articleBody';
 
 const Toolbar = styled.div`
+    position: sticky;
+    top: -24px;
+    z-index: 30;
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
     padding: 8px;
     background: #f8f9fa;
     border-bottom: 1px solid #eef1f4;
-    border-radius: 10px 10px 0 0;
 `;
 
 const ToolGroup = styled.div`
@@ -229,13 +231,17 @@ const BG_SWATCHES = [
     '#d4edda', '#e2d9f3', '#ffff00', '#c3e6cb', '#f5c6cb', '#cce5ff', '#212529', '#dc3545'
 ];
 
-const toHex = (value?: string | null): string => {
-    if (!value) return '#212529';
-    if (/^#[0-9a-fA-F]{6}$/.test(value)) return value;
-    const m = value.match(/rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/);
-    if (!m) return '#212529';
+const parseColor = (value?: string | null): string => {
+    if (!value) return '';
+    const v = value.trim();
+    if (/^#[0-9a-fA-F]{6}$/.test(v)) return v.toLowerCase();
+    const m = v.match(/rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)(?:[,\s]+([\d.]+))?\)/);
+    if (!m) return '';
+    if (m[4] !== undefined && parseFloat(m[4]) === 0) return '';
     return '#' + [1, 2, 3].map(i => Number(m[i]).toString(16).padStart(2, '0')).join('');
 };
+
+const toHex = (value?: string | null): string => parseColor(value) || '#212529';
 
 const EditorBox = styled.div`
     border: 1px solid #ced4da;
@@ -245,14 +251,11 @@ const EditorBox = styled.div`
 
     .rte-content {
         padding: 14px 16px;
-        min-height: 280px;
-        max-height: 55vh;
-        overflow-y: auto;
     }
 
     .rte-content .ProseMirror {
         outline: none;
-        min-height: 280px;
+        min-height: clamp(420px, calc(100vh - 380px), 900px);
 
         ${articleBodyCss}
 
@@ -376,9 +379,11 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     };
 
     // Fallback: what the selected text actually looks like (inherited from CSS),
-    // so the selects always show a real value like in Word.
+    // so the selects and color swatches always show a real value like in Word.
     let computedFont = '';
     let computedSize = '';
+    let computedColor = '';
+    let computedBg = '';
     try {
         const { node, offset } = editor.view.domAtPos(editor.state.selection.from);
         let el: Element | null = null;
@@ -399,6 +404,8 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             if (sizeMatch && parseFloat(sizeMatch[1]) > 0) {
                 computedSize = `${Math.round(parseFloat(sizeMatch[1]))}px`;
             }
+            computedColor = parseColor(cs.color);
+            computedBg = parseColor(cs.backgroundColor);
         }
     } catch {
         // headless/domAtPos failures — keep empty
@@ -436,8 +443,8 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
         setTick(t => t + 1);
     };
 
-    const curColor = textStyle.color || null;
-    const curBg = textStyle.backgroundColor || null;
+    const curColor = parseColor(textStyle.color) || computedColor;
+    const curBg = parseColor(textStyle.backgroundColor) || computedBg;
 
     const btn = (
         title: string,
@@ -512,7 +519,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
                                             type="button"
                                             title={c}
                                             $color={c}
-                                            $active={!!curColor && toHex(curColor) === c}
+                                            $active={curColor === c}
                                             onClick={() => {
                                                 changeTextColor(c);
                                                 setPalette(null);
@@ -567,7 +574,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
                                             type="button"
                                             title={c}
                                             $color={c}
-                                            $active={!!curBg && toHex(curBg) === c}
+                                            $active={curBg === c}
                                             onClick={() => {
                                                 changeBackgroundColor(c);
                                                 setPalette(null);

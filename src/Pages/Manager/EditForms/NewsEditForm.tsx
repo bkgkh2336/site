@@ -155,9 +155,7 @@ const PreviewBox = styled.div`
     border-radius: 10px;
     background: #ffffff;
     padding: 16px;
-    min-height: 280px;
-    max-height: 55vh;
-    overflow-y: auto;
+    min-height: clamp(420px, calc(100vh - 380px), 900px);
 `;
 
 interface NewsEditFormProps {
@@ -376,6 +374,13 @@ const NewsEditForm: React.FC<NewsEditFormProps> = ({
                 </FieldHint>
             </Field>
 
+            {!isExternal && customLayout && (
+                <InfoBox>
+                    Вёрстка этой страницы задана в коде сайта — здесь редактируются только
+                    заголовок, дата, обложка и галерея.
+                </InfoBox>
+            )}
+
             {!isExternal && !customLayout && (
                 <Field>
                     <FieldLabel>Текст статьи:</FieldLabel>
@@ -412,13 +417,6 @@ const NewsEditForm: React.FC<NewsEditFormProps> = ({
                         />
                     )}
                 </Field>
-            )}
-
-            {!isExternal && customLayout && (
-                <InfoBox>
-                    Вёрстка этой страницы задана в коде сайта — здесь редактируются только
-                    заголовок, дата, обложка и галерея.
-                </InfoBox>
             )}
 
             <ModalActions>
