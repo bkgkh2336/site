@@ -1,31 +1,13 @@
 import { useState } from 'react';
 import {
-    Calendar,
-    UserCheck,
-    ClipboardList,
-    Image
+    Calendar
 } from 'lucide-react';
 import {
     ArticleContainer,
     ArticleContent,
     ArticleImage,
-    ArticleText,
     HighlightedText,
-    PublicationDate,
-    SectionTitle,
-    ParticipantsList,
-    ParticipantItem,
-    ParticipantIcon,
-    ParticipantInfo,
-    ParticipantName,
-    ParticipantRole,
-    AgendaSection,
-    AgendaList,
-    AgendaItem,
-    AgendaNumber,
-    AgendaText,
-    PhotoGallery,
-    GalleryImage
+    PublicationDate
 } from "./styled";
 import H1 from "../../../../Components/H1/H1";
 import ImageLightbox from "../../../../Components/ImageLightbox/ImageLightbox";
@@ -33,69 +15,22 @@ import Loading from "../../../../Components/Loading/Loading";
 import NotFound from "../../../NotFound/NotFound";
 import { useArticle } from "../../../../data/useArticle";
 import { formatArticleDate } from "../../../../data/articles";
+import { getArticleBlocks } from "../../../../data/customContentDefaults";
+import type { Block } from "../../../../data/customContent";
+import BlocksView from "../../Blocks/BlocksView";
+
+const PAGE_KEY = 'news/union_conference';
 
 const UnionConference = () => {
     const { article, isLoading } = useArticle('news', 'union_conference');
-    const [lightboxOpen, setLightboxOpen] = useState(false);
-    const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
-    const participants = [
-        {
-            name: "Мишаков Денис Сергеевич",
-            role: "Технический инспектор труда Гомельской областной организации Белорусского профессионального союза работников жилищно-коммунального хозяйства и сферы обслуживания"
-        },
-        {
-            name: "Ананич Нина Вячеславовна",
-            role: "Специалист Гомельского областного объединения профсоюзов"
-        }
-    ];
-
-    const agendaItems = [
-        "Об отчете профсоюзного комитета первичной профсоюзной организации КЖУП «Буда-Кошелёвский коммунальник» за 2025 год",
-        "Об отчете ревизионной комиссии первичной профсоюзной организации КЖУП «Буда-Кошелёвский коммунальник» за 2025 год",
-        "Об утверждении отчета об исполнении сметы доходов и расходов первичной профсоюзной организации КЖУП «Буда-Кошелёвский коммунальник» за 2025 год",
-        "Об одобрении утвержденной профсоюзным комитетом сметы доходов и расходов первичной профсоюзной организации КЖУП «Буда-Кошелёвский коммунальник» на 2026 год",
-        "Об итогах выполнения коллективного договора за 2025 год",
-        "Об информировании делегатов конференции о Положении о фонде помощи первичной профсоюзной организации КЖУП «Буда-Кошелёвский коммунальник» на 2026 год",
-        "Об изменениях в составе профсоюзного комитета первичной профсоюзной организации",
-        "Об изменениях в составе ревизионной комиссии первичной профсоюзной организации",
-        "О внесении изменений и дополнений в коллективный договор"
-    ];
-
-    const galleryImages = [
-        {
-            src: "/news/UnionConference_12_02_26/img1.jpg",
-            alt: "Фото с конференции 1"
-        },
-        {
-            src: "/news/UnionConference_12_02_26/img2.jpg",
-            alt: "Фото с конференции 2"
-        },
-        {
-            src: "/news/UnionConference_12_02_26/img3.jpg",
-            alt: "Фото с конференции 3"
-        },
-        {
-            src: "/news/UnionConference_12_02_26/img4.jpg",
-            alt: "Фото с конференции 4"
-        }
-    ];
-
-    const openLightbox = (index: number) => {
-        setCurrentImageIndex(index);
-        setLightboxOpen(true);
-    };
-
-    const closeLightbox = () => {
-        setLightboxOpen(false);
-    };
-
-    const navigateToImage = (index: number) => {
-        setCurrentImageIndex(index);
-    };
+    const [lightbox, setLightbox] = useState<{ images: { src: string; alt: string }[]; index: number } | null>(null);
 
     if (isLoading) return <Loading />;
     if (!article) return <NotFound />;
+
+    const blocks = getArticleBlocks(article, PAGE_KEY);
+    const firstGallery = blocks.find((b): b is Extract<Block, { type: 'gallery' }> => b.type === 'gallery' && b.items.length > 0);
+    const coverSrc = article.cover || firstGallery?.items[0]?.src || '';
 
     return (
         <ArticleContainer>
@@ -108,7 +43,7 @@ const UnionConference = () => {
 
             <ArticleContent>
                 <ArticleImage
-                    src={article.cover || galleryImages[0].src}
+                    src={coverSrc || undefined}
                     alt={article.title}
                     loading="lazy"
                 />
@@ -117,71 +52,19 @@ const UnionConference = () => {
                     {article.summary}
                 </HighlightedText>
 
-                <SectionTitle>
-                    <UserCheck size={28} />
-                    Участники конференции
-                </SectionTitle>
-
-                <ParticipantsList>
-                    {participants.map((participant, index) => (
-                        <ParticipantItem key={index}>
-                            <ParticipantIcon>
-                                <UserCheck size={24} />
-                            </ParticipantIcon>
-                            <ParticipantInfo>
-                                <ParticipantName>{participant.name}</ParticipantName>
-                                <ParticipantRole>{participant.role}</ParticipantRole>
-                            </ParticipantInfo>
-                        </ParticipantItem>
-                    ))}
-                </ParticipantsList>
-
-                <AgendaSection>
-                    <SectionTitle>
-                        <ClipboardList size={28} />
-                        Повестка дня
-                    </SectionTitle>
-
-                    <ArticleText>
-                        На рассмотрение отчетной конференции вносилась следующая повестка дня:
-                    </ArticleText>
-
-                    <AgendaList>
-                        {agendaItems.map((item, index) => (
-                            <AgendaItem key={index}>
-                                <AgendaNumber>
-                                    {index + 1}
-                                </AgendaNumber>
-                                <AgendaText>{item}</AgendaText>
-                            </AgendaItem>
-                        ))}
-                    </AgendaList>
-                </AgendaSection>
-
-                <SectionTitle>
-                    <Image size={28} />
-                    Фотографии с конференции
-                </SectionTitle>
-
-                <PhotoGallery>
-                    {galleryImages.map((image, index) => (
-                        <GalleryImage
-                            key={index}
-                            src={image.src}
-                            alt={image.alt}
-                            loading="lazy"
-                            onClick={() => openLightbox(index)}
-                        />
-                    ))}
-                </PhotoGallery>
+                <BlocksView
+                    blocks={blocks}
+                    pageKey={PAGE_KEY}
+                    onImageClick={(images, index) => setLightbox({ images, index })}
+                />
             </ArticleContent>
 
-            {lightboxOpen && (
+            {lightbox && (
                 <ImageLightbox
-                    images={galleryImages}
-                    currentIndex={currentImageIndex}
-                    onClose={closeLightbox}
-                    onNavigate={navigateToImage}
+                    images={lightbox.images}
+                    currentIndex={lightbox.index}
+                    onClose={() => setLightbox(null)}
+                    onNavigate={index => setLightbox(prev => (prev ? { ...prev, index } : prev))}
                 />
             )}
         </ArticleContainer>

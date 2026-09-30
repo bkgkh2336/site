@@ -37,6 +37,7 @@ const emptyArticle = (section: ArticleSection, sortOrder: number): ArticleData =
     cover: null,
     gallery: null,
     body: null,
+    custom_content: null,
     is_external: 0,
     external_url: null,
     sort_order: sortOrder
@@ -174,6 +175,7 @@ const NewsManager: React.FC = () => {
             cover: editing.cover,
             gallery: editing.gallery,
             body: editing.body,
+            custom_content: editing.custom_content,
             is_external: editing.is_external,
             external_url: editing.external_url,
             sort_order: editing.sort_order
@@ -336,8 +338,8 @@ const NewsManager: React.FC = () => {
                                         )}
                                         {article.is_external !== 1 && isCustomArticle(article.section, article.slug) && (
                                             <>
-                                                <Code2 style={{ width: 12, height: 12, verticalAlign: -1 }} /> вёрстка в коде
-                                            </>
+                                            <Code2 style={{ width: 12, height: 12, verticalAlign: -1 }} /> спец-блоки в тексте
+                                        </>
                                         )}
                                         {article.is_external !== 1 && !isCustomArticle(article.section, article.slug) && (
                                             <>редактируемая статья</>
@@ -424,7 +426,7 @@ const NewsManager: React.FC = () => {
                                         {article.is_external === 1
                                             ? 'внешняя'
                                             : isCustomArticle(article.section, article.slug)
-                                                ? 'в коде'
+                                                ? 'WYSIWYG+блоки'
                                                 : 'WYSIWYG'}
                                     </Td>
                                     <Td>

@@ -1,18 +1,13 @@
 import { useState } from 'react';
 import {
-    Calendar,
-    Image
+    Calendar
 } from 'lucide-react';
 import {
     ArticleContainer,
     ArticleContent,
     ArticleImage,
     HighlightedText,
-    PublicationDate,
-    SectionTitle,
-    PhotoGallery,
-    GalleryImage,
-    ArticleText
+    PublicationDate
 } from "./styled";
 import H1 from "../../../../Components/H1/H1";
 import ImageLightbox from "../../../../Components/ImageLightbox/ImageLightbox";
@@ -20,54 +15,22 @@ import Loading from "../../../../Components/Loading/Loading";
 import NotFound from "../../../NotFound/NotFound";
 import { useArticle } from "../../../../data/useArticle";
 import { formatArticleDate } from "../../../../data/articles";
+import { getArticleBlocks } from "../../../../data/customContentDefaults";
+import type { Block } from "../../../../data/customContent";
+import BlocksView from "../../Blocks/BlocksView";
+
+const PAGE_KEY = 'news/cleanup_day';
 
 const CleanupDay = () => {
     const { article, isLoading } = useArticle('news', 'cleanup_day');
-    const [lightboxOpen, setLightboxOpen] = useState(false);
-    const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
-    const galleryImages = [
-        {
-            src: "/news/CleanupDay_05_09_26/img1.jpg",
-            alt: "Фото с субботника 1"
-        },
-        {
-            src: "/news/CleanupDay_05_09_26/img2.jpg",
-            alt: "Фото с субботника 2"
-        },
-        {
-            src: "/news/CleanupDay_05_09_26/img3.jpg",
-            alt: "Фото с субботника 3"
-        },
-        {
-            src: "/news/CleanupDay_05_09_26/img4.jpg",
-            alt: "Фото с субботника 4"
-        },
-        {
-            src: "/news/CleanupDay_05_09_26/img5.jpg",
-            alt: "Фото с субботника 5"
-        },
-        {
-            src: "/news/CleanupDay_05_09_26/img6.jpg",
-            alt: "Фото с субботника 6"
-        }
-    ];
-
-    const openLightbox = (index: number) => {
-        setCurrentImageIndex(index);
-        setLightboxOpen(true);
-    };
-
-    const closeLightbox = () => {
-        setLightboxOpen(false);
-    };
-
-    const navigateToImage = (index: number) => {
-        setCurrentImageIndex(index);
-    };
+    const [lightbox, setLightbox] = useState<{ images: { src: string; alt: string }[]; index: number } | null>(null);
 
     if (isLoading) return <Loading />;
     if (!article) return <NotFound />;
+
+    const blocks = getArticleBlocks(article, PAGE_KEY);
+    const firstGallery = blocks.find((b): b is Extract<Block, { type: 'gallery' }> => b.type === 'gallery' && b.items.length > 0);
+    const coverSrc = article.cover || firstGallery?.items[0]?.src || '';
 
     return (
         <ArticleContainer>
@@ -80,7 +43,7 @@ const CleanupDay = () => {
 
             <ArticleContent>
                 <ArticleImage
-                    src={article.cover || galleryImages[0].src}
+                    src={coverSrc || undefined}
                     alt={article.title}
                     loading="lazy"
                 />
@@ -89,34 +52,19 @@ const CleanupDay = () => {
                     {article.summary}
                 </HighlightedText>
 
-                <ArticleText>
-                    Мы собрались вместе для наведения порядка на территории. Работа шла совместными усилиями - территория привела себя в порядок, все приняли участие и отлично провели время.
-                </ArticleText>
-
-                <SectionTitle>
-                    <Image size={28} />
-                    Фотографии с субботника
-                </SectionTitle>
-
-                <PhotoGallery>
-                    {galleryImages.map((image, index) => (
-                        <GalleryImage
-                            key={index}
-                            src={image.src}
-                            alt={image.alt}
-                            loading="lazy"
-                            onClick={() => openLightbox(index)}
-                        />
-                    ))}
-                </PhotoGallery>
+                <BlocksView
+                    blocks={blocks}
+                    pageKey={PAGE_KEY}
+                    onImageClick={(images, index) => setLightbox({ images, index })}
+                />
             </ArticleContent>
 
-            {lightboxOpen && (
+            {lightbox && (
                 <ImageLightbox
-                    images={galleryImages}
-                    currentIndex={currentImageIndex}
-                    onClose={closeLightbox}
-                    onNavigate={navigateToImage}
+                    images={lightbox.images}
+                    currentIndex={lightbox.index}
+                    onClose={() => setLightbox(null)}
+                    onNavigate={index => setLightbox(prev => (prev ? { ...prev, index } : prev))}
                 />
             )}
         </ArticleContainer>

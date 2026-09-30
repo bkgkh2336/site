@@ -1,12 +1,12 @@
 <?php
-// 1. РќР°СЃС‚СЂРѕР№РєРё CORS Рё Р·Р°РіРѕР»РѕРІРєРё Р±РµР·РѕРїР°СЃРЅРѕСЃС‚Рё
+// 1. Настройки CORS и заголовки безопасности
 $allowedOrigin = $_SERVER['HTTP_ORIGIN'] ?? '';
 $allowedOrigins = ['https://bkgkh.by', 'https://www.bkgkh.by'];
 
 if (in_array($allowedOrigin, $allowedOrigins)) {
     header("Access-Control-Allow-Origin: $allowedOrigin");
 } else {
-    // Р Р°Р·СЂРµС€Р°РµРј Р»РѕРєР°Р»СЊРЅСѓСЋ СЂР°Р·СЂР°Р±РѕС‚РєСѓ, РµСЃР»Рё РЅСѓР¶РЅРѕ, РёР»Рё РѕСЃС‚Р°РІР»СЏРµРј РїСѓСЃС‚РѕР№ Р·Р°РіРѕР»РѕРІРѕРє
+    // Разрешаем локальную разработку, если нужно, или оставляем пустой заголовок
     header("Access-Control-Allow-Origin: https://bkgkh.by");
 }
 
@@ -15,22 +15,22 @@ header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-W
 header("Access-Control-Allow-Credentials: true");
 header("Content-Type: application/json; charset=utf-8");
 
-// Р•СЃР»Рё СЌС‚Рѕ preflight-Р·Р°РїСЂРѕСЃ, СЃСЂР°Р·Сѓ РѕС‚РґР°РµРј 200 OK
+// Если это preflight-запрос, сразу отдаем 200 OK
 if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
     http_response_code(200);
     exit;
 }
 
-// РћС‚РєР»СЋС‡Р°РµРј РѕС‚РѕР±СЂР°Р¶РµРЅРёРµ РѕС€РёР±РѕРє РІ РїСЂРѕРґР°РєС€РµРЅРµ (Р±РµР·РѕРїР°СЃРЅРѕСЃС‚СЊ)
+// Отключаем отображение ошибок в продакшене (безопасность)
 ini_set("display_errors", 0);
 error_reporting(0);
 
-// РЎРµРєСЂРµС‚РЅС‹Р№ РєР»СЋС‡ РґР»СЏ РїРѕРґРїРёСЃРё СЃРµСЃСЃРёР№ (РР—РњР•РќРРўР• Р­РўР РЎРРњР’РћР›Р« РќРђ РЎР’РћР РџР•Р Р•Р” Р”Р•РџР›РћР•Рњ)
+// Секретный ключ для подписи сессий (ИЗМЕНИТЕ ЭТИ СИМВОЛЫ НА СВОИ ПЕРЕД ДЕПЛОЕМ)
 define('SESSION_SECRET', 'bkgkh_secure_prod_key_2026_x92F8mQpZ');
-define('SESSION_EXPIRY', 3600); // 1 С‡Р°СЃ
+define('SESSION_EXPIRY', 3600); // 1 час
 
 /**
- * Р“РµРЅРµСЂР°С†РёСЏ С‚РѕРєРµРЅР° СЃРµСЃСЃРёРё (HMAC-SHA256)
+ * Генерация токена сессии (HMAC-SHA256)
  */
 function generateSessionToken($data) {
     $payload = json_encode([
@@ -44,7 +44,7 @@ function generateSessionToken($data) {
 }
 
 /**
- * Р’Р°Р»РёРґР°С†РёСЏ С‚РѕРєРµРЅР° СЃРµСЃСЃРёРё РёР· РєСѓРєРё
+ * Валидация токена сессии из куки
  */
 function validateSessionToken($token) {
     if (empty($token)) return null;
@@ -57,7 +57,7 @@ function validateSessionToken($token) {
     $payload = base64_decode($payloadB64);
     $signature = base64_decode($signatureB64);
     
-    // РџСЂРѕРІРµСЂСЏРµРј РїРѕРґРїРёСЃСЊ РЅР° РїРѕРґР»РёРЅРЅРѕСЃС‚СЊ
+    // Проверяем подпись на подлинность
     $expectedSignature = hash_hmac('sha256', $payload, SESSION_SECRET, true);
     if (!hash_equals($expectedSignature, $signature)) {
         return null;
@@ -65,7 +65,7 @@ function validateSessionToken($token) {
     
     $data = json_decode($payload, true);
     
-    // РџСЂРѕРІРµСЂСЏРµРј С‚Р°Р№РјС€С‚Р°РјРї Р¶РёР·РЅРё СЃРµСЃСЃРёРё
+    // Проверяем таймштамп жизни сессии
     if (!isset($data['exp']) || $data['exp'] < time()) {
         return null;
     }
@@ -74,7 +74,7 @@ function validateSessionToken($token) {
 }
 
 /**
- * РџСЂРѕРІРµСЂРєР° Р°РІС‚РѕСЂРёР·Р°С†РёРё С‡РµСЂРµР· httpOnly РєСѓРєРё
+ * Проверка авторизации через httpOnly куки
  */
 function checkAuth() {
     $token = $_COOKIE['admin_session'] ?? '';
@@ -83,7 +83,7 @@ function checkAuth() {
 }
 
 /**
- * РћС€РёР±РєР° Р°РІС‚РѕСЂРёР·Р°С†РёРё
+ * Ошибка авторизации
  */
 function authError() {
     http_response_code(401);
@@ -95,6 +95,17 @@ function authError() {
  * Whitelist-based sanitizer for article HTML bodies (TipTap output).
  * Keeps semantic tags/attributes, drops scripts/styles and dangerous URLs.
  */
+function isSafeArticleUrl($url) {
+    $url = trim($url);
+    if ($url === '') return false;
+    if (preg_match('#^(https?:)?//#i', $url)) return true;
+    if (preg_match('#^(mailto|tel):#i', $url)) return true;
+    if ($url[0] === '/') return true;
+    if (preg_match('#^(\./|\.\./)#', $url)) return true;
+    if (preg_match('#^data:image/(png|jpe?g|gif|webp);base64,#i', $url)) return true;
+    return false;
+}
+
 function sanitizeArticleBody($html) {
     if (!is_string($html) || $html === '') return '';
 
@@ -113,20 +124,11 @@ function sanitizeArticleBody($html) {
         'colgroup' => [], 'col' => [],
         'th' => ['colspan', 'rowspan'], 'td' => ['colspan', 'rowspan'],
         'span' => ['style'],
-        'div' => []
+        'div' => ['data-block', 'data-payload']
     ];
     $removeWhole = ['script', 'style', 'iframe', 'object', 'embed', 'link', 'meta'];
 
-    $safeUrl = function ($url) {
-        $url = trim($url);
-        if ($url === '') return false;
-        if (preg_match('#^(https?:)?//#i', $url)) return true;
-        if (preg_match('#^(mailto|tel):#i', $url)) return true;
-        if ($url[0] === '/') return true;
-        if (preg_match('#^(\./|\.\./)#', $url)) return true;
-        if (preg_match('#^data:image/(png|jpe?g|gif|webp);base64,#i', $url)) return true;
-        return false;
-    };
+    $safeUrl = 'isSafeArticleUrl';
 
     $safeStyle = function ($style) {
         $keep = [];
@@ -195,6 +197,28 @@ function sanitizeArticleBody($html) {
                     $node->setAttribute('rel', implode(' ', $rel));
                 }
             }
+
+            // Custom structural block: validate the marker and sanitize the
+            // JSON payload stored in data-payload (it wraps a content block).
+            if ($tag === 'div' && $node->hasAttribute('data-block')) {
+                $blockType = $node->getAttribute('data-block');
+                if (!preg_match('/^[a-z][a-z0-9_]*$/', $blockType)) {
+                    $node->removeAttribute('data-block');
+                    $node->removeAttribute('data-payload');
+                } else {
+                    $decoded = json_decode($node->getAttribute('data-payload'), true);
+                    if (is_array($decoded) && isset($decoded['type']) && is_string($decoded['type'])) {
+                        $encoded = json_encode(cleanBlockFields($decoded), JSON_UNESCAPED_UNICODE);
+                        if ($encoded !== false && strlen($encoded) <= 80000) {
+                            $node->setAttribute('data-payload', $encoded);
+                        } else {
+                            $node->removeAttribute('data-payload');
+                        }
+                    } else {
+                        $node->removeAttribute('data-payload');
+                    }
+                }
+            }
         }
 
         $children = [];
@@ -236,12 +260,61 @@ function sanitizeArticleBody($html) {
 function cleanArticleValue($key, $val) {
     if (!is_string($val)) return $val;
     if ($key === 'body') return sanitizeArticleBody($val);
+    if ($key === 'custom_content') return sanitizeCustomContent($val);
     return strip_tags($val);
 }
 
 /**
- * Р¤Р°Р№Р» РёР·РѕР±СЂР°Р¶РµРЅРёСЏ РµС‰С‘ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ РІ contacts РёР»Рё departments.
- * РљР°РЅРґРёРґР°С‚С‹ РїРѕРєСЂС‹РІР°СЋС‚ РІСЃРµ РёСЃС‚РѕСЂРёС‡РµСЃРєРёРµ С„РѕСЂРјР°С‚С‹ С…СЂР°РЅРµРЅРёСЏ: 'reception.png',
+ * Clean one content block (array) coming from custom_content JSON or from a
+ * body's data-payload attribute: rich text keys go through the body
+ * sanitizer, plain strings are stripped of tags, href/src must be safe URLs.
+ */
+function cleanBlockFields($block) {
+    if (!is_array($block)) return [];
+    $richKeys = ['html', 'paragraphs', 'steps'];
+    $walk = function ($node, $key = '') use (&$walk, $richKeys) {
+        $out = [];
+        foreach ($node as $k => $v) {
+            $childKey = is_int($k) ? $key : $k;
+            if (is_array($v)) {
+                $out[$k] = $walk($v, $childKey);
+            } elseif (is_string($v)) {
+                if (($childKey === 'href' || $childKey === 'src') && !isSafeArticleUrl($v)) {
+                    $out[$k] = '';
+                } elseif (in_array($childKey, $richKeys, true) || ($key === 'paragraphs' && $k === 'text')) {
+                    $out[$k] = sanitizeArticleBody($v);
+                } else {
+                    $out[$k] = strip_tags($v);
+                }
+            } else {
+                $out[$k] = $v;
+            }
+        }
+        return $out;
+    };
+    return $walk($block);
+}
+
+/**
+ * Sanitize custom_content: a JSON array of content blocks.
+ * Invalid JSON is rejected (empty array).
+ */
+function sanitizeCustomContent($json) {
+    $blocks = json_decode($json, true);
+    if (!is_array($blocks)) return '[]';
+    $clean = [];
+    foreach ($blocks as $block) {
+        if (!is_array($block) || !isset($block['type']) || !is_string($block['type'])) continue;
+        $clean[] = cleanBlockFields($block);
+    }
+    $encoded = json_encode($clean, JSON_UNESCAPED_UNICODE);
+    if ($encoded === false || strlen($encoded) > 400000) return '[]';
+    return $encoded;
+}
+
+/**
+ * Файл изображения ещё используется в contacts или departments.
+ * Кандидаты покрывают все исторические форматы хранения: 'reception.png',
  * '/uploads/...', '/departments/...', '/contacts/...'.
  */
 function imageStillUsed($filename, $pdo, $excludeContactId = null) {
@@ -269,15 +342,15 @@ function imageStillUsed($filename, $pdo, $excludeContactId = null) {
     $count += (int)$stmt->fetchColumn();
 
     $like = '%' . $filename . '%';
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM articles WHERE cover IN ($ph) OR gallery LIKE ? OR body LIKE ?");
-    $stmt->execute(array_merge($candidates, [$like, $like]));
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM articles WHERE cover IN ($ph) OR gallery LIKE ? OR body LIKE ? OR custom_content LIKE ?");
+    $stmt->execute(array_merge($candidates, [$like, $like, $like]));
     $count += (int)$stmt->fetchColumn();
 
     return $count > 0;
 }
 
 /**
- * РќР°Р№С‚Рё С„Р°Р№Р» РёР·РѕР±СЂР°Р¶РµРЅРёСЏ РІ РѕРґРЅРѕР№ РёР· РґРёСЂРµРєС‚РѕСЂРёР№ public/{uploads,departments,contacts}
+ * Найти файл изображения в одной из директорий public/{uploads,departments,contacts}
  */
 function findImageFile($filename) {
     foreach (['uploads', 'departments', 'contacts', 'news'] as $dir) {
@@ -290,7 +363,7 @@ function findImageFile($filename) {
 }
 
 /**
- * РЈРґР°Р»РµРЅРёРµ С„Р°Р№Р»Р° РёР·РѕР±СЂР°Р¶РµРЅРёСЏ, РµСЃР»Рё РѕРЅ Р±РѕР»СЊС€Рµ РЅРµ РїСЂРёРІСЏР·Р°РЅ РЅРё Рє С‡РµРјСѓ
+ * Удаление файла изображения, если он больше не привязан ни к чему
  */
 function deleteImageIfUnused($imagePath, $pdo, $currentContactId = null) {
     if (empty($imagePath)) return false;
@@ -306,8 +379,8 @@ function deleteImageIfUnused($imagePath, $pdo, $currentContactId = null) {
 }
 
 /**
- * РЈРґР°Р»РµРЅРёРµ С„Р°Р№Р»Р° РґРѕРєСѓРјРµРЅС‚Р°, РµСЃР»Рё РЅР° РЅРµРіРѕ Р±РѕР»СЊС€Рµ РЅРµ СЃСЃС‹Р»Р°РµС‚СЃСЏ РЅРё РѕРґРЅР° Р·Р°РїРёСЃСЊ.
- * РџРѕРґРґРµСЂР¶РёРІР°РµС‚ РёСЃС‚РѕСЂРёС‡РµСЃРєРёР№ С„РѕСЂРјР°С‚ 'documents/...' Рё РЅРѕРІС‹Р№ '/documents/...'.
+ * Удаление файла документа, если на него больше не ссылается ни одна запись.
+ * Поддерживает исторический формат 'documents/...' и новый '/documents/...'.
  */
 function deleteDocumentFileIfUnused($srcPath, $pdo) {
     if (empty($srcPath)) return false;
@@ -326,7 +399,7 @@ function deleteDocumentFileIfUnused($srcPath, $pdo) {
     return true;
 }
 
-// 2. РџСѓС‚СЊ Рє Р±Р°Р·Рµ РґР°РЅРЅС‹С… SQLite
+// 2. Путь к базе данных SQLite
 $dbPath = __DIR__ . "/contacts.db";
 
 $validTables = [
@@ -343,7 +416,16 @@ try {
     $pdo = new PDO("sqlite:$dbPath");
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // 3. Р РѕСѓС‚РёРЅРі Р·Р°РїСЂРѕСЃРѕРІ
+    // Runtime migration: blocks content for custom-layout articles
+    $hasCustomContent = false;
+    foreach ($pdo->query("PRAGMA table_info(articles)") as $col) {
+        if ($col["name"] === "custom_content") { $hasCustomContent = true; break; }
+    }
+    if (!$hasCustomContent) {
+        $pdo->exec("ALTER TABLE articles ADD COLUMN custom_content TEXT DEFAULT ''");
+    }
+
+    // 3. Роутинг запросов
     $requestUri = parse_url($_SERVER["REQUEST_URI"], PHP_URL_PATH);
 
     $afterApi = (strpos($requestUri, "/api/") !== false)
@@ -356,12 +438,12 @@ try {
 
     $method = $_SERVER["REQUEST_METHOD"];
 
-    // --- Р РћРЈРў: РђРІС‚РѕСЂРёР·Р°С†РёСЏ (/api/login) ---
+    // --- РОУТ: Авторизация (/api/login) ---
     if ($tableName === "login" && $method === "POST") {
         $data = json_decode(file_get_contents("php://input"), true);
         $password = $data["password"] ?? "";
         
-        // Р’Р°С€ С‚РµРєСѓС‰РёР№ СЂР°Р±РѕС‡РёР№ С…РµС€ РїР°СЂРѕР»СЏ
+        // Ваш текущий рабочий хеш пароля
         $passwordHash = '$2y$12$rarAoqlerZubcUTgR3ExDuLflIMyH22F5xnLbrCg1p38DQcpv5Q5C';
         
         if (password_verify($password, $passwordHash)) {
@@ -379,7 +461,7 @@ try {
                     'path' => '/',
                     'domain' => '', 
                     'secure' => $isSecure, 
-                    'httponly' => true, // Р—Р°С‰РёС‚Р° РѕС‚ РєСЂР°Р¶Рё С‚РѕРєРµРЅР° С‡РµСЂРµР· XSS / JS
+                    'httponly' => true, // Защита от кражи токена через XSS / JS
                     'samesite' => 'Lax'
                 ]
             );
@@ -387,12 +469,12 @@ try {
             echo json_encode(["success" => true, "message" => "Logged in"]);
         } else {
             http_response_code(401);
-            echo json_encode(["success" => false, "message" => "РќРµРІРµСЂРЅС‹Р№ РїР°СЂРѕР»СЊ"]);
+            echo json_encode(["success" => false, "message" => "Неверный пароль"]);
         }
         exit;
     }
     
-    // --- Р РћРЈРў: РџСЂРѕРІРµСЂРєР° СЃРµСЃСЃРёРё (/api/verify) ---
+    // --- РОУТ: Проверка сессии (/api/verify) ---
     if ($tableName === "verify" && $method === "GET") {
         $user = checkAuth();
         if ($user) {
@@ -404,7 +486,7 @@ try {
         exit;
     }
     
-    // --- Р РћРЈРў: Р’С‹С…РѕРґ (/api/logout) ---
+    // --- РОУТ: Выход (/api/logout) ---
     if ($tableName === "logout" && $method === "POST") {
         setcookie(
             'admin_session',
@@ -422,7 +504,7 @@ try {
         exit;
     }
     
-    // --- Р РћРЈРў: РћС‡РёСЃС‚РєР° РјСѓСЃРѕСЂРЅС‹С… РёР·РѕР±СЂР°Р¶РµРЅРёР№ (/api/cleanup) ---
+    // --- РОУТ: Очистка мусорных изображений (/api/cleanup) ---
     if ($tableName === "cleanup" && $method === "POST") {
         $user = checkAuth();
         if (!$user) authError();
@@ -449,7 +531,7 @@ try {
         exit;
     }
     
-    // --- Р РћРЈРў: Р—Р°РіСЂСѓР·РєР° РєР°СЂС‚РёРЅРѕРє Рё РґРѕРєСѓРјРµРЅС‚РѕРІ (/api/upload) ---
+    // --- РОУТ: Загрузка картинок и документов (/api/upload) ---
     if ($tableName === "upload" && $method === "POST") {
         $user = checkAuth();
         if (!$user) authError();
@@ -486,7 +568,7 @@ try {
         }
         
         if ($type === 'documents') {
-            // Р”РѕРєСѓРјРµРЅС‚С‹ вЂ” С‡РµР»РѕРІРµРєРѕС‡РёС‚Р°РµРјРѕРµ РёРјСЏ С„Р°Р№Р»Р°, РґРµРґСѓРїР»РёРєР°С†РёСЏ РїСЂРё СЃРѕРІРїР°РґРµРЅРёРё
+            // Документы — человекочитаемое имя файла, дедупликация при совпадении
             $base = pathinfo($fileName, PATHINFO_FILENAME);
             $base = preg_replace('/[^\p{L}\p{N}\s._-]+/u', '', $base);
             $base = trim(preg_replace('/\s+/', ' ', $base));
@@ -514,7 +596,7 @@ try {
         exit;
     }
 
-    // --- Р РћРЈРў: РЈРґР°Р»РµРЅРёРµ РЅРµСЃРѕС…СЂР°РЅС‘РЅРЅРѕРіРѕ С„Р°Р№Р»Р° (/api/cleanup-file) ---
+    // --- РОУТ: Удаление несохранённого файла (/api/cleanup-file) ---
     if ($tableName === "cleanup-file" && $method === "POST") {
         $user = checkAuth();
         if (!$user) authError();
@@ -532,7 +614,7 @@ try {
         exit;
     }
 
-    // --- Р РћРЈРў: РўСЂР°РЅСЃРїРѕСЂС‚РЅС‹Рµ JOIN-Р·Р°РїСЂРѕСЃС‹ ---
+    // --- РОУТ: Транспортные JOIN-запросы ---
     if ($method === "GET") {
         if ($tableName === "transport_services") {
             $sql = "SELECT tp.id, t.name, tp.unit, tp.price_no_nds FROM transport_price_population_and_budget tp JOIN transport_population_and_budget t ON tp.id_transport = t.id ORDER BY t.name, tp.id";
@@ -551,7 +633,7 @@ try {
         }
     }
 
-    // --- Р РћРЈРў: CRUD РѕРїРµСЂР°С†РёРё ---
+    // --- РОУТ: CRUD операции ---
     if (in_array($tableName, $validTables)) {
         if ($method === "GET") {
             $sql = $tableName === "articles"
@@ -588,7 +670,7 @@ try {
                     'transport_price_other' => ['id_transport', 'unit', 'price'],
                     'transport_other' => ['name', 'description'],
                     'schedule_reception' => ['day', 'time_start', 'time_end', 'description'],
-                    'articles' => ['section', 'slug', 'title', 'summary', 'published_at', 'cover', 'gallery', 'body', 'is_external', 'external_url', 'sort_order']
+                    'articles' => ['section', 'slug', 'title', 'summary', 'published_at', 'cover', 'gallery', 'body', 'custom_content', 'is_external', 'external_url', 'sort_order']
                 ];
                 
                 $tableAllowedFields = $allowedFields[$tableName] ?? [];
@@ -641,7 +723,7 @@ try {
                     'transport_price_other' => ['id_transport', 'unit', 'price'],
                     'transport_other' => ['name', 'description'],
                     'schedule_reception' => ['day', 'time_start', 'time_end', 'description'],
-                    'articles' => ['section', 'slug', 'title', 'summary', 'published_at', 'cover', 'gallery', 'body', 'is_external', 'external_url', 'sort_order']
+                    'articles' => ['section', 'slug', 'title', 'summary', 'published_at', 'cover', 'gallery', 'body', 'custom_content', 'is_external', 'external_url', 'sort_order']
                 ];
                 
                 $tableAllowedFields = $allowedFields[$tableName] ?? [];
