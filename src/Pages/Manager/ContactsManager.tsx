@@ -39,6 +39,7 @@ interface DepartmentData {
   id: number;
   name: string;
   email?: string;
+  src?: string;
 }
 
 interface PhoneDepartmentData {
