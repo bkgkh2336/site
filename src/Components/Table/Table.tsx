@@ -13,7 +13,8 @@ type TableRow = Record<string, any>;
 interface TableColumn {
     header: string;
     key: string;
-    render?: (value: unknown, row: TableRow) => React.ReactNode;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    render?: (value: any, row: TableRow) => React.ReactNode;
 }
 
 interface TableProps {
