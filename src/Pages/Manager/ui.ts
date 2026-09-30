@@ -176,7 +176,7 @@ export const IconLink = styled.a<{ $tone?: 'green' | 'red' | 'gray' }>`
   }
 `;
 
-export const ModalOverlay = styled.div`
+export const ModalOverlay = styled.div<{ $fullscreen?: boolean }>`
   position: fixed;
   top: 0;
   left: 0;
@@ -188,19 +188,21 @@ export const ModalOverlay = styled.div`
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 20px;
+  padding: ${({ $fullscreen }) => ($fullscreen ? '0' : '20px')};
 `;
 
-export const ModalContent = styled.div<{ $wide?: boolean }>`
+export const ModalContent = styled.div<{ $wide?: boolean; $fullscreen?: boolean }>`
   background: white;
-  border-radius: 16px;
-  max-width: ${({ $wide }) => ($wide ? '960px' : '600px')};
+  border-radius: ${({ $fullscreen }) => ($fullscreen ? '0' : '16px')};
+  max-width: ${({ $fullscreen, $wide }) => ($fullscreen ? 'none' : $wide ? '960px' : '600px')};
   width: 100%;
-  max-height: 90vh;
+  max-height: ${({ $fullscreen }) => ($fullscreen ? 'none' : '90vh')};
+  ${({ $fullscreen }) => $fullscreen && 'height: 100%;'}
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 40px rgba(16, 24, 40, 0.25);
+  box-shadow: ${({ $fullscreen }) =>
+      $fullscreen ? 'none' : '0 20px 40px rgba(16, 24, 40, 0.25)'};
 `;
 
 export const ModalHeader = styled.div`

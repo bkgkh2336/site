@@ -448,8 +448,8 @@ const NewsManager: React.FC = () => {
             )}
 
             {editing && (
-                <ModalOverlay onClick={(e) => e.target === e.currentTarget && void handleCancel()}>
-                    <ModalContent $wide>
+                <ModalOverlay $fullscreen onClick={(e) => e.target === e.currentTarget && void handleCancel()}>
+                    <ModalContent $fullscreen>
                         <ModalHeader>
                             {editing.id
                                 ? `Редактирование: ${editing.title || 'без названия'}`
