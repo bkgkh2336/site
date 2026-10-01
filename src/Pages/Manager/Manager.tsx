@@ -7,6 +7,7 @@ import {
 } from './styled';
 import { Card, ActionButton } from './ui';
 import ContactsManager from './ContactsManager';
+import ServicesManager from './ServicesManager';
 import DocumentsManager from './DocumentsManager';
 import NewsManager from './NewsManager';
 
@@ -98,7 +99,7 @@ const Manager: React.FC = () => {
       case 'contacts':
         return <ContactsManager />;
       case 'services':
-        return <Card><p>Редактирование услуг</p></Card>;
+        return <ServicesManager />;
       case 'documents':
         return <DocumentsManager />;
       case 'news':
