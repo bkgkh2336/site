@@ -34,18 +34,27 @@ export const SECTION_FEED_PATHS: Record<ArticleSection, string> = {
 };
 
 /**
- * Articles whose page layout lives in code (React components).
- * Only metadata (title, date, cover, gallery) is editable in the admin.
+ * Articles rendered by their own layout inside ArticlePage (shared component).
+ * Key: `${section}/${slug}`. Options tune the layout per article.
  */
-export const CUSTOM_ARTICLE_KEYS = new Set<string>([
-    'news/union_conference',
-    'news/cleanup_day',
-    'news/unified_safety_day',
-    'news/safety_day_passed',
-    'articles/boiler_maintenance',
-    'articles/attractions_safety',
-    'articles/autonomous_fire_detectors'
-]);
+export interface CustomArticleLayout {
+    lightbox: boolean;          // open lightbox on block gallery click
+    summary: boolean;           // show summary as a bold lead
+    coverFromGallery: boolean;  // fall back to first gallery image as cover
+    wide: boolean;              // cover 600px instead of 450x300
+}
+
+export const CUSTOM_ARTICLES: Record<string, CustomArticleLayout> = {
+    'news/union_conference': { lightbox: true, summary: true, coverFromGallery: true, wide: false },
+    'news/cleanup_day': { lightbox: true, summary: true, coverFromGallery: true, wide: false },
+    'news/safety_day_passed': { lightbox: true, summary: true, coverFromGallery: true, wide: false },
+    'news/unified_safety_day': { lightbox: false, summary: true, coverFromGallery: false, wide: false },
+    'articles/boiler_maintenance': { lightbox: false, summary: false, coverFromGallery: false, wide: true },
+    'articles/attractions_safety': { lightbox: false, summary: false, coverFromGallery: false, wide: true },
+    'articles/autonomous_fire_detectors': { lightbox: false, summary: false, coverFromGallery: false, wide: false }
+};
+
+export const CUSTOM_ARTICLE_KEYS = new Set(Object.keys(CUSTOM_ARTICLES));
 
 export const isCustomArticle = (section: string, slug: string) =>
     CUSTOM_ARTICLE_KEYS.has(`${section}/${slug}`);
