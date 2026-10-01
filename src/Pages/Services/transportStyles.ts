@@ -1,29 +1,6 @@
 import styled, { keyframes } from "styled-components";
-import {
-    ServicePageContainer,
-    PageHeader as SharedPageHeader,
-    HeaderIcon as SharedHeaderIcon,
-    ViewToggleWrapper as SharedViewToggleWrapper,
-    SearchContainer as SharedSearchContainer,
-    SearchInput as SharedSearchInput,
-    EmptyState as SharedEmptyState,
-    NoticeContainer as SharedNoticeContainer,
-    NoticeItem as SharedNoticeItem,
-    fadeIn
-} from "../../../Components/ServicePageComponents";
+import { fadeIn } from "../../Components/ServicePageComponents";
 
-// Re-export shared components
-export const TransportContainer = ServicePageContainer;
-export const PageHeader = SharedPageHeader;
-export const HeaderIcon = SharedHeaderIcon;
-export const ViewToggleWrapper = SharedViewToggleWrapper;
-export const SearchContainer = SharedSearchContainer;
-export const SearchInput = SharedSearchInput;
-export const EmptyState = SharedEmptyState;
-export const NoticeContainer = SharedNoticeContainer;
-export const NoticeItem = SharedNoticeItem;
-
-// Styles for cards
 const glow = keyframes`
     0%, 100% {
         opacity: 0.5;
@@ -129,7 +106,6 @@ export const PriceValue = styled.span<{ $highlight?: boolean }>`
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 `;
 
-// Стили для таблицы
 export const TableContainer = styled.div`
     width: 100%;
     overflow-x: auto;
@@ -220,13 +196,5 @@ export const TableCell = styled.td<{ $highlight?: boolean }>`
     @media (max-width: 768px) {
         padding: 12px 16px;
         font-size: 0.85rem;
-    }
-`;
-
-export const VariantRow = styled.div`
-    margin-bottom: 8px;
-    
-    &:last-child {
-        margin-bottom: 0;
     }
 `;

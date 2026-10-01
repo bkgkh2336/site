@@ -8,6 +8,8 @@ export {
     EmptyState,
     NoticeContainer,
     NoticeItem,
+    FilterContainer,
+    FilterButton,
     fadeIn,
     float
 } from './styled';
