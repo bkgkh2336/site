@@ -130,22 +130,6 @@ export const IconWrapper = styled.div`
     }
 `;
 
-export const PhoneCard = styled(Block_)`
-    flex-direction: column;
-    align-items: center;
-    padding: 60px;
-    background: 
-        linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,1) 100%),
-        url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(40,167,69,0.05)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
-    border-radius: 25px;
-    box-shadow: 
-        0 20px 70px rgba(0, 0, 0, 0.12),
-        0 10px 30px rgba(40, 167, 69, 0.08);
-    border: 3px solid #e8f5e9;
-    background-clip: padding-box;
-    position: relative;
-`;
-
 export const HighlightText = styled.div`
     display: flex;
     align-items: center;
