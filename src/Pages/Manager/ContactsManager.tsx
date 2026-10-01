@@ -93,8 +93,8 @@ const ContactsManager: React.FC = () => {
         const departments = await departmentsRes.json();
         const phoneDepartments = await phoneDepRes.json();
 
-        setContacts(contacts.filter((c: ContactData) => !c.is_primary) || []);
-        setPrimaryContacts(SortLeadership(contacts.filter((c: ContactData) => c.is_primary)) || []);
+        setContacts(contacts.filter((c: ContactData) => Number(c.is_primary) !== 1) || []);
+        setPrimaryContacts(SortLeadership(contacts.filter((c: ContactData) => Number(c.is_primary) === 1)) || []);
         setPhones(phones || []);
         setDepartments(departments || []);
         setPhoneDepartments(phoneDepartments || []);
@@ -231,7 +231,7 @@ const ContactsManager: React.FC = () => {
             job_title: editingContact.job_title,
             email: editingContact.email,
             src: editingContact.src ?? '',
-            is_primary: editingContact.is_primary ? 1 : 0
+            is_primary: Number(editingContact.is_primary) === 1 ? 1 : 0
           })
         }
       );
@@ -275,7 +275,7 @@ const ContactsManager: React.FC = () => {
         }
         
         // Add to appropriate state based on is_primary
-        if (savedContact.is_primary) {
+        if (Number(savedContact.is_primary) === 1) {
           setPrimaryContacts(prev => SortLeadership([...prev, savedContact]));
         } else {
           setContacts(prev => [...prev, savedContact]);
@@ -318,10 +318,10 @@ const ContactsManager: React.FC = () => {
         // Обновляем контакт и при смене флага переносим между разделами
         setContacts(prev => prev
           .filter(c => c.id !== editingContact.id)
-          .concat(editingContact.is_primary ? [] : [editingContact]));
+          .concat(Number(editingContact.is_primary) === 1 ? [] : [editingContact]));
         setPrimaryContacts(prev => SortLeadership(prev
           .filter(c => c.id !== editingContact.id)
-          .concat(editingContact.is_primary ? [editingContact] : [])));
+          .concat(Number(editingContact.is_primary) === 1 ? [editingContact] : [])));
       }
       
       // Refresh phones data

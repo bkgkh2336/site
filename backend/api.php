@@ -721,6 +721,14 @@ try {
                 : "SELECT * FROM $tableName";
             $stmt = $pdo->query($sql);
             $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            // pdo_sqlite в строковом режиме (PHP < 8.1) отдаёт INTEGER как "1"/"0",
+            // а в JS непустая строка truthy — фильтры is_primary/is_external ломались
+            foreach ($data as &$row) {
+                foreach (['is_primary', 'is_fax', 'is_external'] as $flag) {
+                    if (isset($row[$flag])) $row[$flag] = (int)$row[$flag];
+                }
+            }
+            unset($row);
             echo json_encode($data ?: []);
         }
         elseif ($method === "POST") {
