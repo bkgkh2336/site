@@ -334,12 +334,12 @@ const EditorBox = styled.div`
     }
 
     /*
-     * Body typography applies only to TipTap's own text nodes — never inside
-     * spec blocks, so blocks keep exactly the look they have in the preview.
+     * articleBodyCss is wrapped in :where() together with the component class,
+     * so every styled block component (specificity 0-1-0) beats it and blocks
+     * keep exactly the look they have in the preview/public page. Blocks are
+     * atom nodes, so they never sit inside TipTap's own text markup.
      */
-    :where(.rte-content .ProseMirror)
-        :not(.kb-block-node)
-        :not(.kb-block-node *) {
+    :where(& .rte-content .ProseMirror) {
         ${articleBodyCss}
     }
 
