@@ -176,12 +176,12 @@ export const NoticeContainer = styled.div`
 `;
 
 // Notice item
-export const NoticeItem = styled.div`
+export const NoticeItem = styled.div<{ $green?: boolean }>`
     padding: 16px 20px;
-    background: rgba(220, 53, 69, 0.1);
-    border-left: 4px solid #dc3545;
+    background: ${props => props.$green ? 'rgba(40, 167, 69, 0.1)' : 'rgba(220, 53, 69, 0.1)'};
+    border-left: 4px solid ${props => props.$green ? '#28a745' : '#dc3545'};
     border-radius: 8px;
-    color: #dc3545;
+    color: ${props => props.$green ? '#28a745' : '#dc3545'};
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     font-size: 0.95rem;
     line-height: 1.6;
@@ -189,6 +189,51 @@ export const NoticeItem = styled.div`
     
     @media (max-width: 768px) {
         padding: 14px 16px;
+        font-size: 0.9rem;
+    }
+`;
+
+// Toolbar filter (season / lawn type)
+export const FilterContainer = styled.div`
+    display: flex;
+    gap: 12px;
+    padding: 6px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(40, 167, 69, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.15);
+    
+    @media (max-width: 768px) {
+        width: 100%;
+        gap: 8px;
+    }
+`;
+
+export const FilterButton = styled.button<{ $active: boolean }>`
+    padding: 10px 20px;
+    background: ${props => props.$active ? '#28a745' : 'transparent'};
+    color: ${props => props.$active ? '#ffffff' : '#6c757d'};
+    border: none;
+    border-radius: 8px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    &:hover {
+        background: ${props => props.$active ? '#218838' : 'rgba(40, 167, 69, 0.1)'};
+        color: ${props => props.$active ? '#ffffff' : '#28a745'};
+    }
+    
+    &:active {
+        transform: scale(0.98);
+    }
+    
+    @media (max-width: 768px) {
+        flex: 1;
+        padding: 10px 16px;
         font-size: 0.9rem;
     }
 `;
