@@ -1,6 +1,8 @@
 # КЖУП «Буда-Кошелёвский коммунальник» — Сайт
 
-Сайт компании: **https://bkgkh.by**
+- **Прод:** https://bkgkh.by
+- **Тест:** `develop.bkgkh.by` (открывается через «Предпросмотр» в Plesk)
+- **Репозиторий:** https://github.com/bkgkh2336/site (ветка `main`)
 
 ---
 
@@ -10,94 +12,105 @@
 |---|---|
 | Фреймворк | React 19 + TypeScript |
 | Сборщик | Vite 6 |
-| Стили | styled-components |
-| Роутинг | react-router-dom v7 |
+| Стили | styled-components 6 |
+| Редактор в админке | TipTap 3 (WYSIWYG для статей) |
 | Иконки | lucide-react |
-| Бэкенд | PHP (без фреймворка) |
-| База данных | SQLite |
-| Деплой | Apache (.htaccess) |
+| Роутинг | react-router-dom v7 |
+| Бэкенд | PHP без фреймворка, **совместим с PHP 7.4** (на хостинге 7.4.33) |
+| База данных | SQLite (pdo_sqlite) |
+| Хостинг | Plesk (nginx + Apache, `.htaccess`), деплой по FTP |
+| Крупные файлы | Git LFS (`*.mp4`, `*.MP4`) |
+
+> **Важно для правок в `backend/api.php`:** хостинг работает на PHP 7.4 —
+> нельзя использовать функции PHP 8+ (`str_starts_with`, `str_contains`,
+> `array_is_list`, `?->`, `match`...). Иначе — фатал и 500, который не ловится
+> `catch (Exception)`. Проверяй совместимость после каждой правки бэкенда.
 
 ---
 
 ## Быстрый старт
 
 ```bash
-# 1. Установка зависимостей
+# 1. Зависимости
 npm install
 
 # 2. Настройка бэкенда
-cd backend
-cp .env.example .env   # отредактировать .env
-php generate_hash.php "ваш_пароль"  # сгенерировать хеш пароля
-# Вставить полученный хеш в .env: PASSWORD_HASH=...
+cp backend/.env.example backend/.env
+php backend/generate_hash.php "ваш_пароль"
+# → вписать хеш в backend/.env: ADMIN_PASSWORD_HASH=$2y$...
 
-# 3. Запуск в разработке
-cd ..
+# 3. Разработка (фронт + PHP-сервер на :8000, прокси из vite)
 npm run dev
 ```
 
-Сайт откроется на `http://localhost:5173`.
+Сайт откроется на `http://localhost:5173`, API — на `http://localhost:8000`.
+
+Без заполненного `backend/.env` сайт работает публично, но вход в админку
+отдаёт 500 (fail-closed — так задумано).
 
 ---
 
 ## Режимы запуска
 
 ```bash
-npm run dev:full          запуск фронта и PHP-сервера одновременно
-npm run dev               запуск фронта
-npm run php               запуск только PHP-сервера (порт 8000)
-npm run prepare-deploy    сборка в dist/, создание папки build/
+npm run dev              фронт + PHP-сервер (localhost:8000)
+npm run dev:full         то же, но PHP через router.php (чистые URL в dev)
+npm run php              только PHP-сервер (порт 8000)
+npm run lint             ESLint
+npm run build            sitemap.xml + сборка в dist/
+npm run prepare-deploy   сборка + api.php/.env/.htaccess в dist/ — БД НЕ кладёт
+npm run prepare-deploy:first  то же + contacts.db — только для первого заливки
 ```
+
+---
+
+## Git, LFS и что нельзя коммитить
+
+- **Никогда в git:** `backend/.env` (секреты), `*.db` / `*.sqlite` (состояние
+  сервера) — это в `.gitignore`; на сервер они попадают только через
+  `prepare-deploy:first` (БД) и вручную (`.env` копируется скриптом).
+- **Видео** (`*.mp4`, `*.MP4`) — через **Git LFS**: в истории git только
+  указатели (~130 байт), байты уходят в LFS-хранилище GitHub (лимит 1 ГБ,
+  занято ~324 МБ). Клонирующим нужен установленный `git-lfs`.
+- Тестовые/сторонние ветки `opencode/*` в репозиторий не попадают.
 
 ---
 
 ## Структура проекта
 
 ```
-JKX/
+site/
 ├── src/                          # Исходники фронтенда
 │   ├── main.tsx                  # Точка входа
-│   ├── App.tsx                   # Корневой компонент (роутер, 49 маршрутов)
-│   ├── functions.ts              # Функция GetData() для запросов к API
-│   ├── accessibility.css         # Стили для слабовидящих
-│   ├── App.css                   # Глобальные стили
-│   ├── vite-env.d.ts
-│   ├── Components/               # Переиспользуемые компоненты
-│   │   ├── Header/               # Шапка: навигация + телефон + Telegram
-│   │   ├── Footer/               # Подвал: копирайт + контакты + Telegram
-│   │   ├── Breadcrumbs/          # Хлебные крошки
-│   │   ├── ExternalLink/         # Ссылка на внешний ресурс
-│   │   └── ...                   # 30+ компонентов
+│   ├── App.tsx                   # Корневой компонент (роутер)
+│   ├── functions.ts              # GetData() + сортировка руководства
+│   ├── Components/               # Header, Footer, Breadcrumbs, Section, ...
 │   ├── Pages/                    # Страницы
 │   │   ├── Main/                 # Главная
-│   │   ├── ScheduleForms/        # График приёма
-│   │   ├── WorkSchedule/         # Режим работы
-│   │   ├── Contacts/             # Контакты
+│   │   ├── Contacts/             # Контакты (руководство = is_primary)
 │   │   ├── Services/             # Услуги (11 подстраниц)
-│   │   ├── ForCitizens/          # Для граждан (14 подстраниц)
-│   │   ├── News/                 # Пресс-центр
-│   │   ├── Documents/            # Документы
-│   │   ├── Manager/              # Админ-панель
+│   │   ├── News/                 # Пресс-центр (статьи из БД)
+│   │   ├── Manager/              # Админ-панель (/manager)
 │   │   └── ...                   # Остальные страницы
-│   └── utils/
-│       └── seoConfig.ts          # SEO-конфигурация (тайтлы, описания)
+│   ├── data/
+│   │   └── menu.ts               # Меню сайта (структура + активные пункты)
+│   └── utils/seoConfig.ts        # SEO-конфигурация
 ├── backend/                      # PHP-бэкенд
-│   ├── api.php                   # REST API (470 строк)
-│   ├── contacts.db               # SQLite база данных
-│   ├── .env                      # Переменные окружения
-│   └── generate_hash.php         # Генератор пароля
-├── public/                       # Статические файлы
-│   ├── logo.png
-│   ├── sitemap.xml               # Автогенерируется при сборке
-│   ├── robots.txt
-│   ├── uploads/                  # Загруженные через админку изображения
-│   ├── documents/                # PDF-документы
-│   └── news/                     # Изображения для новостей
-├── scripts/
-│   └── generate-sitemap.js       # Генератор sitemap.xml
-├── .htaccess                     # Apache: SPA-роутинг + кэширование + Gzip
-├── vite.config.ts
-└── tsconfig.json
+│   ├── api.php                   # REST API (~850 строк)
+│   ├── contacts.db               # SQLite (ВНЕ git)
+│   ├── .env                      # Секреты (ВНЕ git), см. .env.example
+│   ├── .htaccess                 # Отдаёт только api.php (всё остальное — 403)
+│   ├── generate_hash.php         # Генератор bcrypt-хеша пароля
+│   └── router.php                # Рouter для dev-сервера
+├── public/                       # Статика (копируется в dist как есть)
+│   ├── uploads/, contacts/, departments/   # Картинки из админки
+│   ├── documents/, news/         # PDF и картинки новостей
+│   ├── useful_to_know/GSZ/       # Видео (LFS)
+│   └── sitemap.xml               # Автогенерируется при сборке
+├── scripts/generate-sitemap.js
+├── .htaccess                     # SPA-роутинг + запрет *.php (кроме backend/api.php)
+├── .gitattributes                # LFS-трекинг видео
+└── package.json
 ```
 
 ---
@@ -106,22 +119,20 @@ JKX/
 
 ### Страницы
 
-Каждая страница — это React-компонент в `src/Pages/`. Состоит из:
-- `MyPage.tsx` — логика и вёрстка
-- `styled.ts` — styled-components стили
+Каждая страница — React-компонент в `src/Pages/`: `MyPage.tsx` (логика +
+вёрстка) и `styled.ts` (styled-components).
 
 **Чтобы добавить новую страницу:**
-1. Создать папку `src/Pages/MyNewPage/` с `MyNewPage.tsx` и `styled.ts`
-2. В `src/App.tsx`:
-   - Добавить import: `const MyNewPage = lazy(() => import('./Pages/MyNewPage/MyNewPage'));`
-   - Добавить `<Route>` внутри `<Routes>`
-3. В `src/utils/seoConfig.ts` — добавить SEO-метаданные
-4. В `src/Components/Header/Header.tsx` — добавить пункт меню (если нужно)
-5. В `src/Components/Breadcrumbs/Breadcrumbs.tsx` — добавить хлебные крошки (если нужно)
+1. Создать `src/Pages/MyNewPage/MyNewPage.tsx` + `styled.ts`
+2. В `src/App.tsx`: `const MyNewPage = lazy(...)` + `<Route>`
+3. В `src/utils/seoConfig.ts` — SEO-метаданные
+4. Меню — в `src/data/menu.ts` (там же нормализация путей и подсветка
+   активного пункта; `Header` и `Section` читают его оттуда)
 
 ### Стили
 
-Все стили — через `styled-components`. Каждая страница/компонент имеет свой `styled.ts` с экспортами:
+Все стили — через `styled-components`, свой `styled.ts` у каждой страницы:
+
 ```tsx
 import styled from 'styled-components';
 export const MyBlock = styled.div`
@@ -132,22 +143,13 @@ export const MyBlock = styled.div`
 
 ### Иконки
 
-Используется библиотека `lucide-react`. Иконки tree-shake-ятся при сборке.
-```tsx
-import { Phone, Send, Building2 } from 'lucide-react';
-<Phone size={20} color="#28a745" />
-```
-
-Полный список иконок: https://lucide.dev/icons
+`lucide-react`, tree-shake-ятся при сборке: `import { Phone, Send } from 'lucide-react';`
+Список: https://lucide.dev/icons
 
 ### Тёмная тема для слабовидящих
 
-Реализована через CSS-классы на `<body>`:
-- `.bvi-mode` — увеличенный шрифт
-- `.bvi-mode-dark` — тёмный фон + белый текст
-- `.bvi-mode-light` — светлый фон + чёрный текст
-
-Управляется компонентом `AccessibilityPanel`.
+CSS-классы на `<body>`: `.bvi-mode`, `.bvi-mode-dark`, `.bvi-mode-light`,
+управляются компонентом `AccessibilityPanel`.
 
 ---
 
@@ -155,174 +157,153 @@ import { Phone, Send, Building2 } from 'lucide-react';
 
 ### API
 
-Единый файл: `backend/api.php`
+Единый файл `backend/api.php`, все пути — через `/backend/api.php/api/...`.
 
-**Без авторизации (GET, чтение):**
+**Публичное чтение (GET):**
 ```
-GET /backend/api.php/api/contacts          — все контакты
-GET /backend/api.php/api/departments       — все отделы
-GET /backend/api.php/api/documents         — все документы
-GET /backend/api.php/api/{table}           — любая таблица
+GET /backend/api.php/api/contacts       контакты (is_primary=1 → руководство)
+GET /backend/api.php/api/articles       новости/статьи
+GET /backend/api.php/api/{table}        любая таблица
 ```
 
 **С авторизацией (POST/PUT/DELETE):**
 ```
-POST   /backend/api.php/api/login          — вход (пароль из .env)
-POST   /backend/api.php/api/contacts       — создать контакт
-PUT    /backend/api.php/api/contacts/5     — обновить контакт
-DELETE /backend/api.php/api/contacts/5     — удалить контакт
-POST   /backend/api.php/api/upload         — загрузить изображение
-POST   /backend/api.php/api/cleanup        — удалить осиротевшие картинки
+POST   /api/login          вход (пароль из .env; 5 неудач → 429 на 15 минут)
+POST   /api/{table}        создать запись
+PUT    /api/{table}/id     обновить запись
+DELETE /api/{table}/id     удалить запись
+POST   /api/upload         загрузить изображение (contacts/departments/documents/news)
+POST   /api/cleanup        удалить осиротевшие картинки
 ```
 
-**Таблицы БД:** contacts, phone_contacts, departments, phone_departments, documents_group, documents, schedule_reception, ventilation_services, waste_services, electro_services, grass_services, heating_services, plumbing_services, el_inst_services, transport_price_population_and_budget, transport_population_and_budget, transport_price_jur, transport_jur, transport_price_other, transport_other.
+**Таблицы:** contacts, phone_contacts, departments, phone_departments,
+documents_group, documents, articles (+ schedule_reception, тарифы услуг:
+ventilation/waste/electro/grass/heating/plumbing/el_inst/transport_*).
 
-### Настройка бэкенда
+Колонки-флаги (`is_primary`, `is_fax`, `is_external`) API всегда отдаёт
+**числами** — на хостинге pdo_sqlite возвращает их строками, нормализация
+делается в GET-роуте. На фронте используй `Number(x.flag) === 1`.
 
-Файл `backend/.env`:
+### `backend/.env` (см. `.env.example`)
+
 ```
-SESSION_SECRET=случайная_строка
+SESSION_SECRET=...          HMAC-ключ сессий (bin2hex(random_bytes(32)))
+ADMIN_PASSWORD_HASH=$2y$... bcrypt-хеш пароля (php backend/generate_hash.php)
 SESSION_EXPIRY=3600
-PASSWORD_HASH=хеш_пароля_php_generate_hash
-CORS_ORIGINS=https://bkgkh.by,https://www.bkgkh.by
 APP_ENV=production
 ```
 
-Сгенерировать хеш пароля:
-```bash
-cd backend
-php generate_hash.php "мой_пароль"
-```
+Без `.env` или с пустыми ключами вход всегда 500 — сайт публично жив,
+админка закрыта (fail-closed).
+
+### Защита
+
+- `backend/.htaccess`: из папки бэкенда доступен только `api.php`
+  (`.env`, БД, dev-скрипты — 403); корневой `.htaccess` запрещает любые `*.php`
+  кроме `/backend/api.php`.
+- Rate-limit входа: 5 неудач подряд → блок IP на 15 минут, сброс при успехе.
+- Сессия: HMAC-подписанный токен, срок — `SESSION_EXPIRY`.
 
 ### Админ-панель
 
-Доступна по адресу `/manager` после авторизации. Позволяет:
-- Управлять контактами и отделами
-- Загружать изображения
-Остальной функционал не реализован.
+`/manager`, вход — пароль из `.env`. Реализовано:
 
-Вход: пароль, указанный в `backend/.env`.
+- **Контакты и отделы** — телефоны, картинки, галочка «Руководящий состав»
+  (`is_primary`);
+- **Документы** — группы и PDF;
+- **Новости/статьи** — TipTap-редактор: текст, таблицы, картинки/галереи,
+  видео, внешние ссылки, расписание публикации.
+
+Тарифы услуг и графики приёма правятся напрямую в SQLite
+(например, Sqlite Viewer + `backend/contacts.db`).
 
 ---
 
 ## Сборка и деплой
 
 ```bash
-# 1. Собрать фронт
-npm run build
-
-# 2. Подготовить к деплою (копирует dist + backend + .htaccess)
-npm run assemble
-
-# 3. Или всё одной командой:
+# Обновление (БД на сервере НЕ трогаем):
 npm run prepare-deploy
+
+# Первый залив на чистый сервер (кладёт contacts.db):
+npm run prepare-deploy:first
 ```
 
-После `assemble` всё будет в папке `build/`:
+`prepare-deploy` собирает в `dist/`:
+
 ```
-build/
-├── dist/            # Собранный фронтенд (index.html + assets/)
-├── dist/backend/    # PHP-бэкенд + contacts.db
-├── .htaccess        # Правила Apache
+dist/
+├── index.html, assets/        # собранный фронт (хеш-имена чанков!)
+├── public-файлы...            # logo, uploads, documents, news, sitemap.xml...
+├── .htaccess                  # SPA-роутинг + запрет php
+└── backend/
+    ├── api.php                # копия из backend/
+    ├── .env                   # копия секретов
+    ├── .htaccess              # доступен только api.php
+    └── contacts.db            # ТОЛЬКО в prepare-deploy:first
 ```
 
 ### Требования к хостингу
 
-- Apache с mod_rewrite
-- PHP 8.x с расширением SQLite (pdo_sqlite)
-- `.htaccess` уже настроен для SPA-роутинга
+- PHP **7.4+** с pdo_sqlite (на хостинге 7.4.33)
+- Apache с mod_rewrite (Plesk: nginx+Apache)
+- `backend/` доступен на запись (сессии, загрузки, БД)
 
-### Структура на сервере
+### Типовые ошибки
 
-```
-public_html/
-├── index.html          # из dist/
-├── assets/             # из dist/assets/
-├── backend/            # PHP + .env + contacts.db
-├── .htaccess
-├── logo.png
-├── uploads/            # загруженные изображения
-├── documents/          # PDF-документы
-└── sitemap.xml
-```
-
-Если бэкенд отдаёт 404:
-- Убедитесь, что в `backend/.env` `APP_ENV=production` (иначе показываются ошибки)
-- Проверьте права на `backend/contacts.db` (должен быть доступен на запись для PHP)
-- Проверьте пути в `.htaccess`
+| Симптом | Причина |
+|---|---|
+| Все запросы API → 500 `no such table` | В `dist/backend/` нет `contacts.db` (залит без `:first`) или она пустая |
+| Вход → 500 | Нет `backend/.env` или пустые `SESSION_SECRET`/`ADMIN_PASSWORD_HASH` |
+| 403 на `.env`/скрипты | Это защита, а не ошибка |
+| 500 при сохранении статьи | В `api.php` появилась функция PHP 8+ (на хостинге PHP 7.4) |
+| Ломается после заливки только `assets/` | Чанки и `index.html` должны обновляться **вместе**; заливай весь `dist/` |
 
 ---
 
 ## Типовые задачи
 
-### Как сменить логотип
+### Сменить логотип
+Заменить `public/logo.png`.
 
-Заменить `public/logo.png` (на сервере — в корне сайта).
+### Добавить/убрать пункт меню
+`src/data/menu.ts` — одна структура для десктопа и мобилки, активный пункт
+определяется автоматически (самый глубокий совпавший путь).
 
-### Как добавить/убрать пункт меню
+### Изменить расписание приёма (график)
+`src/Pages/ScheduleForms/ScheduleForms.tsx` (таблица КЖУП ~строки 96-104,
+карточки-ссылки ~120-161); карточка `ScheduleLinkCard` в `styled.ts`.
 
-Файл `src/Components/Header/Header.tsx`:
-- Найти блок `<Section caption="Для граждан">`
-- Добавить или удалить элемент в массиве `list`
-- Сделать то же самое в мобильном меню (блок `<MobileMenu>`)
+### Контакты в футере/шапке
+`src/Components/Footer/Footer.tsx`, `src/Components/Header/Header.tsx`
+(блоки `ContactInfo` и `MobileContactInfo`).
 
-### Как изменить расписание приёма (график)
+### Новые тарифы на услуги
+Sqlite Viewer → `backend/contacts.db` → таблицы `*_services`,
+`transport_*`. Или через админку, если это контакты/документы/новости.
 
-- Таблица-расписание КЖУП: `src/Pages/ScheduleForms/ScheduleForms.tsx` (строки 96-104)
-- Карточки-ссылки (райисполком, ГО ЖКХ, Министерство): там же, строки 120-161
-- Карточка в стиле styled-components: экспорт `ScheduleLinkCard` в `src/Pages/ScheduleForms/styled.ts`
+### SEO-тайтлы
+`src/utils/seoConfig.ts`.
 
-### Как изменить контакты в футере
+### Новая картинка/PDF
+Положить в `public/` (или подпапку), после сборки доступно по URL.
 
-Файл `src/Components/Footer/Footer.tsx`.
-
-### Как изменить контакты в шапке
-
-Файл `src/Components/Header/Header.tsx`, блок `ContactInfo` (desktop) и `MobileContactInfo` (mobile).
-
-### Как добавить новые тарифы на услуги
-
-Скачать Sqlite Viewer и загрузить БД `backend/contacts.db`, затем в ней менять таблицы.
-
-### Как поменять SEO-тайтлы
-
-Файл `src/utils/seoConfig.ts`.
-
-### Как добавить новую картинку/PDF
-
-Положить в `public/` или подпапку (`public/documents/`, `public/news/`).
-Доступно по URL: `/название_файла.pdf`.
-
-### Как заменить ссылку на Telegram
-
-Файлы:
-- `src/Components/Footer/Footer.tsx` — футер
-- `src/Components/Header/Header.tsx` — шапка (desktop + mobile)
+### Ссылка на Telegram
+`src/Components/Footer/Footer.tsx` и `src/Components/Header/Header.tsx`.
 
 ---
 
 ## Загрузка изменений на хостинг
 
-1. В проекте выполните команду:
+1. Собрать: `npm run prepare-deploy` (первый раз — `prepare-deploy:first`).
+2. FTP: загрузить **всё содержимое `dist/`** в каталог `develop.bkgkh.by`
+   (с перезаписью).
+3. Открыть тест: Plesk → домен `develop.bkgkh.by` → кнопка **«Предпросмотр»**
+   (как обычный сайт тест не открывается).
+4. Проверить: главная, контакты (руководство), вход в `/manager`,
+   сохранение любой новости.
+5. Если всё в порядке — скопировать файлы из `develop.bkgkh.by` в каталог
+   публичного сайта (Plesk, файловый менеджер) и проверить bkgkh.by.
 
-```bash
-npm run prepare-deploy
-```
-
-После выполнения команды будет создана (или обновлена) папка `dist/`.
-
-2. Подключитесь к хостингу по FTP (url - bkgkh.by).
-
-3. Загрузите **всё содержимое** папки `dist/` в каталог `develop.bkgkh.by` (тестовый домен).
-
-> **Важно:** `develop.bkgkh.by` предназначен только для проверки изменений и не открывается как обычный сайт.
-
-4. Чтобы открыть тестовую версию сайта:
-
-   * войдите в Plesk;
-   * найдите домен `develop.bkgkh.by`;
-   * наведите курсор на кнопку **«Предпросмотр»** и нажмите её.
-
-5. Проверьте, что сайт работает корректно и изменения отображаются без ошибок.
-
-6. Если всё в порядке, скопируйте файлы из `develop.bkgkh.by` в `public.bkgkh.by` (публичный сайт).
+> При обновлении **не заливать** `contacts.db` (команда `prepare-deploy` её
+> и не кладёт) — иначе затрутся правки, сделанные через админку на проде.
