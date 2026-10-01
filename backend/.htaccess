@@ -1,4 +1,12 @@
-# Запрет доступа к файлам базы данных
+# Доступ к файлам бэкенда разрешён ТОЛЬКО api.php.
+# Закрыты: .env, *.db/*.sqlite, *.json, dev-скрипты
+# (check_*, seed_*, migrate_*, router.php, generate_hash.php).
+<FilesMatch "^(?!api\.php$)">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Дополнительная защита файлов базы данных
 <Files ~ "\.(db|sqlite)$">
     Order allow,deny
     Deny from all

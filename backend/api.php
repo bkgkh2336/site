@@ -25,9 +25,37 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
 ini_set("display_errors", 0);
 error_reporting(0);
 
-// Секретный ключ для подписи сессий (ИЗМЕНИТЕ ЭТИ СИМВОЛЫ НА СВОИ ПЕРЕД ДЕПЛОЕМ)
-define('SESSION_SECRET', 'bkgkh_secure_prod_key_2026_x92F8mQpZ');
-define('SESSION_EXPIRY', 3600); // 1 час
+// Загрузка секретов из backend/.env (файл вне git; см. .env.example).
+// Секреты живут ТОЛЬКО в .env: без SESSION_SECRET/ADMIN_PASSWORD_HASH
+// вход в админку закрыт (500), публичная часть сайта продолжает работать.
+// Читаем в локальный массив (не putenv — он переживает между запросами
+// в долгоживущих PHP-процессах и протекает на другие запросы).
+$envValues = [];
+$envPath = __DIR__ . '/.env';
+if (is_readable($envPath)) {
+    foreach (file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $envLine) {
+        $envLine = trim($envLine);
+        if ($envLine === '' || $envLine[0] === '#') continue;
+        $eqPos = strpos($envLine, '=');
+        if ($eqPos === false) continue;
+        $envKey = trim(substr($envLine, 0, $eqPos));
+        $envValue = trim(substr($envLine, $eqPos + 1));
+        $valLen = strlen($envValue);
+        if ($valLen >= 2 && ($envValue[0] === '"' || $envValue[0] === "'") && $envValue[$valLen - 1] === $envValue[0]) {
+            $envValue = substr($envValue, 1, $valLen - 2);
+        }
+        if ($envKey !== '') $envValues[$envKey] = $envValue;
+    }
+}
+
+// Приоритет: реальные переменные окружения сервера > backend/.env
+define('SESSION_SECRET', (string)(getenv('SESSION_SECRET') ?: ($envValues['SESSION_SECRET'] ?? '')));
+define('SESSION_EXPIRY', (int)(getenv('SESSION_EXPIRY') ?: ($envValues['SESSION_EXPIRY'] ?? 3600)));
+define('ADMIN_PASSWORD_HASH', (string)(getenv('ADMIN_PASSWORD_HASH') ?: ($envValues['ADMIN_PASSWORD_HASH'] ?? '')));
+
+// Корень контента (изображения, документы): в репозитории public/ лежит
+// рядом с backend/, в собранном dist/ Vite уже разложил public/* в корень.
+define('CONTENT_ROOT', is_dir(__DIR__ . '/../public') ? __DIR__ . '/../public' : __DIR__ . '/..');
 
 /**
  * Генерация токена сессии (HMAC-SHA256)
@@ -47,7 +75,7 @@ function generateSessionToken($data) {
  * Валидация токена сессии из куки
  */
 function validateSessionToken($token) {
-    if (empty($token)) return null;
+    if (empty($token) || SESSION_SECRET === '') return null;
     
     $parts = explode('.', $token);
     if (count($parts) !== 2) return null;
@@ -89,6 +117,49 @@ function authError() {
     http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
     exit;
+}
+
+/**
+ * Ограничение попыток входа (/api/login): после 5 неудач подряд
+ * IP блокируется на 15 минут (защита от перебора пароля онлайн).
+ */
+function loginThrottlePath() {
+    $ip = $_SERVER['REMOTE_ADDR'] ?? 'cli';
+    return sys_get_temp_dir() . '/bkgkh_login_' . md5($ip) . '.json';
+}
+
+function loginThrottleCheck() {
+    $path = loginThrottlePath();
+    if (!is_file($path)) return;
+    $data = json_decode((string)file_get_contents($path), true);
+    $lockedUntil = is_array($data) ? (int)($data['locked_until'] ?? 0) : 0;
+    if ($lockedUntil > time()) {
+        http_response_code(429);
+        $minutes = max(1, (int)ceil(($lockedUntil - time()) / 60));
+        echo json_encode([
+            'success' => false,
+            'message' => "Слишком много попыток входа. Повторите через {$minutes} мин."
+        ]);
+        exit;
+    }
+}
+
+function loginThrottleFail() {
+    $path = loginThrottlePath();
+    $data = is_file($path) ? json_decode((string)file_get_contents($path), true) : null;
+    if (!is_array($data)) $data = [];
+    $fails = (int)($data['fails'] ?? 0) + 1;
+    $lockedUntil = 0;
+    if ($fails >= 5) {
+        $fails = 0;
+        $lockedUntil = time() + 900;
+    }
+    file_put_contents($path, json_encode(['fails' => $fails, 'locked_until' => $lockedUntil]), LOCK_EX);
+}
+
+function loginThrottleReset() {
+    $path = loginThrottlePath();
+    if (is_file($path)) @unlink($path);
 }
 
 /**
@@ -350,11 +421,12 @@ function imageStillUsed($filename, $pdo, $excludeContactId = null) {
 }
 
 /**
- * Найти файл изображения в одной из директорий public/{uploads,departments,contacts}
+ * Найти файл изображения в одной из директорий контента (public/ в dev,
+ * корень dist/ в собранной версии)
  */
 function findImageFile($filename) {
     foreach (['uploads', 'departments', 'contacts', 'news'] as $dir) {
-        $path = __DIR__ . "/../public/$dir/$filename";
+        $path = CONTENT_ROOT . "/$dir/$filename";
         if (file_exists($path)) {
             return $path;
         }
@@ -386,7 +458,7 @@ function deleteDocumentFileIfUnused($srcPath, $pdo) {
     if (empty($srcPath)) return false;
 
     $filename = basename($srcPath);
-    $filePath = __DIR__ . "/../public/documents/" . $filename;
+    $filePath = CONTENT_ROOT . "/documents/" . $filename;
     if (!file_exists($filePath)) return false;
 
     $candidates = [$filename, "documents/$filename", "/documents/$filename"];
@@ -440,13 +512,20 @@ try {
 
     // --- РОУТ: Авторизация (/api/login) ---
     if ($tableName === "login" && $method === "POST") {
+        // Fail closed: без секретов из .env вход невозможен
+        if (SESSION_SECRET === '' || ADMIN_PASSWORD_HASH === '') {
+            http_response_code(500);
+            echo json_encode(["success" => false, "message" => "Server configuration error: backend/.env is missing"]);
+            exit;
+        }
+
+        loginThrottleCheck();
+
         $data = json_decode(file_get_contents("php://input"), true);
         $password = $data["password"] ?? "";
-        
-        // Ваш текущий рабочий хеш пароля
-        $passwordHash = '$2y$12$rarAoqlerZubcUTgR3ExDuLflIMyH22F5xnLbrCg1p38DQcpv5Q5C';
-        
-        if (password_verify($password, $passwordHash)) {
+
+        if (password_verify($password, ADMIN_PASSWORD_HASH)) {
+            loginThrottleReset();
             $sessionToken = generateSessionToken([
                 'user' => 'admin',
                 'role' => 'administrator'
@@ -468,6 +547,7 @@ try {
             
             echo json_encode(["success" => true, "message" => "Logged in"]);
         } else {
+            loginThrottleFail();
             http_response_code(401);
             echo json_encode(["success" => false, "message" => "Неверный пароль"]);
         }
@@ -512,7 +592,7 @@ try {
         $deletedCount = 0;
         
         foreach (['uploads', 'departments', 'contacts'] as $dir) {
-            $dirPath = __DIR__ . "/../public/$dir/";
+            $dirPath = CONTENT_ROOT . "/$dir/";
             if (!is_dir($dirPath)) continue;
             
             $files = scandir($dirPath);
@@ -562,7 +642,7 @@ try {
             exit;
         }
         
-        $uploadDir = __DIR__ . "/../public/$type/";
+        $uploadDir = CONTENT_ROOT . "/$type/";
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0755, true);
         }

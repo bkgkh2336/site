@@ -18,7 +18,8 @@
     "generate:sitemap": "node scripts/generate-sitemap.js",
     "build": "npm run generate:sitemap && vite build",
     "organize-public": "node scripts/organize-public.js",
-    "prepare-deploy": "npm run build && shx mkdir -p dist/backend && shx cp backend/.env dist/backend/ && shx cp backend/.htaccess dist/backend/ && shx cp backend/api.php dist/backend/ && shx cp backend/contacts.db dist/backend/ && shx cp .htaccess dist/"
+    "prepare-deploy": "npm run build && shx mkdir -p dist/backend && shx cp backend/.env dist/backend/ && shx cp backend/.htaccess dist/backend/ && shx cp backend/api.php dist/backend/ && shx cp .htaccess dist/",
+    "prepare-deploy:first": "npm run prepare-deploy && shx cp backend/contacts.db dist/backend/"
   },
   "dependencies": {
     "@tiptap/extension-image": "^3.31.3",
