@@ -330,7 +330,10 @@ export const Gallery = styled.div`
 
 export const GalleryImg = styled.img`
     width: 100%;
+    max-width: none;
     height: 300px;
+    margin: 0;
+    display: block;
     object-fit: cover;
     border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
