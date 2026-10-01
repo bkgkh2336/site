@@ -1,7 +1,6 @@
 import styled, { keyframes } from "styled-components";
 import {
     ServicePageContainer,
-    BackButton as SharedBackButton,
     PageHeader as SharedPageHeader,
     HeaderIcon as SharedHeaderIcon,
     ViewToggleWrapper as SharedViewToggleWrapper,
@@ -15,7 +14,6 @@ import {
 
 // Re-export shared components
 export const TransportContainer = ServicePageContainer;
-export const BackButton = SharedBackButton;
 export const PageHeader = SharedPageHeader;
 export const HeaderIcon = SharedHeaderIcon;
 export const ViewToggleWrapper = SharedViewToggleWrapper;

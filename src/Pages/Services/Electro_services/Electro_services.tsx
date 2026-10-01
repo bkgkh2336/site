@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { GetData } from "../../../functions";
 import H1 from "../../../Components/H1/H1";
 import Loading from "../../../Components/Loading/Loading";
 import ServiceCards from "../../../Components/ServiceCards/ServiceCards";
 import ServiceTable from "../../../Components/ServiceTable/ServiceTable";
 import ViewToggle from "../../../Components/ViewToggle/ViewToggle";
-import { Zap, Search, ArrowLeft } from "lucide-react";
+import { Zap, Search } from "lucide-react";
 import { 
     ElectroContainer, 
     PageHeader,
@@ -16,7 +15,6 @@ import {
     SearchInput,
     NoticeContainer,
     NoticeItem,
-    BackButton,
     ViewToggleWrapper
 } from "./styled";
 
@@ -27,7 +25,6 @@ interface Electro_services_props {
 }
 
 const Electro_services = () => {
-    const navigate = useNavigate();
     const [data, setData] = useState<Electro_services_props[]>([]);
     const [filteredData, setFilteredData] = useState<Electro_services_props[]>([]);
     const [loading, setLoading] = useState(false);
@@ -60,11 +57,6 @@ const Electro_services = () => {
 
     return (
         <ElectroContainer>
-            <BackButton onClick={() => navigate('/services')}>
-                <ArrowLeft style={{ width: 20, height: 20 }} />
-                Назад к услугам
-            </BackButton>
-            
             <PageHeader>
                 <HeaderIcon>
                     <Zap style={{ width: 40, height: 40, color: '#28a745' }} />

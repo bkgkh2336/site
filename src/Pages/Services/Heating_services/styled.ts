@@ -36,40 +36,6 @@ export const HeatingContainer = styled.div`
     }
 `;
 
-export const BackButton = styled.button`
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 24px;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(40, 167, 69, 0.2);
-    border-radius: 12px;
-    color: #28a745;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.1);
-    
-    &:hover {
-        background: #28a745;
-        color: #ffffff;
-        transform: translateX(-4px);
-        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.25);
-    }
-    
-    &:active {
-        transform: translateX(-2px);
-    }
-    
-    @media (max-width: 768px) {
-        padding: 10px 20px;
-        font-size: 0.9rem;
-    }
-`;
-
 export const PageHeader = styled.div`
     display: flex;
     align-items: center;
