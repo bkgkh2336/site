@@ -300,40 +300,6 @@ export const SheetDivider = styled.div`
     margin: 8px 0;
 `;
 
-export const SheetContactSection = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 12px 16px 20px;
-    border-top: 1px solid rgba(40, 167, 69, 0.1);
-    margin-top: 4px;
-    
-    @media (max-width: 515px) {
-        padding: 8px 12px 16px;
-    }
-`;
-
-export const SheetContactItem = styled.a`
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 12px;
-    border-radius: 12px;
-    text-decoration: none;
-    color: #333;
-    font-weight: 600;
-    transition: background 0.2s ease;
-    
-    &:hover {
-        background: rgba(40, 167, 69, 0.06);
-    }
-    
-    @media (max-width: 515px) {
-        padding: 10px;
-        font-size: 0.9rem;
-    }
-`;
-
 export const Header_ = styled(Block_)`
     width: 100%;
     padding: 0px;   

@@ -204,37 +204,6 @@ export const NewsDate = styled.div`
     }
 `;
 
-export const NewsSource = styled.div`
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    font-family: 'Lato', 'Segoe UI', sans-serif;
-    font-size: 0.85rem;
-    color: #6c757d;
-    font-style: italic;
-    margin-top: 4px;
-    
-    svg {
-        flex-shrink: 0;
-        color: #28a745;
-    }
-    
-    @media (max-width: 768px) {
-        font-size: 0.8rem;
-    }
-    
-    @media (max-width: 480px) {
-        font-size: 0.75rem;
-        gap: 4px;
-        
-        svg {
-            width: 12px;
-            height: 12px;
-        }
-    }
-`;
-
 export const MoreNewsSection = styled.div`
     width: 100%;
     display: flex;

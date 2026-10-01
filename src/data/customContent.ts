@@ -294,8 +294,6 @@ export const CUSTOM_PAGE_BLOCK_TYPES: Record<string, BlockType[]> = {
 
 export const customPageKey = (section: string, slug: string) => `${section}/${slug}`;
 
-export const isCustomPageKey = (key: string) => key in CUSTOM_PAGE_BLOCK_TYPES;
-
 /** Every structural block the unified editor can insert into any article. */
 export const ALL_BLOCK_TYPES = Object.keys(BLOCK_SCHEMAS) as BlockType[];
 

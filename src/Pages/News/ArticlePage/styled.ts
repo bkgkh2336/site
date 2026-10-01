@@ -1,5 +1,4 @@
 import styled from 'styled-components';
-import { articleBodyCss } from '../../../styles/articleBody';
 
 export const PublicationDate = styled.div`
     display: flex;
@@ -55,10 +54,6 @@ export const Lead = styled.p`
         font-size: 1.15rem;
         text-align: left;
     }
-`;
-
-export const ArticleBody = styled.div`
-    ${articleBodyCss}
 `;
 
 export const GalleryCard = styled.div`

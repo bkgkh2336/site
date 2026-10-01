@@ -36,16 +36,6 @@ export const ListGroup_ = styled(Block_)`
     }
 `;
 
-export const GroupTitle = styled.h3`
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: #28a745;
-    margin: 0 0 12px 0;
-    padding-bottom: 12px;
-    border-bottom: 2px solid #e7f3e9;
-`;
-
 export const GroupButton = styled.button<{ $isActive?: boolean }>`
     display: flex;
     align-items: center;
