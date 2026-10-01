@@ -206,7 +206,7 @@ const NewsEditForm: React.FC<NewsEditFormProps> = ({
 
     const editorContent =
         customLayout && !(article.body && article.body.trim())
-            ? blocksToBodyHtml(getCustomContent(article.custom_content, customKey))
+            ? blocksToBodyHtml(getCustomContent(article.custom_content))
             : article.body || '';
 
     const setField = <K extends keyof ArticleData>(key: K, value: ArticleData[K]) =>
