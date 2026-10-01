@@ -1,80 +1,61 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pencil, Plus, X, Folder, FileText, ExternalLink, Trash2 } from 'lucide-react';
 import Text from '../../Components/Text/Text';
 import Loading from '../../Components/Loading/Loading';
-import ViewToggle from '../../Components/ViewToggle/ViewToggle';
 import DocumentEditForm, { DocumentData, GroupOption } from './EditForms/DocumentEditForm';
 import { Input } from './styled';
+import { apiPost, apiUpload, isSessionError } from './api';
+import { useCrud } from './useCrud';
+import { BoardToolbar, BoardCards, CategoryList, SectionCard } from './Board';
 import {
-  Card, SectionHeader, SectionTitle, ActionButton, ModalActions,
+  ActionButton, ModalActions,
   Table, Th, Td, Tr, IconButton,
   ModalOverlay, ModalContent, ModalHeader, ModalBody, CloseButton,
-  FileLink, ToolbarRow, BoardView, CategoryPanel, CategoryPanelHeader,
-  CategoryItem, CategoryName, CategoryCount, CategoryEdit,
-  BoardMain, DocCard, DocCardIcon, DocCardInfo, DocCardName, DocCardMeta,
+  FileLink, CategoryEdit,
+  DocCard, DocCardIcon, DocCardInfo, DocCardName, DocCardMeta,
   DocCardActions, IconLink, EmptyPanel
 } from './ui';
 
 const normalizeDocSrc = (src: string) => (src.startsWith('/') ? src : `/${src}`);
 
+const LOAD_ERROR = 'Не удалось загрузить документы';
+
 const DocumentsManager: React.FC = () => {
-  const [groups, setGroups] = useState<GroupOption[]>([]);
-  const [documents, setDocuments] = useState<DocumentData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [editingGroup, setEditingGroup] = useState<GroupOption | null>(null);
-  const [editingDocument, setEditingDocument] = useState<DocumentData | null>(null);
+  const {
+    items: groups,
+    editing: editingGroup,
+    setEditing: setEditingGroup,
+    isSaving: isSavingGroup,
+    isDeleting: isDeletingGroup,
+    save: saveGroup,
+    remove: removeGroup
+  } = useCrud<GroupOption>('documents_group', LOAD_ERROR);
+  const {
+    items: documents,
+    editing: editingDocument,
+    setEditing: setEditingDocument,
+    isLoading: isLoadingDocs,
+    error: docsError,
+    isSaving: isSavingDoc,
+    isDeleting: isDeletingDoc,
+    save: saveDocument,
+    remove: removeDocument
+  } = useCrud<DocumentData>('documents', LOAD_ERROR);
   const [view, setView] = useState<'cards' | 'table'>('cards');
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
 
+  const isSaving = isSavingGroup || isSavingDoc;
+  const isDeleting = isDeletingGroup || isDeletingDoc;
+
   useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const [groupsRes, documentsRes] = await Promise.all([
-          fetch('/backend/api.php/api/documents_group'),
-          fetch('/backend/api.php/api/documents')
-        ]);
-
-        if (!groupsRes.ok || !documentsRes.ok) {
-          throw new Error('Ошибка загрузки данных');
-        }
-
-        const loadedGroups: GroupOption[] = await groupsRes.json();
-        setGroups(loadedGroups);
-        setDocuments(await documentsRes.json());
-        setSelectedGroupId(loadedGroups[0]?.id ?? null);
-        setError('');
-      } catch (err) {
-        console.error('Load error:', err);
-        setError('Не удалось загрузить документы');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  const handleSessionExpired = (status: number) => {
-    if (status === 401) {
-      alert('Сессия истекла. Пожалуйста, войдите снова.');
-      window.location.href = '/manager';
-      return true;
+    if (selectedGroupId === null && groups.length > 0) {
+      setSelectedGroupId(groups[0].id ?? null);
     }
-    return false;
-  };
+  }, [groups, selectedGroupId]);
 
   const cleanupTempFile = async (src: string) => {
     try {
-      await fetch('/backend/api.php/api/cleanup-file', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ src })
-      });
+      await apiPost('cleanup-file', { src });
     } catch (err) {
       console.error('Failed to cleanup temp file:', err);
     }
@@ -100,40 +81,10 @@ const DocumentsManager: React.FC = () => {
     }
 
     const isNew = !editingGroup.id || editingGroup.id === 0;
-    setIsSaving(true);
-    try {
-      const response = await fetch(
-        isNew
-          ? '/backend/api.php/api/documents_group'
-          : `/backend/api.php/api/documents_group/${editingGroup.id}`,
-        {
-          method: isNew ? 'POST' : 'PUT',
-          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ name })
-        }
-      );
-
-      if (!response.ok) {
-        const text = await response.text();
-        if (handleSessionExpired(response.status)) return;
-        alert(`Ошибка сохранения: ${response.status} ${text}`);
-        return;
-      }
-
-      const data = await response.json();
-      if (isNew) {
-        setGroups(prev => [...prev, { id: data.id, name }]);
-        setSelectedGroupId(data.id);
-      } else {
-        setGroups(prev => prev.map(g => g.id === editingGroup.id ? { ...g, name } : g));
-      }
+    const saved = await saveGroup({ name }, editingGroup, isNew);
+    if (saved) {
+      if (isNew) setSelectedGroupId(saved.id as number);
       setEditingGroup(null);
-    } catch (err) {
-      console.error('Save group error:', err);
-      alert('Ошибка при сохранении категории');
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -146,28 +97,10 @@ const DocumentsManager: React.FC = () => {
       return;
     }
 
-    setIsDeleting(true);
-    try {
-      const response = await fetch(`/backend/api.php/api/documents_group/${editingGroup.id}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-
-      if (!response.ok && handleSessionExpired(response.status)) return;
-
-      if (response.ok) {
-        const remaining = groups.filter(g => g.id !== editingGroup.id);
-        setGroups(remaining);
-        if (selectedGroupId === editingGroup.id) {
-          setSelectedGroupId(remaining[0]?.id ?? null);
-        }
-        setEditingGroup(null);
-      }
-    } catch (err) {
-      console.error('Delete group error:', err);
-      alert('Ошибка при удалении категории');
-    } finally {
-      setIsDeleting(false);
+    const remaining = groups.filter(g => g.id !== editingGroup.id);
+    const ok = await removeGroup(editingGroup);
+    if (ok && selectedGroupId === editingGroup.id) {
+      setSelectedGroupId(remaining[0]?.id ?? null);
     }
   };
 
@@ -206,26 +139,20 @@ const DocumentsManager: React.FC = () => {
     formData.append('type', 'documents');
 
     try {
-      const response = await fetch('/backend/api.php/api/upload', {
-        method: 'POST',
-        credentials: 'include',
-        body: formData
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.path) {
-          setEditingDocument(prev => prev ? { ...prev, src: data.path } : prev);
-        } else {
-          alert(`Ошибка загрузки: ${data.message || 'неизвестная ошибка'}`);
-        }
-      } else if (!handleSessionExpired(response.status)) {
-        const errorText = await response.text();
-        alert(`Ошибка загрузки: ${errorText}`);
+      const data = await apiUpload<{ success?: boolean; path?: string; message?: string }>(
+        'upload',
+        formData
+      );
+      const path = data?.success && data.path ? data.path : null;
+      if (path) {
+        setEditingDocument(prev => prev ? { ...prev, src: path } : prev);
+      } else {
+        alert(`Ошибка загрузки: ${data?.message || 'неизвестная ошибка'}`);
       }
     } catch (err) {
+      if (isSessionError(err)) return;
       console.error('Upload error:', err);
-      alert('Ошибка при загрузке файла');
+      alert(`Ошибка загрузки: ${err instanceof Error ? err.message : err}`);
     }
   };
 
@@ -246,80 +173,26 @@ const DocumentsManager: React.FC = () => {
       return;
     }
 
-    setIsSaving(true);
-    try {
-      const isNew = !editingDocument.id || editingDocument.id === 0;
-      const payload = {
-        name,
-        id_group: editingDocument.id_group,
-        src: editingDocument.src
-      };
-
-      const response = await fetch(
-        isNew
-          ? '/backend/api.php/api/documents'
-          : `/backend/api.php/api/documents/${editingDocument.id}`,
-        {
-          method: isNew ? 'POST' : 'PUT',
-          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify(payload)
-        }
-      );
-
-      if (!response.ok) {
-        const text = await response.text();
-        if (handleSessionExpired(response.status)) return;
-        alert(`Ошибка сохранения: ${response.status} ${text}`);
-        return;
-      }
-
-      const data = await response.json();
-      if (isNew) {
-        setDocuments(prev => [...prev, { ...payload, id: data.id }]);
-        setSelectedGroupId(payload.id_group);
-      } else {
-        setDocuments(prev => prev.map(d => d.id === editingDocument.id ? { ...payload, id: editingDocument.id } : d));
-      }
+    const isNew = !editingDocument.id || editingDocument.id === 0;
+    const payload = {
+      name,
+      id_group: editingDocument.id_group,
+      src: editingDocument.src
+    };
+    const saved = await saveDocument(payload, editingDocument, isNew);
+    if (saved) {
+      if (isNew) setSelectedGroupId(payload.id_group);
       setEditingDocument(null);
-    } catch (err) {
-      console.error('Save document error:', err);
-      alert('Ошибка при сохранении документа');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const deleteDocumentById = async (doc: DocumentData) => {
-    setIsDeleting(true);
-    try {
-      const response = await fetch(`/backend/api.php/api/documents/${doc.id}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-
-      if (!response.ok && handleSessionExpired(response.status)) return;
-
-      if (response.ok) {
-        setDocuments(prev => prev.filter(d => d.id !== doc.id));
-        setEditingDocument(null);
-      }
-    } catch (err) {
-      console.error('Delete document error:', err);
-      alert('Ошибка при удалении документа');
-    } finally {
-      setIsDeleting(false);
     }
   };
 
   const handleDeleteDocument = async () => {
     if (!editingDocument) return;
-    await deleteDocumentById(editingDocument);
+    await removeDocument(editingDocument);
   };
 
   const handleQuickDeleteDocument = async (doc: DocumentData) => {
-    if (!window.confirm(`Удалить документ «${doc.name}»?`)) return;
-    await deleteDocumentById(doc);
+    await removeDocument(doc, `Удалить документ «${doc.name}»?`);
   };
 
   const handleCancelDocument = async () => {
@@ -338,140 +211,137 @@ const DocumentsManager: React.FC = () => {
   const selectedGroup = groups.find(g => g.id === selectedGroupId);
   const selectedDocuments = documents.filter(d => d.id_group === selectedGroupId);
 
-  if (isLoading) {
+  const groupEditButton = (group: GroupOption, active: boolean) => (
+    <CategoryEdit
+      $active={active}
+      role="button"
+      tabIndex={0}
+      title="Переименовать / удалить"
+      onClick={(e) => {
+        e.stopPropagation();
+        handleEditGroup(group);
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.stopPropagation();
+          handleEditGroup(group);
+        }
+      }}
+    >
+      <Pencil />
+    </CategoryEdit>
+  );
+
+  if (isLoadingDocs) {
     return <Loading />;
   }
 
-  if (error) {
-    return <Text style={{ color: '#dc3545', textAlign: 'center' }}>{error}</Text>;
+  if (docsError) {
+    return <Text style={{ color: '#dc3545', textAlign: 'center' }}>{docsError}</Text>;
   }
 
   return (
     <>
-      <ToolbarRow>
-        <ViewToggle view={view} onViewChange={setView} />
-      </ToolbarRow>
+      <BoardToolbar view={view} onViewChange={setView} />
 
       {view === 'cards' ? (
-        <BoardView>
-          <CategoryPanel>
-            <CategoryPanelHeader>
+        <BoardCards
+          panelHeader={
+            <>
               Категории
               <IconButton onClick={handleAddGroup} aria-label="Добавить категорию">
                 <Plus />
               </IconButton>
-            </CategoryPanelHeader>
+            </>
+          }
+          panel={
+            <>
+              {groups.length === 0 && (
+                <EmptyPanel>Нет категорий. Создайте первую.</EmptyPanel>
+              )}
+              <CategoryList
+                activeKey={selectedGroupId}
+                items={groups.map(group => ({
+                  key: group.id,
+                  icon: <Folder />,
+                  label: group.name,
+                  count: documents.filter(d => d.id_group === group.id).length,
+                  onSelect: () => setSelectedGroupId(group.id),
+                  extra: groupEditButton(group, selectedGroupId === group.id)
+                }))}
+              />
+            </>
+          }
+          title={
+            <>
+              <Folder style={{ width: 22, height: 22 }} />
+              {selectedGroup ? selectedGroup.name : 'Документы'}
+            </>
+          }
+          action={
+            <ActionButton onClick={handleAddDocument} disabled={!groups.length}>
+              <Plus /> Добавить документ
+            </ActionButton>
+          }
+        >
+          {groups.length === 0 && (
+            <EmptyPanel>Сначала создайте хотя бы одну категорию</EmptyPanel>
+          )}
 
-            {groups.length === 0 && (
-              <EmptyPanel>Нет категорий. Создайте первую.</EmptyPanel>
-            )}
+          {groups.length > 0 && selectedDocuments.length === 0 && (
+            <EmptyPanel>В этой категории пока нет документов</EmptyPanel>
+          )}
 
-            {groups.map(group => {
-              const active = selectedGroupId === group.id;
-              return (
-                <CategoryItem
-                  key={group.id}
-                  $active={active}
-                  onClick={() => setSelectedGroupId(group.id)}
+          {selectedDocuments.map(doc => (
+            <DocCard key={doc.id}>
+              <DocCardIcon>
+                <FileText />
+              </DocCardIcon>
+              <DocCardInfo>
+                <DocCardName>{doc.name}</DocCardName>
+                <DocCardMeta>{doc.src.split('/').pop()}</DocCardMeta>
+              </DocCardInfo>
+              <DocCardActions>
+                <IconLink
+                  href={normalizeDocSrc(doc.src)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Открыть"
+                  aria-label="Открыть"
                 >
-                  <Folder />
-                  <CategoryName>{group.name}</CategoryName>
-                  <CategoryCount $active={active}>
-                    {documents.filter(d => d.id_group === group.id).length}
-                  </CategoryCount>
-                  <CategoryEdit
-                    $active={active}
-                    role="button"
-                    tabIndex={0}
-                    title="Переименовать / удалить"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEditGroup(group);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.stopPropagation();
-                        handleEditGroup(group);
-                      }
-                    }}
-                  >
-                    <Pencil />
-                  </CategoryEdit>
-                </CategoryItem>
-              );
-            })}
-          </CategoryPanel>
-
-          <BoardMain>
-            <SectionHeader>
-              <SectionTitle>
-                <Folder style={{ width: 22, height: 22 }} />
-                {selectedGroup ? selectedGroup.name : 'Документы'}
-              </SectionTitle>
-              <ActionButton onClick={handleAddDocument} disabled={!groups.length}>
-                <Plus /> Добавить документ
-              </ActionButton>
-            </SectionHeader>
-
-            {groups.length === 0 && (
-              <EmptyPanel>Сначала создайте хотя бы одну категорию</EmptyPanel>
-            )}
-
-            {groups.length > 0 && selectedDocuments.length === 0 && (
-              <EmptyPanel>В этой категории пока нет документов</EmptyPanel>
-            )}
-
-            {selectedDocuments.map(doc => (
-              <DocCard key={doc.id}>
-                <DocCardIcon>
-                  <FileText />
-                </DocCardIcon>
-                <DocCardInfo>
-                  <DocCardName>{doc.name}</DocCardName>
-                  <DocCardMeta>{doc.src.split('/').pop()}</DocCardMeta>
-                </DocCardInfo>
-                <DocCardActions>
-                  <IconLink
-                    href={normalizeDocSrc(doc.src)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title="Открыть"
-                    aria-label="Открыть"
-                  >
-                    <ExternalLink />
-                  </IconLink>
-                  <IconButton
-                    $tone="gray"
-                    onClick={() => handleEditDocument(doc)}
-                    title="Редактировать"
-                    aria-label="Редактировать"
-                  >
-                    <Pencil />
-                  </IconButton>
-                  <IconButton
-                    $tone="red"
-                    onClick={() => handleQuickDeleteDocument(doc)}
-                    title="Удалить"
-                    aria-label="Удалить"
-                    disabled={isDeleting}
-                  >
-                    <Trash2 />
-                  </IconButton>
-                </DocCardActions>
-              </DocCard>
-            ))}
-          </BoardMain>
-        </BoardView>
+                  <ExternalLink />
+                </IconLink>
+                <IconButton
+                  $tone="gray"
+                  onClick={() => handleEditDocument(doc)}
+                  title="Редактировать"
+                  aria-label="Редактировать"
+                >
+                  <Pencil />
+                </IconButton>
+                <IconButton
+                  $tone="red"
+                  onClick={() => handleQuickDeleteDocument(doc)}
+                  title="Удалить"
+                  aria-label="Удалить"
+                  disabled={isDeleting}
+                >
+                  <Trash2 />
+                </IconButton>
+              </DocCardActions>
+            </DocCard>
+          ))}
+        </BoardCards>
       ) : (
         <>
-          <Card>
-            <SectionHeader>
-              <SectionTitle>Категории</SectionTitle>
+          <SectionCard
+            title="Категории"
+            action={
               <ActionButton onClick={handleAddGroup}>
                 <Plus /> Добавить категорию
               </ActionButton>
-            </SectionHeader>
-
+            }
+          >
             <Table>
               <thead>
                 <tr>
@@ -494,19 +364,16 @@ const DocumentsManager: React.FC = () => {
                 ))}
               </tbody>
             </Table>
-          </Card>
+          </SectionCard>
 
-          <Card>
-            <SectionHeader>
-              <SectionTitle>Документы</SectionTitle>
-              <ActionButton
-                onClick={handleAddDocument}
-                disabled={groups.length === 0}
-              >
+          <SectionCard
+            title="Документы"
+            action={
+              <ActionButton onClick={handleAddDocument} disabled={groups.length === 0}>
                 <Plus /> Добавить документ
               </ActionButton>
-            </SectionHeader>
-
+            }
+          >
             {groups.length === 0 && (
               <Text style={{ color: '#6c757d' }}>Сначала создайте хотя бы одну категорию</Text>
             )}
@@ -543,7 +410,7 @@ const DocumentsManager: React.FC = () => {
                 ))}
               </tbody>
             </Table>
-          </Card>
+          </SectionCard>
         </>
       )}
 

@@ -1,9 +1,9 @@
 import React from 'react';
-import { Input } from '../styled';
-import { FileText, Save, X, Trash2 } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import {
-  Field, FieldLabel, FieldHint, ModalActions, ActionButton, FileInput, FileLink
+  Field, FieldLabel, FieldHint, FileInput, FileLink
 } from '../ui';
+import { TextField, SelectField, FormActions } from './parts';
 
 export interface DocumentData {
   id: number;
@@ -46,38 +46,20 @@ const DocumentEditForm: React.FC<DocumentEditFormProps> = ({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
-      <Field>
-        <FieldLabel>Название документа:</FieldLabel>
-        <Input
-          value={document.name}
-          onChange={(e) => onDocumentChange({ ...document, name: e.target.value })}
-          placeholder="Название документа"
-        />
-      </Field>
+      <TextField
+        label="Название документа:"
+        value={document.name}
+        placeholder="Название документа"
+        onChange={(name) => onDocumentChange({ ...document, name })}
+      />
 
-      <Field>
-        <FieldLabel>Категория:</FieldLabel>
-        <select
-          value={document.id_group || ''}
-          onChange={(e) => onDocumentChange({ ...document, id_group: Number(e.target.value) })}
-          style={{
-            width: '100%',
-            boxSizing: 'border-box',
-            padding: '12px 14px',
-            borderRadius: 10,
-            border: '1px solid #ced4da',
-            fontSize: 16,
-            fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-            backgroundColor: '#fff',
-            color: '#212529'
-          }}
-        >
-          <option value="" disabled>Выберите категорию</option>
-          {groups.map(group => (
-            <option key={group.id} value={group.id}>{group.name}</option>
-          ))}
-        </select>
-      </Field>
+      <SelectField
+        label="Категория:"
+        value={document.id_group || ''}
+        placeholder="Выберите категорию"
+        options={groups.map(group => ({ value: group.id, label: group.name }))}
+        onChange={(value) => onDocumentChange({ ...document, id_group: Number(value) })}
+      />
 
       <Field>
         <FieldLabel>Файл:</FieldLabel>
@@ -103,19 +85,13 @@ const DocumentEditForm: React.FC<DocumentEditFormProps> = ({
         <FieldHint>PDF, DOC, DOCX, XLS, XLSX, RTF, ODT, ODS, до 20 МБ</FieldHint>
       </Field>
 
-      <ModalActions>
-        <ActionButton onClick={onSave} disabled={isSaving || isDeleting}>
-          <Save />
-          {isSaving ? 'Сохранение...' : 'Сохранить'}
-        </ActionButton>
-        <ActionButton $variant="secondary" onClick={onCancel} disabled={isSaving || isDeleting}>
-          <X /> Отмена
-        </ActionButton>
-        <ActionButton $variant="danger" onClick={onDelete} disabled={isSaving || isDeleting}>
-          <Trash2 />
-          {isDeleting ? 'Удаление...' : 'Удалить'}
-        </ActionButton>
-      </ModalActions>
+      <FormActions
+        isSaving={isSaving}
+        isDeleting={isDeleting}
+        onSave={onSave}
+        onCancel={onCancel}
+        onDelete={onDelete}
+      />
     </div>
   );
 };

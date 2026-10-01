@@ -1,9 +1,6 @@
 import React from 'react';
-import { Input } from '../styled';
-import { Trash2, Plus, Save, X, ImageOff } from 'lucide-react';
-import {
-  Field, FieldLabel, FieldHint, ModalActions, ActionButton, FileInput
-} from '../ui';
+import { Field } from '../ui';
+import { TextField, ImageField, PhoneList, FormActions } from './parts';
 
 interface ContactData {
   id: number;
@@ -47,78 +44,45 @@ const ContactEditForm: React.FC<ContactEditFormProps> = ({
 }) => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
-      <Field>
-        <FieldLabel>Фото:</FieldLabel>
-        {contact.src && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <img
-              src={contact.src}
-              alt="Фото контакта"
-              style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: '50%' }}
-            />
-            <ActionButton
-              $variant="danger"
-              onClick={() => onContactChange({ ...contact, src: undefined })}
-            >
-              <ImageOff /> Удалить фото
-            </ActionButton>
-          </div>
-        )}
-        <FileInput
-          type="file"
-          accept="image/*"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) onImageUpload(file);
-          }}
-        />
-        <FieldHint>JPEG, PNG, GIF, WebP, до 5 МБ</FieldHint>
-      </Field>
+      <ImageField
+        label="Фото:"
+        src={contact.src}
+        alt="Фото контакта"
+        round
+        onClear={() => onContactChange({ ...contact, src: undefined })}
+        onUpload={onImageUpload}
+      />
 
-      <Field>
-        <FieldLabel>Фамилия:</FieldLabel>
-        <Input
-          value={contact.surname}
-          onChange={(e) => onContactChange({ ...contact, surname: e.target.value })}
-          placeholder="Фамилия"
-        />
-      </Field>
-
-      <Field>
-        <FieldLabel>Имя:</FieldLabel>
-        <Input
-          value={contact.name}
-          onChange={(e) => onContactChange({ ...contact, name: e.target.value })}
-          placeholder="Имя"
-        />
-      </Field>
-
-      <Field>
-        <FieldLabel>Отчество:</FieldLabel>
-        <Input
-          value={contact.patronymic || ''}
-          onChange={(e) => onContactChange({ ...contact, patronymic: e.target.value })}
-          placeholder="Отчество"
-        />
-      </Field>
-
-      <Field>
-        <FieldLabel>Должность:</FieldLabel>
-        <Input
-          value={contact.job_title || ''}
-          onChange={(e) => onContactChange({ ...contact, job_title: e.target.value })}
-          placeholder="Должность"
-        />
-      </Field>
-
-      <Field>
-        <FieldLabel>Email:</FieldLabel>
-        <Input
-          value={contact.email || ''}
-          onChange={(e) => onContactChange({ ...contact, email: e.target.value })}
-          placeholder="Email"
-        />
-      </Field>
+      <TextField
+        label="Фамилия:"
+        value={contact.surname}
+        placeholder="Фамилия"
+        onChange={(surname) => onContactChange({ ...contact, surname })}
+      />
+      <TextField
+        label="Имя:"
+        value={contact.name}
+        placeholder="Имя"
+        onChange={(name) => onContactChange({ ...contact, name })}
+      />
+      <TextField
+        label="Отчество:"
+        value={contact.patronymic || ''}
+        placeholder="Отчество"
+        onChange={(patronymic) => onContactChange({ ...contact, patronymic })}
+      />
+      <TextField
+        label="Должность:"
+        value={contact.job_title || ''}
+        placeholder="Должность"
+        onChange={(job_title) => onContactChange({ ...contact, job_title })}
+      />
+      <TextField
+        label="Email:"
+        value={contact.email || ''}
+        placeholder="Email"
+        onChange={(email) => onContactChange({ ...contact, email })}
+      />
 
       <Field>
         <label
@@ -142,40 +106,20 @@ const ContactEditForm: React.FC<ContactEditFormProps> = ({
         </label>
       </Field>
 
-      <Field>
-        <FieldLabel>Телефоны:</FieldLabel>
-        {phones.map((phone, index) => (
-          <div key={index} style={{ display: 'flex', gap: 10 }}>
-            <Input
-              value={phone}
-              onChange={(e) => onPhoneChange(index, e.target.value)}
-              placeholder="Номер телефона"
-            />
-            {phones.length > 1 && (
-              <ActionButton $variant="danger" onClick={() => onRemovePhone(index)}>
-                <Trash2 />
-              </ActionButton>
-            )}
-          </div>
-        ))}
-        <ActionButton $variant="ghost" onClick={onAddPhone} style={{ alignSelf: 'flex-start' }}>
-          <Plus /> Добавить телефон
-        </ActionButton>
-      </Field>
+      <PhoneList
+        phones={phones}
+        onPhoneChange={onPhoneChange}
+        onAdd={onAddPhone}
+        onRemove={onRemovePhone}
+      />
 
-      <ModalActions>
-        <ActionButton onClick={onSave} disabled={isSaving || isDeleting}>
-          <Save />
-          {isSaving ? 'Сохранение...' : 'Сохранить'}
-        </ActionButton>
-        <ActionButton $variant="secondary" onClick={onCancel} disabled={isSaving || isDeleting}>
-          <X /> Отмена
-        </ActionButton>
-        <ActionButton $variant="danger" onClick={onDelete} disabled={isSaving || isDeleting}>
-          <Trash2 />
-          {isDeleting ? 'Удаление...' : 'Удалить'}
-        </ActionButton>
-      </ModalActions>
+      <FormActions
+        isSaving={isSaving}
+        isDeleting={isDeleting}
+        onSave={onSave}
+        onCancel={onCancel}
+        onDelete={onDelete}
+      />
     </div>
   );
 };
