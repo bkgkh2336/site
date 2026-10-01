@@ -72,9 +72,10 @@ const Contacts = () => {
         try {
             const data = await GetData('contacts');
 
-            // Руководство определяется флагом is_primary (управляется в админке)
-            setPrimaryContacts(SortLeadership(data.filter((x: ContactData) => x.is_primary)));
-            setContacts(data.filter((x: ContactData) => !x.is_primary));
+            // Руководство определяется флагом is_primary (управляется в админке);
+            // Number() — API может отдать "0"/"1" строкой, "0" truthy в JS
+            setPrimaryContacts(SortLeadership(data.filter((x: ContactData) => Number(x.is_primary) === 1)));
+            setContacts(data.filter((x: ContactData) => Number(x.is_primary) !== 1));
         } catch {
             // Ошибка обрабатывается gracefully
         }

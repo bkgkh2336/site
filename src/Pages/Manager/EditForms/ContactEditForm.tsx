@@ -134,7 +134,7 @@ const ContactEditForm: React.FC<ContactEditFormProps> = ({
         >
           <input
             type="checkbox"
-            checked={!!contact.is_primary}
+            checked={Number(contact.is_primary) === 1}
             onChange={(e) => onContactChange({ ...contact, is_primary: e.target.checked })}
             style={{ width: 17, height: 17, accentColor: '#28a745', cursor: 'pointer' }}
           />
