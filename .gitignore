@@ -31,3 +31,8 @@ backend/.env
 # SQLite databases (server state, never in git)
 *.db
 *.sqlite
+
+# Видео вне git: сотни МБ, GitHub жестко режет файлы >100 МБ
+# (история уже очищена filter-branch); на хостинг заливаются отдельно
+*.mp4
+*.MP4
