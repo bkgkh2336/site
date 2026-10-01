@@ -1,6 +1,5 @@
 export {
     ServicePageContainer,
-    BackButton,
     PageHeader,
     HeaderIcon,
     ViewToggleWrapper,

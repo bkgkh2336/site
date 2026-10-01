@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { GetData } from "../../../functions";
 import H1 from "../../../Components/H1/H1";
 import Loading from "../../../Components/Loading/Loading";
 import ServiceCards from "../../../Components/ServiceCards/ServiceCards";
 import ServiceTable from "../../../Components/ServiceTable/ServiceTable";
 import ViewToggle from "../../../Components/ViewToggle/ViewToggle";
-import { Sprout, Search, ArrowLeft } from "lucide-react";
+import { Sprout, Search } from "lucide-react";
 import { 
     GrassContainer, 
     PageHeader,
@@ -16,7 +15,6 @@ import {
     SearchInput,
     NoticeContainer,
     NoticeItem,
-    BackButton,
     ViewToggleWrapper,
     FilterContainer,
     FilterButton
@@ -36,7 +34,6 @@ interface GrassServiceTransformed {
 }
 
 const Grass_services = () => {
-    const navigate = useNavigate();
     const [data, setData] = useState<GrassServiceTransformed[]>([]);
     const [filteredData, setFilteredData] = useState<GrassServiceTransformed[]>([]);
     const [loading, setLoading] = useState(false);
@@ -93,11 +90,6 @@ const Grass_services = () => {
 
     return (
         <GrassContainer>
-            <BackButton onClick={() => navigate('/services')}>
-                <ArrowLeft style={{ width: 20, height: 20 }} />
-                Назад к услугам
-            </BackButton>
-            
             <PageHeader>
                 <HeaderIcon>
                     <Sprout style={{ width: 40, height: 40, color: '#28a745' }} />

@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { GetData } from "../../../functions";
 import H1 from "../../../Components/H1/H1";
 import Loading from "../../../Components/Loading/Loading";
 import ViewToggle from "../../../Components/ViewToggle/ViewToggle";
-import { Truck, Search, ArrowLeft } from "lucide-react";
+import { Truck, Search } from "lucide-react";
 import { 
     TransportContainer, 
     PageHeader,
@@ -14,7 +13,6 @@ import {
     SearchInput,
     NoticeContainer,
     NoticeItem,
-    BackButton,
     ViewToggleWrapper,
     ServicesGrid,
     ServiceCard,
@@ -147,7 +145,6 @@ const TransportServiceTable = ({ services }: { services: TransportServiceGrouped
 };
 
 const Transport_other_services = () => {
-    const navigate = useNavigate();
     const [data, setData] = useState<TransportServiceGrouped[]>([]);
     const [filteredData, setFilteredData] = useState<TransportServiceGrouped[]>([]);
     const [loading, setLoading] = useState(false);
@@ -206,11 +203,6 @@ const Transport_other_services = () => {
 
     return (
         <TransportContainer>
-            <BackButton onClick={() => navigate('/services')}>
-                <ArrowLeft style={{ width: 20, height: 20 }} />
-                Назад к услугам
-            </BackButton>
-            
             <PageHeader>
                 <HeaderIcon>
                     <Truck style={{ width: 40, height: 40, color: '#28a745' }} />

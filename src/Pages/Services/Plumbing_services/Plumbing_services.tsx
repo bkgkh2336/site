@@ -1,12 +1,11 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { GetData } from "../../../functions";
 import H1 from "../../../Components/H1/H1";
 import Loading from "../../../Components/Loading/Loading";
 import ServiceCards from "../../../Components/ServiceCards/ServiceCards";
 import ServiceTable from "../../../Components/ServiceTable/ServiceTable";
 import ViewToggle from "../../../Components/ViewToggle/ViewToggle";
-import { Droplet, Search, ArrowLeft } from "lucide-react";
+import { Droplet, Search } from "lucide-react";
 import { 
     PlumbingContainer, 
     PageHeader,
@@ -16,7 +15,6 @@ import {
     SearchInput,
     NoticeContainer,
     NoticeItem,
-    BackButton,
     ViewToggleWrapper
 } from "./styled";
 
@@ -35,7 +33,6 @@ interface PlumbingServiceTransformed {
 }
 
 const Plumbing_services = () => {
-    const navigate = useNavigate();
     const [data, setData] = useState<PlumbingServiceTransformed[]>([]);
     const [filteredData, setFilteredData] = useState<PlumbingServiceTransformed[]>([]);
     const [loading, setLoading] = useState(false);
@@ -68,11 +65,6 @@ const Plumbing_services = () => {
 
     return (
         <PlumbingContainer>
-            <BackButton onClick={() => navigate('/services')}>
-                <ArrowLeft style={{ width: 20, height: 20 }} />
-                Назад к услугам
-            </BackButton>
-            
             <PageHeader>
                 <HeaderIcon>
                     <Droplet style={{ width: 40, height: 40, color: '#28a745' }} />
