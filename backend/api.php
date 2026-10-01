@@ -484,6 +484,30 @@ $validTables = [
     "articles"
 ];
 
+$allowedFields = [
+    'contacts' => ['name', 'surname', 'patronymic', 'job_title', 'email', 'src', 'is_primary'],
+    'phone_contacts' => ['contact_id', 'phone'],
+    'departments' => ['name', 'email', 'src'],
+    'phone_departments' => ['id_department', 'phone', 'is_fax'],
+    'documents_group' => ['name'],
+    'documents' => ['name', 'id_group', 'src'],
+    'ventilation_services' => ['name', 'price_no_nds'],
+    'waste_services' => ['name', 'price_no_dns_summer', 'price_no_dns_winter'],
+    'electro_services' => ['name', 'price_no_nds'],
+    'grass_services' => ['name', 'price_no_nds_is_solid', 'price_no_nds_no_solid'],
+    'heating_services' => ['name', 'unit', 'price_no_nds'],
+    'plumbing_services' => ['name', 'unit', 'price_no_nds'],
+    'el_inst_services' => ['name', 'unit', 'price_no_nds'],
+    'transport_population_and_budget' => ['name'],
+    'transport_price_population_and_budget' => ['id_transport', 'unit', 'price_no_nds'],
+    'transport_jur' => ['name'],
+    'transport_price_jur' => ['id_transport', 'unit', 'price'],
+    'transport_other' => ['name'],
+    'transport_price_other' => ['id_transport', 'unit', 'price'],
+    'schedule_reception' => ['full_name', 'position', 'reception_time', 'phone_line_time', 'replacement', 'organization'],
+    'articles' => ['section', 'slug', 'title', 'summary', 'published_at', 'cover', 'gallery', 'body', 'custom_content', 'is_external', 'external_url', 'sort_order']
+];
+
 try {
     $pdo = new PDO("sqlite:$dbPath");
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -737,30 +761,6 @@ try {
             
             $data = json_decode(file_get_contents("php://input"), true);
             if (!empty($data)) {
-                $allowedFields = [
-                    'contacts' => ['name', 'surname', 'patronymic', 'job_title', 'email', 'src', 'is_primary'],
-                    'phone_contacts' => ['contact_id', 'phone'],
-                    'departments' => ['name', 'email', 'src'],
-                    'phone_departments' => ['id_department', 'phone', 'is_fax'],
-                    'documents_group' => ['name'],
-                    'documents' => ['name', 'id_group', 'src'],
-                    'ventilation_services' => ['name', 'description', 'price', 'unit'],
-                    'waste_services' => ['name', 'description', 'price', 'unit'],
-                    'electro_services' => ['name', 'description', 'price', 'unit'],
-                    'grass_services' => ['name', 'description', 'price', 'unit'],
-                    'heating_services' => ['name', 'description', 'price', 'unit'],
-                    'plumbing_services' => ['name', 'description', 'price', 'unit'],
-                    'el_inst_services' => ['name', 'description', 'price', 'unit'],
-                    'transport_price_population_and_budget' => ['id_transport', 'unit', 'price_no_nds'],
-                    'transport_population_and_budget' => ['name', 'description'],
-                    'transport_price_jur' => ['id_transport', 'unit', 'price'],
-                    'transport_jur' => ['name', 'description'],
-                    'transport_price_other' => ['id_transport', 'unit', 'price'],
-                    'transport_other' => ['name', 'description'],
-                    'schedule_reception' => ['day', 'time_start', 'time_end', 'description'],
-                    'articles' => ['section', 'slug', 'title', 'summary', 'published_at', 'cover', 'gallery', 'body', 'custom_content', 'is_external', 'external_url', 'sort_order']
-                ];
-                
                 $tableAllowedFields = $allowedFields[$tableName] ?? [];
                 $fields = []; $placeholders = []; $values = [];
                 
@@ -790,30 +790,6 @@ try {
             
             $data = json_decode(file_get_contents("php://input"), true);
             if (!empty($data)) {
-                $allowedFields = [
-                    'contacts' => ['name', 'surname', 'patronymic', 'job_title', 'email', 'src', 'is_primary'],
-                    'phone_contacts' => ['contact_id', 'phone'],
-                    'departments' => ['name', 'email', 'src'],
-                    'phone_departments' => ['id_department', 'phone', 'is_fax'],
-                    'documents_group' => ['name'],
-                    'documents' => ['name', 'id_group', 'src'],
-                    'ventilation_services' => ['name', 'description', 'price', 'unit'],
-                    'waste_services' => ['name', 'description', 'price', 'unit'],
-                    'electro_services' => ['name', 'description', 'price', 'unit'],
-                    'grass_services' => ['name', 'description', 'price', 'unit'],
-                    'heating_services' => ['name', 'description', 'price', 'unit'],
-                    'plumbing_services' => ['name', 'description', 'price', 'unit'],
-                    'el_inst_services' => ['name', 'description', 'price', 'unit'],
-                    'transport_price_population_and_budget' => ['id_transport', 'unit', 'price_no_nds'],
-                    'transport_population_and_budget' => ['name', 'description'],
-                    'transport_price_jur' => ['id_transport', 'unit', 'price'],
-                    'transport_jur' => ['name', 'description'],
-                    'transport_price_other' => ['id_transport', 'unit', 'price'],
-                    'transport_other' => ['name', 'description'],
-                    'schedule_reception' => ['day', 'time_start', 'time_end', 'description'],
-                    'articles' => ['section', 'slug', 'title', 'summary', 'published_at', 'cover', 'gallery', 'body', 'custom_content', 'is_external', 'external_url', 'sort_order']
-                ];
-                
                 $tableAllowedFields = $allowedFields[$tableName] ?? [];
                 $fields = []; $values = [];
                 
@@ -886,6 +862,16 @@ try {
                 $oldData = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
             }
             
+            $childPriceTables = [
+                'transport_population_and_budget' => 'transport_price_population_and_budget',
+                'transport_jur' => 'transport_price_jur',
+                'transport_other' => 'transport_price_other'
+            ];
+            if (isset($childPriceTables[$tableName])) {
+                $child = $childPriceTables[$tableName];
+                $pdo->prepare("DELETE FROM $child WHERE id_transport = ?")->execute([$id]);
+            }
+
             $sql = "DELETE FROM $tableName WHERE id = ?";
             $pdo->prepare($sql)->execute([$id]);
             
