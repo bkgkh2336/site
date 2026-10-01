@@ -6,6 +6,7 @@ import {
   Shell, Toolbar, ToolbarTitle, UserArea, UserBadge, TabNav, TabButton
 } from './styled';
 import { Card, ActionButton } from './ui';
+import { apiGet, apiPost, ApiError } from './api';
 import ContactsManager from './ContactsManager';
 import ServicesManager from './ServicesManager';
 import DocumentsManager from './DocumentsManager';
@@ -24,14 +25,15 @@ const Manager: React.FC = () => {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const response = await fetch('/backend/api.php/api/verify', {
-          credentials: 'include' // Отправляем куки
-        });
-        if (response.ok) {
+        const data = await apiGet<{ success?: boolean }>('verify', { redirectOn401: false });
+        if (data?.success) {
           setIsAuthorized(true);
         }
       } catch (err) {
-        console.error('Session check error:', err);
+        // 401 — просто нет активной сессии
+        if (!(err instanceof ApiError && err.status === 401)) {
+          console.error('Session check error:', err);
+        }
       }
     };
     checkSession();
@@ -49,24 +51,25 @@ const Manager: React.FC = () => {
     setError('');
 
     try {
-      const response = await fetch('/backend/api.php/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
-        credentials: 'include' // Получаем httpOnly куку
-      });
+      const data = await apiPost<{ success?: boolean; message?: string }>(
+        'login',
+        { password },
+        { redirectOn401: false }
+      );
 
-      const data = await response.json();
-
-      if (response.ok && data.success) {
+      if (data?.success) {
         setIsAuthorized(true);
         setPassword('');
       } else {
-        setError(data.message || 'Неверный пароль');
+        setError(data?.message || 'Неверный пароль');
       }
     } catch (err) {
-      setError('Ошибка при подключении к серверу');
-      console.error('Login error:', err);
+      if (err instanceof ApiError && err.status === 401) {
+        setError(err.message || 'Неверный пароль');
+      } else {
+        setError('Ошибка при подключении к серверу');
+        console.error('Login error:', err);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -74,10 +77,7 @@ const Manager: React.FC = () => {
 
   const handleLogout = useCallback(async () => {
     try {
-      await fetch('/backend/api.php/api/logout', {
-        method: 'POST',
-        credentials: 'include'
-      });
+      await apiPost('logout');
     } catch (err) {
       console.error('Logout error:', err);
     }

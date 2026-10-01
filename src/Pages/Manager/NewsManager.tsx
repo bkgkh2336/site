@@ -1,19 +1,19 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
     Pencil, Plus, X, Newspaper, BookOpen, FileText,
     ExternalLink, Trash2, Calendar, Code2, Globe
 } from 'lucide-react';
 import Text from '../../Components/Text/Text';
 import Loading from '../../Components/Loading/Loading';
-import ViewToggle from '../../Components/ViewToggle/ViewToggle';
 import NewsEditForm from './EditForms/NewsEditForm';
+import { apiPost, apiUpload, isSessionError } from './api';
+import { useCrud } from './useCrud';
+import { BoardToolbar, BoardCards, CategoryList, SectionCard } from './Board';
 import {
-    Card, SectionHeader, SectionTitle, ActionButton,
+    ActionButton,
     Table, Th, Td, Tr, IconButton,
     ModalOverlay, ModalContent, ModalHeader, ModalBody, CloseButton,
-    ToolbarRow, BoardView, CategoryPanel, CategoryPanelHeader,
-    CategoryItem, CategoryName, CategoryCount,
-    BoardMain, DocCard, DocCardIcon, DocCardInfo, DocCardName, DocCardMeta,
+    DocCard, DocCardIcon, DocCardInfo, DocCardName, DocCardMeta,
     DocCardActions, IconLink, EmptyPanel
 } from './ui';
 import {
@@ -44,51 +44,24 @@ const emptyArticle = (section: ArticleSection, sortOrder: number): ArticleData =
 });
 
 const NewsManager: React.FC = () => {
-    const [articles, setArticles] = useState<ArticleData[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState('');
-    const [isSaving, setIsSaving] = useState(false);
-    const [isDeleting, setIsDeleting] = useState(false);
-    const [editing, setEditing] = useState<ArticleData | null>(null);
+    const {
+        items: articles,
+        editing,
+        setEditing,
+        isLoading,
+        error,
+        isSaving,
+        isDeleting,
+        save,
+        remove
+    } = useCrud<ArticleData>('articles', 'Не удалось загрузить новости');
     const [view, setView] = useState<'cards' | 'table'>('cards');
     const [selectedSection, setSelectedSection] = useState<ArticleSection>('news');
     const uploadedRef = useRef<string[]>([]);
 
-    useEffect(() => {
-        const fetchArticles = async () => {
-            setIsLoading(true);
-            try {
-                const response = await fetch('/backend/api.php/api/articles');
-                if (!response.ok) throw new Error('Ошибка загрузки данных');
-                setArticles(await response.json());
-                setError('');
-            } catch (err) {
-                console.error('Load error:', err);
-                setError('Не удалось загрузить новости');
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchArticles();
-    }, []);
-
-    const handleSessionExpired = (status: number) => {
-        if (status === 401) {
-            alert('Сессия истекла. Пожалуйста, войдите снова.');
-            window.location.href = '/manager';
-            return true;
-        }
-        return false;
-    };
-
     const cleanupTempFile = async (src: string) => {
         try {
-            await fetch('/backend/api.php/api/cleanup-file', {
-                method: 'POST',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ src })
-            });
+            await apiPost('cleanup-file', { src });
         } catch (err) {
             console.error('Failed to cleanup temp file:', err);
         }
@@ -107,26 +80,20 @@ const NewsManager: React.FC = () => {
         formData.append('file', file);
         formData.append('type', 'news');
         try {
-            const response = await fetch('/backend/api.php/api/upload', {
-                method: 'POST',
-                credentials: 'include',
-                body: formData
-            });
-            if (response.ok) {
-                const data = await response.json();
-                if (data.success && data.path) {
-                    uploadedRef.current.push(data.path);
-                    return data.path;
-                }
-                alert(`Ошибка загрузки: ${data.message || 'неизвестная ошибка'}`);
-                return null;
+            const data = await apiUpload<{ success?: boolean; path?: string; message?: string }>(
+                'upload',
+                formData
+            );
+            if (data?.success && data.path) {
+                uploadedRef.current.push(data.path);
+                return data.path;
             }
-            if (handleSessionExpired(response.status)) return null;
-            alert(`Ошибка загрузки: ${await response.text()}`);
+            alert(`Ошибка загрузки: ${data?.message || 'неизвестная ошибка'}`);
             return null;
         } catch (err) {
+            if (isSessionError(err)) return null;
             console.error('Upload error:', err);
-            alert('Ошибка при загрузке изображения');
+            alert(`Ошибка загрузки: ${err instanceof Error ? err.message : err}`);
             return null;
         }
     };
@@ -181,70 +148,20 @@ const NewsManager: React.FC = () => {
             sort_order: editing.sort_order
         };
 
-        setIsSaving(true);
-        try {
-            const response = await fetch(
-                isNew
-                    ? '/backend/api.php/api/articles'
-                    : `/backend/api.php/api/articles/${editing.id}`,
-                {
-                    method: isNew ? 'POST' : 'PUT',
-                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify(payload)
-                }
-            );
-            if (!response.ok) {
-                const text = await response.text();
-                if (handleSessionExpired(response.status)) return;
-                alert(`Ошибка сохранения: ${response.status} ${text}`);
-                return;
-            }
-            const data = await response.json();
-            if (isNew) {
-                setArticles(prev => [...prev, { ...payload, id: data.id }]);
-            } else {
-                setArticles(prev => prev.map(a => (a.id === editing.id ? { ...payload, id: editing.id } : a)));
-            }
+        const saved = await save(payload, editing, isNew);
+        if (saved) {
             uploadedRef.current = [];
             setEditing(null);
-        } catch (err) {
-            console.error('Save article error:', err);
-            alert('Ошибка при сохранении статьи');
-        } finally {
-            setIsSaving(false);
-        }
-    };
-
-    const deleteArticleById = async (article: ArticleData) => {
-        setIsDeleting(true);
-        try {
-            const response = await fetch(`/backend/api.php/api/articles/${article.id}`, {
-                method: 'DELETE',
-                credentials: 'include'
-            });
-            if (!response.ok && handleSessionExpired(response.status)) return;
-            if (response.ok) {
-                setArticles(prev => prev.filter(a => a.id !== article.id));
-                setEditing(null);
-            }
-        } catch (err) {
-            console.error('Delete article error:', err);
-            alert('Ошибка при удалении статьи');
-        } finally {
-            setIsDeleting(false);
         }
     };
 
     const handleDelete = async () => {
         if (!editing || !editing.id) return;
-        if (!window.confirm(`Удалить статью «${editing.title}»?`)) return;
-        await deleteArticleById(editing);
+        await remove(editing, `Удалить статью «${editing.title}»?`);
     };
 
     const handleQuickDelete = async (article: ArticleData) => {
-        if (!window.confirm(`Удалить статью «${article.title}»?`)) return;
-        await deleteArticleById(article);
+        await remove(article, `Удалить статью «${article.title}»?`);
     };
 
     const handleCancel = async () => {
@@ -257,6 +174,18 @@ const NewsManager: React.FC = () => {
     };
 
     const sectionArticles = articles.filter(a => a.section === selectedSection);
+    const sectionList: ArticleSection[] = ['news', 'articles', 'useful_to_know'];
+    const sectionTitle = (
+        <>
+            {SECTION_ICONS[selectedSection]}
+            {SECTION_LABELS[selectedSection]}
+        </>
+    );
+    const addButton = (
+        <ActionButton onClick={handleAdd}>
+            <Plus /> Добавить
+        </ActionButton>
+    );
     const previewHref = (article: ArticleData) =>
         article.is_external === 1
             ? article.external_url || '#'
@@ -267,131 +196,103 @@ const NewsManager: React.FC = () => {
 
     return (
         <>
-            <ToolbarRow>
-                <ViewToggle view={view} onViewChange={setView} />
-            </ToolbarRow>
+            <BoardToolbar view={view} onViewChange={setView} />
 
             {view === 'cards' ? (
-                <BoardView>
-                    <CategoryPanel>
-                        <CategoryPanelHeader>Разделы</CategoryPanelHeader>
-                        {(['news', 'articles', 'useful_to_know'] as ArticleSection[]).map(section => {
-                            const active = selectedSection === section;
-                            return (
-                                <CategoryItem
-                                    key={section}
-                                    $active={active}
-                                    onClick={() => setSelectedSection(section)}
-                                >
-                                    {SECTION_ICONS[section]}
-                                    <CategoryName>{SECTION_LABELS[section]}</CategoryName>
-                                    <CategoryCount $active={active}>
-                                        {articles.filter(a => a.section === section).length}
-                                    </CategoryCount>
-                                </CategoryItem>
-                            );
-                        })}
-                    </CategoryPanel>
+                <BoardCards
+                    panelHeader="Разделы"
+                    panel={
+                        <CategoryList
+                            activeKey={selectedSection}
+                            items={sectionList.map(section => ({
+                                key: section,
+                                icon: SECTION_ICONS[section],
+                                label: SECTION_LABELS[section],
+                                count: articles.filter(a => a.section === section).length,
+                                onSelect: () => setSelectedSection(section)
+                            }))}
+                        />
+                    }
+                    title={sectionTitle}
+                    action={addButton}
+                >
+                    {sectionArticles.length === 0 && (
+                        <EmptyPanel>В этом разделе пока нет публикаций</EmptyPanel>
+                    )}
 
-                    <BoardMain>
-                        <SectionHeader>
-                            <SectionTitle>
-                                {SECTION_ICONS[selectedSection]}
-                                {SECTION_LABELS[selectedSection]}
-                            </SectionTitle>
-                            <ActionButton onClick={handleAdd}>
-                                <Plus /> Добавить
-                            </ActionButton>
-                        </SectionHeader>
-
-                        {sectionArticles.length === 0 && (
-                            <EmptyPanel>В этом разделе пока нет публикаций</EmptyPanel>
-                        )}
-
-                        {sectionArticles.map(article => (
-                            <DocCard key={article.id}>
-                                <DocCardIcon style={{ overflow: 'hidden', padding: 0 }}>
-                                    {article.cover ? (
-                                        <img
-                                            src={article.cover}
-                                            alt=""
-                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                        />
-                                    ) : (
-                                        SECTION_ICONS[article.section]
+                    {sectionArticles.map(article => (
+                        <DocCard key={article.id}>
+                            <DocCardIcon style={{ overflow: 'hidden', padding: 0 }}>
+                                {article.cover ? (
+                                    <img
+                                        src={article.cover}
+                                        alt=""
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    />
+                                ) : (
+                                    SECTION_ICONS[article.section]
+                                )}
+                            </DocCardIcon>
+                            <DocCardInfo>
+                                <DocCardName>{article.title}</DocCardName>
+                                <DocCardMeta>
+                                    {article.published_at && (
+                                        <>
+                                            <Calendar style={{ width: 12, height: 12, verticalAlign: -1 }} />{' '}
+                                            {formatArticleDate(article.published_at, article.section === 'articles')}
+                                            {' · '}
+                                        </>
                                     )}
-                                </DocCardIcon>
-                                <DocCardInfo>
-                                    <DocCardName>{article.title}</DocCardName>
-                                    <DocCardMeta>
-                                        {article.published_at && (
-                                            <>
-                                                <Calendar style={{ width: 12, height: 12, verticalAlign: -1 }} />{' '}
-                                                {formatArticleDate(article.published_at, article.section === 'articles')}
-                                                {' · '}
-                                            </>
-                                        )}
-                                        {article.is_external === 1 && (
-                                            <>
-                                                <Globe style={{ width: 12, height: 12, verticalAlign: -1 }} /> внешняя ссылка
-                                            </>
-                                        )}
-                                        {article.is_external !== 1 && isCustomArticle(article.section, article.slug) && (
-                                            <>
+                                    {article.is_external === 1 && (
+                                        <>
+                                            <Globe style={{ width: 12, height: 12, verticalAlign: -1 }} /> внешняя ссылка
+                                        </>
+                                    )}
+                                    {article.is_external !== 1 && isCustomArticle(article.section, article.slug) && (
+                                        <>
                                             <Code2 style={{ width: 12, height: 12, verticalAlign: -1 }} /> спец-блоки в тексте
                                         </>
-                                        )}
-                                        {article.is_external !== 1 && !isCustomArticle(article.section, article.slug) && (
-                                            <>редактируемая статья</>
-                                        )}
-                                    </DocCardMeta>
-                                </DocCardInfo>
-                                <DocCardActions>
-                                    <IconLink
-                                        href={previewHref(article)}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        title="Открыть"
-                                        aria-label="Открыть"
-                                    >
-                                        <ExternalLink />
-                                    </IconLink>
-                                    <IconButton
-                                        $tone="gray"
-                                        onClick={() => handleEdit(article)}
-                                        title="Редактировать"
-                                        aria-label="Редактировать"
-                                    >
-                                        <Pencil />
-                                    </IconButton>
-                                    <IconButton
-                                        $tone="red"
-                                        onClick={() => void handleQuickDelete(article)}
-                                        title="Удалить"
-                                        aria-label="Удалить"
-                                        disabled={isDeleting}
-                                    >
-                                        <Trash2 />
-                                    </IconButton>
-                                </DocCardActions>
-                            </DocCard>
-                        ))}
-                    </BoardMain>
-                </BoardView>
+                                    )}
+                                    {article.is_external !== 1 && !isCustomArticle(article.section, article.slug) && (
+                                        <>редактируемая статья</>
+                                    )}
+                                </DocCardMeta>
+                            </DocCardInfo>
+                            <DocCardActions>
+                                <IconLink
+                                    href={previewHref(article)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title="Открыть"
+                                    aria-label="Открыть"
+                                >
+                                    <ExternalLink />
+                                </IconLink>
+                                <IconButton
+                                    $tone="gray"
+                                    onClick={() => handleEdit(article)}
+                                    title="Редактировать"
+                                    aria-label="Редактировать"
+                                >
+                                    <Pencil />
+                                </IconButton>
+                                <IconButton
+                                    $tone="red"
+                                    onClick={() => void handleQuickDelete(article)}
+                                    title="Удалить"
+                                    aria-label="Удалить"
+                                    disabled={isDeleting}
+                                >
+                                    <Trash2 />
+                                </IconButton>
+                            </DocCardActions>
+                        </DocCard>
+                    ))}
+                </BoardCards>
             ) : (
-                <Card>
-                    <SectionHeader>
-                        <SectionTitle>
-                            {SECTION_ICONS[selectedSection]}
-                            {SECTION_LABELS[selectedSection]}
-                        </SectionTitle>
-                        <ActionButton onClick={handleAdd}>
-                            <Plus /> Добавить
-                        </ActionButton>
-                    </SectionHeader>
-
+                <SectionCard title={sectionTitle} action={addButton}>
                     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
-                        {(['news', 'articles', 'useful_to_know'] as ArticleSection[]).map(section => (
+                        {sectionList.map(section => (
                             <ActionButton
                                 key={section}
                                 $variant={selectedSection === section ? 'primary' : 'ghost'}
@@ -446,7 +347,7 @@ const NewsManager: React.FC = () => {
                             ))}
                         </tbody>
                     </Table>
-                </Card>
+                </SectionCard>
             )}
 
             {editing && (

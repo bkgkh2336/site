@@ -2,17 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { Pencil, Plus, X, Crown, Users, Building2, Trash2, User } from 'lucide-react';
 import Text from '../../Components/Text/Text';
 import Loading from '../../Components/Loading/Loading';
-import ViewToggle from '../../Components/ViewToggle/ViewToggle';
 import ContactEditForm from './EditForms/ContactEditForm';
 import DepartmentEditForm from './EditForms/DepartmentEditForm';
 import { ResolveDepartmentImage, SortLeadership } from '../../functions';
+import { apiGet, apiPost, apiPut, apiDelete, apiUpload, ApiError, isSessionError } from './api';
+import { BoardToolbar, BoardCards, CategoryList, SectionCard } from './Board';
 import {
-  Card, SectionHeader, SectionTitle, ActionButton,
+  ActionButton,
   Table, Th, Td, Tr, IconButton,
   ModalOverlay, ModalContent, ModalHeader, ModalBody, CloseButton,
-  ToolbarRow, BoardView, CategoryPanel, CategoryPanelHeader,
-  CategoryItem, CategoryName, CategoryCount,
-  BoardMain, DocCard, DocCardIcon, DocCardInfo, DocCardName, DocCardMeta,
+  DocCard, DocCardIcon, DocCardInfo, DocCardName, DocCardMeta,
   DocCardActions, EmptyPanel, AvatarImg
 } from './ui';
 
@@ -49,6 +48,20 @@ interface PhoneDepartmentData {
   is_fax: boolean;
 }
 
+const ImageUploadError = (err: unknown): void => {
+  if (isSessionError(err)) return;
+  console.error('Upload error:', err);
+  alert(`Ошибка загрузки: ${err instanceof Error ? err.message : err}`);
+};
+
+const saveErrorAlert = (err: unknown, fallback: string): void => {
+  if (isSessionError(err)) return;
+  console.error('Save error:', err);
+  alert(err instanceof ApiError && err.status !== 401
+    ? `Ошибка сохранения: ${err.status} ${err.message}`
+    : fallback);
+};
+
 const ContactsManager: React.FC = () => {
   const [contacts, setContacts] = useState<ContactData[]>([]);
   const [primaryContacts, setPrimaryContacts] = useState<ContactData[]>([]);
@@ -57,7 +70,7 @@ const ContactsManager: React.FC = () => {
   const [phoneDepartments, setPhoneDepartments] = useState<PhoneDepartmentData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  
+
   const [editingContact, setEditingContact] = useState<ContactData | null>(null);
   const [editingPhones, setEditingPhones] = useState<string[]>([]);
   const [editingDepartment, setEditingDepartment] = useState<DepartmentData | null>(null);
@@ -71,35 +84,23 @@ const ContactsManager: React.FC = () => {
     const fetchData = async () => {
       setIsLoading(true);
       setError('');
-      
+
       try {
-        const [contactsRes, phonesRes, departmentsRes, phoneDepRes] = await Promise.all([
-          fetch('/backend/api.php/api/contacts', {
-            credentials: 'include'
-          }),
-          fetch('/backend/api.php/api/phone_contacts', {
-            credentials: 'include'
-          }),
-          fetch('/backend/api.php/api/departments', {
-            credentials: 'include'
-          }),
-          fetch('/backend/api.php/api/phone_departments', {
-            credentials: 'include'
-          })
+        const [contactsData, phonesData, departmentsData, phoneDepData] = await Promise.all([
+          apiGet<ContactData[]>('contacts'),
+          apiGet<PhoneData[]>('phone_contacts'),
+          apiGet<DepartmentData[]>('departments'),
+          apiGet<PhoneDepartmentData[]>('phone_departments')
         ]);
 
-        const contacts = await contactsRes.json();
-        const phones = await phonesRes.json();
-        const departments = await departmentsRes.json();
-        const phoneDepartments = await phoneDepRes.json();
-
-        setContacts(contacts.filter((c: ContactData) => Number(c.is_primary) !== 1) || []);
-        setPrimaryContacts(SortLeadership(contacts.filter((c: ContactData) => Number(c.is_primary) === 1)) || []);
-        setPhones(phones || []);
-        setDepartments(departments || []);
-        setPhoneDepartments(phoneDepartments || []);
+        setContacts(contactsData.filter(c => Number(c.is_primary) !== 1) || []);
+        setPrimaryContacts(SortLeadership(contactsData.filter(c => Number(c.is_primary) === 1)) || []);
+        setPhones(phonesData || []);
+        setDepartments(departmentsData || []);
+        setPhoneDepartments(phoneDepData || []);
 
       } catch (err) {
+        if (isSessionError(err)) return;
         setError('Ошибка подключения к серверу');
         console.error('Contacts load error:', err);
       } finally {
@@ -131,56 +132,45 @@ const ContactsManager: React.FC = () => {
     setEditingPhones(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleImageUpload = async (file: File) => {
-    if (!editingContact) return;
-    
-    // Validate file type
+  const uploadImage = async (file: File, type: 'contacts' | 'departments') => {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
       alert('Допустимые форматы: JPEG, PNG, GIF, WebP');
-      return;
+      return null;
     }
-    
-    // Validate file size (max 5MB)
+
     if (file.size > 5 * 1024 * 1024) {
       alert('Размер файла не должен превышать 5 МБ');
-      return;
+      return null;
     }
-    
+
     const formData = new FormData();
     formData.append('image', file);
-    formData.append('type', 'contacts');
-    
+    formData.append('type', type);
+
     try {
-      const response = await fetch('/backend/api.php/api/upload', {
-        method: 'POST',
-        credentials: 'include',
-        body: formData
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.path) {
-          setEditingContact({ ...editingContact, src: data.path });
-        } else {
-          alert(`Ошибка загрузки: ${data.message || 'неизвестная ошибка'}`);
-        }
-      } else {
-        const errorText = await response.text();
-        alert(`Ошибка загрузки: ${errorText}`);
-      }
+      const data = await apiUpload<{ success?: boolean; path?: string; message?: string }>(
+        'upload',
+        formData
+      );
+      if (data?.success && data.path) return data.path;
+      alert(`Ошибка загрузки: ${data?.message || 'неизвестная ошибка'}`);
+      return null;
     } catch (err) {
-      console.error('Upload error:', err);
-      alert('Ошибка при загрузке изображения');
+      ImageUploadError(err);
+      return null;
     }
+  };
+
+  const handleImageUpload = async (file: File) => {
+    if (!editingContact) return;
+    const path = await uploadImage(file, 'contacts');
+    if (path) setEditingContact({ ...editingContact, src: path });
   };
 
   const cleanupTempImage = async () => {
     try {
-      await fetch('/backend/api.php/api/cleanup', {
-        method: 'POST',
-        credentials: 'include'
-      });
+      await apiPost('cleanup');
     } catch (err) {
       console.error('Failed to cleanup temp image:', err);
     }
@@ -188,133 +178,70 @@ const ContactsManager: React.FC = () => {
 
   const validateContact = (): string | null => {
     if (!editingContact) return 'Контакт не выбран';
-    
+
     if (editingContact.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editingContact.email)) {
       return 'Некорректный email';
     }
-    
+
     const invalidPhone = editingPhones.find(p => p.trim() && !/^[\d\s\-+()]{5,20}$/.test(p.trim()));
     if (invalidPhone) return 'Некорректный номер телефона';
-    
+
     return null;
+  };
+
+  const syncContactPhones = async (contactId: number, existingIds: number[], newPhones: string[]) => {
+    await Promise.allSettled(existingIds.map(id => apiDelete(`phone_contacts/${id}`)));
+    const validPhones = newPhones.filter(phone => phone.trim() !== '');
+    if (validPhones.length > 0) {
+      await Promise.all(
+        validPhones.map(phone => apiPost('phone_contacts', { contact_id: contactId, phone }))
+      );
+    }
   };
 
   const handleSaveContact = async () => {
     if (!editingContact) return;
-    
-    // Validate before saving
+
     const validationError = validateContact();
     if (validationError) {
       alert(validationError);
       return;
     }
-    
+
     setIsSaving(true);
     try {
       const isNew = !editingContact.id || editingContact.id === 0;
-      
-      const response = await fetch(
-        isNew 
-          ? '/backend/api.php/api/contacts'
-          : `/backend/api.php/api/contacts/${editingContact.id}`,
-        {
-          method: isNew ? 'POST' : 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          credentials: 'include',
-          body: JSON.stringify({
-            surname: editingContact.surname,
-            name: editingContact.name,
-            patronymic: editingContact.patronymic,
-            job_title: editingContact.job_title,
-            email: editingContact.email,
-            src: editingContact.src ?? '',
-            is_primary: Number(editingContact.is_primary) === 1 ? 1 : 0
-          })
-        }
-      );
-      
-      if (!response.ok) {        
-        const responseText = await response.text();
-        if (response.status === 401) {
-          alert('Сессия истекла. Пожалуйста, войдите снова.');
-          window.location.href = '/manager';
-          return;
-        } else {
-          alert(`Ошибка сохранения: ${response.status} ${responseText}`);
-          setIsSaving(false);
-          return;
-        }
-      }
-      
-      const responseData = await response.json();
-      const savedId = isNew ? responseData.id : editingContact.id;
+      const payload = {
+        surname: editingContact.surname,
+        name: editingContact.name,
+        patronymic: editingContact.patronymic,
+        job_title: editingContact.job_title,
+        email: editingContact.email,
+        src: editingContact.src ?? '',
+        is_primary: Number(editingContact.is_primary) === 1 ? 1 : 0
+      };
+
+      const responseData = isNew
+        ? await apiPost<{ id?: number }>('contacts', payload)
+        : await apiPut(`contacts/${editingContact.id}`, payload);
+      const savedId = isNew ? responseData?.id ?? 0 : editingContact.id;
       const savedContact = isNew ? { ...editingContact, id: savedId } : editingContact;
-      
+
       if (isNew) {
-        // Add phones for new contact
-        const validPhones = editingPhones.filter(phone => phone.trim() !== '');
-        if (validPhones.length > 0) {
-          await Promise.all(
-            validPhones.map(phone =>
-              fetch('/backend/api.php/api/phone_contacts', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify({
-                  contact_id: savedId,
-                  phone: phone
-                })
-              })
-            )
-          );
-        }
-        
-        // Add to appropriate state based on is_primary
+        await syncContactPhones(savedId, [], editingPhones);
+
         if (Number(savedContact.is_primary) === 1) {
           setPrimaryContacts(prev => SortLeadership([...prev, savedContact]));
         } else {
           setContacts(prev => [...prev, savedContact]);
         }
       } else {
-        // Update phones - first delete existing ones
         const existingPhoneIds = phones
           .filter(p => p.contact_id === editingContact.id)
           .map(p => p.id);
-        
-        await Promise.allSettled(
-          existingPhoneIds.map(id =>
-            fetch(`/backend/api.php/api/phone_contacts/${id}`, {
-              method: 'DELETE',
-              credentials: 'include'
-            })
-          )
-        );
-        
-        // Add new phones
-        const validPhones = editingPhones.filter(phone => phone.trim() !== '');
-        if (validPhones.length > 0) {
-          await Promise.all(
-            validPhones.map(phone =>
-              fetch('/backend/api.php/api/phone_contacts', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify({
-                  contact_id: editingContact.id,
-                  phone: phone
-                })
-              })
-            )
-          );
-        }
-        
+
+        await syncContactPhones(editingContact.id, existingPhoneIds, editingPhones);
+
         // Обновляем контакт и при смене флага переносим между разделами
         setContacts(prev => prev
           .filter(c => c.id !== editingContact.id)
@@ -323,41 +250,34 @@ const ContactsManager: React.FC = () => {
           .filter(c => c.id !== editingContact.id)
           .concat(Number(editingContact.is_primary) === 1 ? [editingContact] : [])));
       }
-      
+
       // Refresh phones data
-      const phonesRes = await fetch('/backend/api.php/api/phone_contacts', {
-        credentials: 'include'
-      });
-      const updatedPhones = await phonesRes.json();
-      setPhones(updatedPhones || []);
-      
+      setPhones(await apiGet<PhoneData[]>('phone_contacts') || []);
+
       setEditingContact(null);
       setEditingPhones([]);
     } catch (err) {
-      console.error('Save error:', err);
-      alert('Ошибка при сохранении контакта');
+      saveErrorAlert(err, 'Ошибка при сохранении контакта');
     } finally {
       setIsSaving(false);
     }
   };
 
+  const deleteContact = async (contactId: number) => {
+    await apiDelete(`contacts/${contactId}`);
+    setContacts(prev => prev.filter(c => c.id !== contactId));
+    setPrimaryContacts(prev => prev.filter(c => c.id !== contactId));
+    setEditingContact(null);
+  };
+
   const handleDeleteContact = async () => {
     if (!editingContact) return;
-    
+
     setIsDeleting(true);
     try {
-      const response = await fetch(`/backend/api.php/api/contacts/${editingContact.id}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-
-      if (response.ok) {
-        setContacts(prev => prev.filter(c => c.id !== editingContact.id));
-        setPrimaryContacts(prev => prev.filter(c => c.id !== editingContact.id));
-        setEditingContact(null);
-      }
+      await deleteContact(editingContact.id);
     } catch (err) {
-      console.error('Delete error:', err);
+      if (!isSessionError(err)) console.error('Delete error:', err);
     } finally {
       setIsDeleting(false);
     }
@@ -413,19 +333,12 @@ const ContactsManager: React.FC = () => {
 
     setIsDeleting(true);
     try {
-      const response = await fetch(`/backend/api.php/api/contacts/${contact.id}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-
-      if (response.ok) {
-        setContacts(prev => prev.filter(c => c.id !== contact.id));
-        setPrimaryContacts(prev => prev.filter(c => c.id !== contact.id));
-        setEditingContact(null);
-      }
+      await deleteContact(contact.id);
     } catch (err) {
-      console.error('Delete contact error:', err);
-      alert('Ошибка при удалении сотрудника');
+      if (!isSessionError(err)) {
+        console.error('Delete contact error:', err);
+        alert('Ошибка при удалении сотрудника');
+      }
     } finally {
       setIsDeleting(false);
     }
@@ -436,18 +349,14 @@ const ContactsManager: React.FC = () => {
 
     setIsDeleting(true);
     try {
-      const response = await fetch(`/backend/api.php/api/departments/${department.id}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-
-      if (response.ok) {
-        setDepartments(prev => prev.filter(d => d.id !== department.id));
-        setEditingDepartment(null);
-      }
+      await apiDelete(`departments/${department.id}`);
+      setDepartments(prev => prev.filter(d => d.id !== department.id));
+      setEditingDepartment(null);
     } catch (err) {
-      console.error('Delete department error:', err);
-      alert('Ошибка при удалении отдела');
+      if (!isSessionError(err)) {
+        console.error('Delete department error:', err);
+        alert('Ошибка при удалении отдела');
+      }
     } finally {
       setIsDeleting(false);
     }
@@ -476,188 +385,79 @@ const ContactsManager: React.FC = () => {
 
   const handleImageUploadDepartment = async (file: File) => {
     if (!editingDepartment) return;
-    
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
-      alert('Допустимые форматы: JPEG, PNG, GIF, WebP');
-      return;
-    }
-    
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Размер файла не должен превышать 5 МБ');
-      return;
-    }
-    
-    const formData = new FormData();
-    formData.append('image', file);
-    formData.append('type', 'departments');
-    
-    try {
-      const response = await fetch('/backend/api.php/api/upload', {
-        method: 'POST',
-        credentials: 'include',
-        body: formData
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.path) {
-          setEditingDepartment({ ...editingDepartment, src: data.path });
-        } else {
-          alert(`Ошибка загрузки: ${data.message || 'неизвестная ошибка'}`);
-        }
-      } else {
-        const errorText = await response.text();
-        alert(`Ошибка загрузки: ${errorText}`);
-      }
-    } catch (err) {
-      console.error('Upload error:', err);
-      alert('Ошибка при загрузке изображения');
-    }
+    const path = await uploadImage(file, 'departments');
+    if (path) setEditingDepartment({ ...editingDepartment, src: path });
   };
 
   const handleSaveDepartment = async () => {
     if (!editingDepartment) return;
-    
+
     setIsSaving(true);
     try {
       const isNew = !editingDepartment.id || editingDepartment.id === 0;
-      
-      const response = await fetch(
-        isNew 
-          ? '/backend/api.php/api/departments'
-          : `/backend/api.php/api/departments/${editingDepartment.id}`,
-        {
-          method: isNew ? 'POST' : 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          credentials: 'include',
-          body: JSON.stringify({
-            name: editingDepartment.name,
-            email: editingDepartment.email,
-            src: editingDepartment.src ?? ''
-          })
-        }
-      );
-      
-      if (!response.ok) {
-        const responseText = await response.text();
-        if (response.status === 401) {
-          alert('Сессия истекла. Пожалуйста, войдите снова.');
-          window.location.href = '/manager';
-          return;
-        } else {
-          alert(`Ошибка сохранения: ${response.status} ${responseText}`);
-          setIsSaving(false);
-          return;
-        }
-      }
-      
-      const responseData = await response.json();
-      const savedId = isNew ? responseData.id : editingDepartment.id;
-      
+      const payload = {
+        name: editingDepartment.name,
+        email: editingDepartment.email,
+        src: editingDepartment.src ?? ''
+      };
+
+      const responseData = isNew
+        ? await apiPost<{ id?: number }>('departments', payload)
+        : await apiPut(`departments/${editingDepartment.id}`, payload);
+      const savedId = isNew ? responseData?.id ?? 0 : editingDepartment.id;
+
       if (isNew) {
-        // For new department, add to state with new id
         const newDept = { ...editingDepartment, id: savedId };
-        
-        // Add phones for new department
-        const validPhones = editingDeptPhones.filter(phone => phone.trim() !== '');
-        if (validPhones.length > 0) {
-          await Promise.all(
-            validPhones.map(phone =>
-              fetch('/backend/api.php/api/phone_departments', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify({
-                  id_department: savedId,
-                  phone: phone,
-                  is_fax: false
-                })
-              })
-            )
-          );
-        }
-        
+        await syncDeptPhones(savedId, [], editingDeptPhones);
         setDepartments(prev => [...prev, newDept]);
       } else {
-        // Update phones - delete old ones first
         const existingPhoneIds = phoneDepartments
           .filter(p => p.id_department === editingDepartment.id)
           .map(p => p.id);
-        
-        await Promise.allSettled(
-          existingPhoneIds.map(id =>
-            fetch(`/backend/api.php/api/phone_departments/${id}`, {
-              method: 'DELETE',
-              credentials: 'include'
-            })
-          )
-        );
-        
-        // Add new phones
-        const validPhones = editingDeptPhones.filter(phone => phone.trim() !== '');
-        if (validPhones.length > 0) {
-          await Promise.all(
-            validPhones.map(phone =>
-              fetch('/backend/api.php/api/phone_departments', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify({
-                  id_department: editingDepartment.id,
-                  phone: phone,
-                  is_fax: false
-                })
-              })
-            )
-          );
-        }
-        
+
+        await syncDeptPhones(editingDepartment.id, existingPhoneIds, editingDeptPhones);
+
         // Update departments state
         setDepartments(prev => prev.map(d => d.id === editingDepartment.id ? editingDepartment : d));
       }
-      
+
       // Refresh phone departments data
-      const phoneDepRes = await fetch('/backend/api.php/api/phone_departments', {
-        credentials: 'include'
-      });
-      const updatedDeptPhones = await phoneDepRes.json();
-      setPhoneDepartments(updatedDeptPhones || []);
-      
+      setPhoneDepartments(await apiGet<PhoneDepartmentData[]>('phone_departments') || []);
+
       setEditingDepartment(null);
       setEditingDeptPhones([]);
     } catch (err) {
-      console.error('Save department error:', err);
-      alert('Ошибка при сохранении отдела');
+      saveErrorAlert(err, 'Ошибка при сохранении отдела');
     } finally {
       setIsSaving(false);
     }
   };
 
+  const syncDeptPhones = async (departmentId: number, existingIds: number[], newPhones: string[]) => {
+    await Promise.allSettled(existingIds.map(id => apiDelete(`phone_departments/${id}`)));
+    const validPhones = newPhones.filter(phone => phone.trim() !== '');
+    if (validPhones.length > 0) {
+      await Promise.all(
+        validPhones.map(phone =>
+          apiPost('phone_departments', { id_department: departmentId, phone, is_fax: false })
+        )
+      );
+    }
+  };
+
   const handleDeleteDepartment = async () => {
     if (!editingDepartment) return;
-    
+
     setIsDeleting(true);
     try {
-      const response = await fetch(`/backend/api.php/api/departments/${editingDepartment.id}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-
-      if (response.ok) {
-        setDepartments(prev => prev.filter(d => d.id !== editingDepartment.id));
-        setEditingDepartment(null);
-      }
+      await apiDelete(`departments/${editingDepartment.id}`);
+      setDepartments(prev => prev.filter(d => d.id !== editingDepartment.id));
+      setEditingDepartment(null);
     } catch (err) {
-      console.error('Delete department error:', err);
-      alert('Ошибка при удалении отдела');
+      if (!isSessionError(err)) {
+        console.error('Delete department error:', err);
+        alert('Ошибка при удалении отдела');
+      }
     } finally {
       setIsDeleting(false);
     }
@@ -693,44 +493,35 @@ const ContactsManager: React.FC = () => {
 
   return (
     <>
-      <ToolbarRow>
-        <ViewToggle view={view} onViewChange={setView} />
-      </ToolbarRow>
+      <BoardToolbar view={view} onViewChange={setView} />
 
       {view === 'cards' ? (
-        <BoardView>
-          <CategoryPanel>
-            <CategoryPanelHeader>
-              Разделы
-            </CategoryPanelHeader>
-
-            {sectionItems.map(item => {
-              const active = section === item.key;
-              return (
-                <CategoryItem
-                  key={item.key}
-                  $active={active}
-                  onClick={() => setSection(item.key)}
-                >
-                  {item.icon}
-                  <CategoryName>{item.label}</CategoryName>
-                  <CategoryCount $active={active}>{item.count}</CategoryCount>
-                </CategoryItem>
-              );
-            })}
-          </CategoryPanel>
-
-          <BoardMain>
-            <SectionHeader>
-              <SectionTitle>
-                {activeItem.icon}
-                {activeItem.label}
-              </SectionTitle>
-              <ActionButton onClick={handleAddForSection}>
-                <Plus /> {section === 'departments' ? 'Добавить отдел' : 'Добавить сотрудника'}
-              </ActionButton>
-            </SectionHeader>
-
+        <BoardCards
+          panelHeader="Разделы"
+          panel={
+            <CategoryList
+              activeKey={section}
+              items={sectionItems.map(item => ({
+                key: item.key,
+                icon: item.icon,
+                label: item.label,
+                count: item.count,
+                onSelect: () => setSection(item.key)
+              }))}
+            />
+          }
+          title={
+            <>
+              {activeItem.icon}
+              {activeItem.label}
+            </>
+          }
+          action={
+            <ActionButton onClick={handleAddForSection}>
+              <Plus /> {section === 'departments' ? 'Добавить отдел' : 'Добавить сотрудника'}
+            </ActionButton>
+          }
+        >
             {section === 'departments' ? (
               <>
                 {departments.length === 0 && (
@@ -839,18 +630,17 @@ const ContactsManager: React.FC = () => {
                 })}
               </>
             )}
-          </BoardMain>
-        </BoardView>
+        </BoardCards>
       ) : (
         <>
-          <Card>
-            <SectionHeader>
-              <SectionTitle>Сотрудники</SectionTitle>
+          <SectionCard
+            title="Сотрудники"
+            action={
               <ActionButton onClick={handleAddContact}>
                 <Plus /> Добавить сотрудника
               </ActionButton>
-            </SectionHeader>
-
+            }
+          >
             <Table>
               <thead>
                 <tr>
@@ -879,11 +669,11 @@ const ContactsManager: React.FC = () => {
                 ))}
               </tbody>
             </Table>
-          </Card>
+          </SectionCard>
 
-          <Card>
-            <SectionHeader>
-              <SectionTitle>Отделы</SectionTitle>
+          <SectionCard
+            title="Отделы"
+            action={
               <ActionButton
                 onClick={() => {
                   setEditingDepartment({
@@ -897,8 +687,8 @@ const ContactsManager: React.FC = () => {
               >
                 <Plus /> Добавить отдел
               </ActionButton>
-            </SectionHeader>
-
+            }
+          >
             <Table>
               <thead>
                 <tr>
@@ -923,7 +713,7 @@ const ContactsManager: React.FC = () => {
                 ))}
               </tbody>
             </Table>
-          </Card>
+          </SectionCard>
         </>
       )}
 

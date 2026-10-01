@@ -3,14 +3,16 @@ import { Wind, Zap, Flame, Droplets, Wrench, Trash2, Trees, Truck, Search, Plus,
 import Text from '../../Components/Text/Text';
 import Loading from '../../Components/Loading/Loading';
 import { Input } from './styled';
+import { apiGet, apiPost, apiPut, apiDelete, ApiError, isSessionError } from './api';
+import { SelectField } from './EditForms/parts';
 import {
   Card, SectionHeader, SectionTitle, ActionButton, ModalActions,
   Table, Th, Td, Tr, IconButton,
   ModalOverlay, ModalContent, ModalHeader, ModalBody, CloseButton,
   Field, FieldLabel, ToolbarRow,
-  BoardView, CategoryPanel, CategoryPanelHeader, CategoryItem, CategoryName, CategoryCount,
-  BoardMain, EmptyPanel
+  EmptyPanel
 } from './ui';
+import { BoardCards, CategoryList } from './Board';
 
 type Row = Record<string, string | number | null>;
 
@@ -130,18 +132,6 @@ const findTable = (name: string): TableSpec | undefined => {
   return undefined;
 };
 
-const selectStyle: React.CSSProperties = {
-  width: '100%',
-  boxSizing: 'border-box',
-  padding: '12px 14px',
-  borderRadius: 10,
-  border: '1px solid #ced4da',
-  fontSize: 16,
-  fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
-  backgroundColor: '#fff',
-  color: '#212529'
-};
-
 interface EditingState {
   table: string;
   row: Row;
@@ -164,11 +154,9 @@ const ServicesManager: React.FC = () => {
       setIsLoading(true);
       try {
         const entries = await Promise.all(TABLE_NAMES.map(async name => {
-          const res = await fetch(`/backend/api.php/api/${name}`);
-          if (!res.ok) throw new Error(`Ошибка загрузки ${name}`);
-          const raw: Row[] = await res.json();
+          const raw = await apiGet<Row[]>(name);
           const spec = findTable(name);
-          const rows = raw.map(row => {
+          const rows = (Array.isArray(raw) ? raw : []).map(row => {
             const next: Row = { ...row, id: row.id == null ? null : Number(row.id) };
             for (const field of spec?.fields ?? []) {
               if (field.kind === 'ref' && next[field.key] != null) {
@@ -182,6 +170,7 @@ const ServicesManager: React.FC = () => {
         setData(Object.fromEntries(entries));
         setError('');
       } catch (err) {
+        if (isSessionError(err)) return;
         console.error('Services load error:', err);
         setError('Не удалось загрузить тарифы');
       } finally {
@@ -190,15 +179,6 @@ const ServicesManager: React.FC = () => {
     };
     load();
   }, []);
-
-  const handleSessionExpired = (status: number) => {
-    if (status === 401) {
-      alert('Сессия истекла. Пожалуйста, войдите снова.');
-      window.location.href = '/manager';
-      return true;
-    }
-    return false;
-  };
 
   const activeSection = useMemo(
     () => SECTIONS.find(s => s.key === activeKey) ?? SECTIONS[0],
@@ -279,26 +259,13 @@ const ServicesManager: React.FC = () => {
 
     setIsSaving(true);
     try {
-      const url = editing.isNew
-        ? `/backend/api.php/api/${table.name}`
-        : `/backend/api.php/api/${table.name}/${editing.row.id}`;
-      const res = await fetch(url, {
-        method: editing.isNew ? 'POST' : 'PUT',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(payload)
-      });
-      if (!res.ok) {
-        const text = await res.text();
-        if (handleSessionExpired(res.status)) return;
-        alert(`Ошибка сохранения: ${res.status} ${text}`);
-        return;
-      }
-      const out = await res.json();
+      const out = editing.isNew
+        ? await apiPost<Record<string, unknown>>(table.name, payload)
+        : await apiPut<Record<string, unknown>>(`${table.name}/${editing.row.id}`, payload);
       setData(prev => {
         const rows = [...(prev[table.name] || [])];
         if (editing.isNew) {
-          rows.push({ ...payload, id: Number(out.id) });
+          rows.push({ ...payload, id: Number(out?.id) });
         } else {
           const index = rows.findIndex(r => r.id === editing.row.id);
           if (index >= 0) rows[index] = { ...rows[index], ...payload };
@@ -307,8 +274,11 @@ const ServicesManager: React.FC = () => {
       });
       setEditing(null);
     } catch (err) {
+      if (isSessionError(err)) return;
       console.error('Services save error:', err);
-      alert('Ошибка при сохранении');
+      alert(err instanceof ApiError
+        ? `Ошибка сохранения: ${err.status} ${err.message}`
+        : 'Ошибка при сохранении');
     } finally {
       setIsSaving(false);
     }
@@ -317,15 +287,7 @@ const ServicesManager: React.FC = () => {
   const deleteRow = async (table: TableSpec, row: Row) => {
     setIsDeleting(true);
     try {
-      const res = await fetch(`/backend/api.php/api/${table.name}/${row.id}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-      if (!res.ok && handleSessionExpired(res.status)) return;
-      if (!res.ok) {
-        alert(`Ошибка удаления: ${res.status}`);
-        return;
-      }
+      await apiDelete(`${table.name}/${row.id}`);
       const deletedId = Number(row.id);
       setData(prev => {
         const next: Record<string, Row[]> = {
@@ -343,8 +305,11 @@ const ServicesManager: React.FC = () => {
       });
       setEditing(null);
     } catch (err) {
+      if (isSessionError(err)) return;
       console.error('Services delete error:', err);
-      alert('Ошибка при удалении');
+      alert(err instanceof ApiError
+        ? `Ошибка удаления: ${err.status} ${err.message}`
+        : 'Ошибка при удалении');
     } finally {
       setIsDeleting(false);
     }
@@ -394,36 +359,30 @@ const ServicesManager: React.FC = () => {
         </div>
       </ToolbarRow>
 
-      <BoardView>
-        <CategoryPanel>
-          <CategoryPanelHeader>Разделы</CategoryPanelHeader>
-          {SECTIONS.map(section => {
-            const active = activeKey === section.key;
-            const count = (data[section.tables[0].name] || []).length;
-            return (
-              <CategoryItem
-                key={section.key}
-                $active={active}
-                onClick={() => {
-                  setActiveKey(section.key);
-                  setQuery('');
-                }}
-              >
-                {section.icon}
-                <CategoryName>{section.label}</CategoryName>
-                <CategoryCount $active={active}>{count}</CategoryCount>
-              </CategoryItem>
-            );
-          })}
-        </CategoryPanel>
-
-        <BoardMain>
-          <SectionHeader>
-            <SectionTitle>
-              {activeSection.icon}
-              {activeSection.label}
-            </SectionTitle>
-          </SectionHeader>
+      <BoardCards
+        panelHeader="Разделы"
+        panel={
+          <CategoryList
+            activeKey={activeKey}
+            items={SECTIONS.map(section => ({
+              key: section.key,
+              icon: section.icon,
+              label: section.label,
+              count: (data[section.tables[0].name] || []).length,
+              onSelect: () => {
+                setActiveKey(section.key);
+                setQuery('');
+              }
+            }))}
+          />
+        }
+        title={
+          <>
+            {activeSection.icon}
+            {activeSection.label}
+          </>
+        }
+      >
 
           {activeSection.tables.map(table => {
             const rows = data[table.name] || [];
@@ -499,8 +458,7 @@ const ServicesManager: React.FC = () => {
               </Card>
             );
           })}
-        </BoardMain>
-      </BoardView>
+      </BoardCards>
 
       {editing && editingTable && (
         <ModalOverlay onClick={e => e.target === e.currentTarget && setEditing(null)}>
@@ -517,21 +475,17 @@ const ServicesManager: React.FC = () => {
                   if (field.kind === 'ref') {
                     const parents = editingTable.refTable ? (data[editingTable.refTable] || []) : [];
                     return (
-                      <Field key={field.key}>
-                        <FieldLabel>{field.label}:</FieldLabel>
-                        <select
-                          style={selectStyle}
-                          value={form[field.key] ?? ''}
-                          onChange={e => setForm(prev => ({ ...prev, [field.key]: e.target.value }))}
-                        >
-                          <option value="" disabled>Выберите услугу</option>
-                          {parents.map(parent => (
-                            <option key={String(parent.id)} value={String(parent.id)}>
-                              {String(parent.name)}
-                            </option>
-                          ))}
-                        </select>
-                      </Field>
+                      <SelectField
+                        key={field.key}
+                        label={`${field.label}:`}
+                        value={form[field.key] ?? ''}
+                        placeholder="Выберите услугу"
+                        options={parents.map(parent => ({
+                          value: String(parent.id),
+                          label: String(parent.name)
+                        }))}
+                        onChange={(value) => setForm(prev => ({ ...prev, [field.key]: value }))}
+                      />
                     );
                   }
                   if (field.kind === 'number') {
