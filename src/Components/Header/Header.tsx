@@ -1,9 +1,9 @@
 import { Phone, Send } from "lucide-react"
 import { useState, useEffect, useCallback, useRef } from "react"
-import { useNavigate, useLocation } from "react-router-dom"
+import { useNavigate, useLocation, Link } from "react-router-dom"
 import Section from "../Section/Section"
 import Text from "../Text/Text"
-import { menuSections, getActiveMenuItem, normalizeMenuPath, MenuSection } from "../../data/menu"
+import { menuSections, getActiveMenuItem, normalizeMenuPath, isExternalMenuUrl, MenuSection } from "../../data/menu"
 import {
     HeaderContainer, Header_, Logo, Nav, ContactInfo, MobileActions, MobileContactInfo,
     HamburgerButton, HamburgerIcon, BottomSheet, BottomSheetHandle, BottomSheetHandleBar,
@@ -26,6 +26,7 @@ const SheetHeaderBtn = styled.button<{ $active: boolean }>`
     font-weight: ${({ $active }) => $active ? 700 : 500};
     color: ${({ $active }) => $active ? '#28a745' : '#333'};
     text-align: left;
+    text-decoration: none;
     transition: all 0.2s ease;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     
@@ -55,6 +56,7 @@ const SheetSubmenuBtn = styled.button<{ $active: boolean }>`
     font-weight: ${({ $active }) => $active ? 600 : 400};
     color: ${({ $active }) => $active ? '#28a745' : '#555'};
     text-align: left;
+    text-decoration: none;
     transition: all 0.2s ease;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     
@@ -332,39 +334,74 @@ const Header = (props: HeaderProps) => {
                         const isActive = isSectionActive(section);
                         const activeItem = getActiveMenuItem(section.list, currentPath);
 
+                        let header;
+                        if (hasSubmenu) {
+                            header = (
+                                <SheetHeaderBtn $active={isActive} onClick={() => toggleSection(section.caption)}>
+                                    <span>{section.caption}</span>
+                                    <SheetChevron $open={isExpanded}>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <polyline points="6 9 12 15 18 9" />
+                                        </svg>
+                                    </SheetChevron>
+                                </SheetHeaderBtn>
+                            );
+                        } else if (section.url !== undefined && isExternalMenuUrl(section.url)) {
+                            header = (
+                                <SheetHeaderBtn
+                                    $active={isActive}
+                                    as="a"
+                                    href={section.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={closeBottomSheet}
+                                >
+                                    <span>{section.caption}</span>
+                                </SheetHeaderBtn>
+                            );
+                        } else if (section.url !== undefined) {
+                            header = (
+                                <SheetHeaderBtn
+                                    $active={isActive}
+                                    as={Link}
+                                    to={normalizeMenuPath(section.url)}
+                                    onClick={closeBottomSheet}
+                                >
+                                    <span>{section.caption}</span>
+                                </SheetHeaderBtn>
+                            );
+                        } else {
+                            header = (
+                                <SheetHeaderBtn $active={isActive}>
+                                    <span>{section.caption}</span>
+                                </SheetHeaderBtn>
+                            );
+                        }
+
                         return (
                             <div key={section.caption} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                <SheetHeaderBtn $active={isActive} onClick={() => {
-                                    if (hasSubmenu) {
-                                        toggleSection(section.caption);
-                                    } else if (section.url && section.url !== ' ') {
-                                        navigate(section.url === ' ' ? '/' : section.url);
-                                        closeBottomSheet();
-                                    }
-                                }}>
-                                    <span>{section.caption}</span>
-                                    {hasSubmenu && (
-                                        <SheetChevron $open={isExpanded}>
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                <polyline points="6 9 12 15 18 9" />
-                                            </svg>
-                                        </SheetChevron>
-                                    )}
-                                </SheetHeaderBtn>
+                                {header}
                                 {hasSubmenu && section.list && (
                                     <SheetSubmenuWrap $open={isExpanded}>
-                                        {section.list.map((item) => (
+                                        {section.list.map((item) => isExternalMenuUrl(item.url) ? (
                                             <SheetSubmenuBtn
                                                 key={item.caption}
                                                 $active={activeItem?.url === item.url}
-                                                onClick={() => {
-                                                    if (item.url.startsWith('http')) {
-                                                        window.open(item.url, '_blank', 'noopener,noreferrer');
-                                                    } else {
-                                                        navigate(item.url);
-                                                    }
-                                                    closeBottomSheet();
-                                                }}
+                                                as="a"
+                                                href={item.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                onClick={closeBottomSheet}
+                                            >
+                                                {item.caption}
+                                            </SheetSubmenuBtn>
+                                        ) : (
+                                            <SheetSubmenuBtn
+                                                key={item.caption}
+                                                $active={activeItem?.url === item.url}
+                                                as={Link}
+                                                to={normalizeMenuPath(item.url)}
+                                                onClick={closeBottomSheet}
                                             >
                                                 {item.caption}
                                             </SheetSubmenuBtn>

@@ -59,7 +59,7 @@ export const normalizeMenuPath = (path: string): string => {
     return base.length > 1 ? base.replace(/\/+$/, '') : base;
 };
 
-const isExternalMenuUrl = (url: string): boolean => /^https?:\/\//.test(url);
+export const isExternalMenuUrl = (url: string): boolean => /^https?:\/\//.test(url);
 
 /** Точное совпадение пункта меню с текущим путём или вложенная страница. */
 export const isMenuItemActive = (itemUrl: string, currentPath: string): boolean => {

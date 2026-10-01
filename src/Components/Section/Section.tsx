@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, memo } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Text from "../Text/Text";
 import Section_tooltip from "../Section_tooltip/Section_tooltip";
 import { TooltipItem } from "../Section_tooltip/styled";
 import Button from "../Button/Button";
+import { Button_ } from "../Button/styled";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { getActiveMenuItem, normalizeMenuPath } from "../../data/menu";
 
@@ -221,6 +222,42 @@ const Section = (props: SectionProps) => {
         );
     }
 
+    // Пункт без подпунктов — обычная ссылка (контекстное меню, «открыть в новой вкладке»)
+    if (!props.list || props.list.length === 0) {
+        const label = (
+            <>
+                {props.src && (
+                    <img
+                        style={{ height: 30 }}
+                        src={props.src}
+                        alt={props.caption}
+                    />
+                )}
+                <Text style={{ color: active ? '#28a745' : 'inherit', fontWeight: active ? '700' : 'normal' }}>
+                    {props.caption}
+                </Text>
+            </>
+        );
+
+        if (props.url && isExternalUrl(props.url)) {
+            return (
+                <Button_ as="a" href={props.url} target="_blank" rel="noopener noreferrer" style={{ boxShadow: 'none' }}>
+                    {label}
+                </Button_>
+            );
+        }
+
+        if (props.url) {
+            return (
+                <Button_ as={Link} to={normalizeMenuPath(props.url)} style={{ boxShadow: 'none' }}>
+                    {label}
+                </Button_>
+            );
+        }
+
+        return <Button_ style={{ boxShadow: 'none' }}>{label}</Button_>;
+    }
+
     // Для desktop меню оставляем hover
     return (
         <div
@@ -253,19 +290,38 @@ const Section = (props: SectionProps) => {
             </Button>
             {props.list && props.list.length > 0 &&
                 <Section_tooltip $visible={isVisibleCard}>
-                    {props.list.map((item) => (
-                        <TooltipItem
-                            key={item.caption}
-                            $active={activeItem?.url === item.url}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleNavigation(item.url);
-                                setIsVisibleCard(false);
-                            }}
-                        >
-                            {item.caption}
-                        </TooltipItem>
-                    ))}
+                    {props.list.map((item) => {
+                        const close = (e: React.MouseEvent) => {
+                            e.stopPropagation();
+                            setIsVisibleCard(false);
+                        };
+                        if (isExternalUrl(item.url)) {
+                            return (
+                                <TooltipItem
+                                    key={item.caption}
+                                    as="a"
+                                    href={item.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    $active={activeItem?.url === item.url}
+                                    onClick={close}
+                                >
+                                    {item.caption}
+                                </TooltipItem>
+                            );
+                        }
+                        return (
+                            <TooltipItem
+                                key={item.caption}
+                                as={Link}
+                                to={normalizeMenuPath(item.url)}
+                                $active={activeItem?.url === item.url}
+                                onClick={close}
+                            >
+                                {item.caption}
+                            </TooltipItem>
+                        );
+                    })}
                 </Section_tooltip>
             }
         </div>
