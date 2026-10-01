@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import Section from "../Section/Section"
 import Text from "../Text/Text"
-import { menuSections } from "../../data/menu"
+import { menuSections, getActiveMenuItem, normalizeMenuPath, MenuSection } from "../../data/menu"
 import {
     HeaderContainer, Header_, Logo, Nav, ContactInfo, MobileActions, MobileContactInfo,
     HamburgerButton, HamburgerIcon, BottomSheet, BottomSheetHandle, BottomSheetHandleBar,
@@ -246,12 +246,13 @@ const Header = (props: HeaderProps) => {
         };
     }, [isBottomSheetOpen, closeBottomSheet]);
 
-    const isSectionActive = useCallback((section: { url?: string; list?: { url: string }[] }) => {
+    const isSectionActive = useCallback((section: MenuSection) => {
         if (section.url !== undefined) {
-            const target = section.url.trim() === '' ? '/' : section.url;
-            return currentPath === target;
+            return normalizeMenuPath(currentPath) === normalizeMenuPath(section.url);
         }
-        return section.list?.some(item => item.url === currentPath) || false;
+        // С подпунктами: активен, когда совпал хотя бы один (включая вложенные
+        // страницы — /news/articles/... подсвечивает «Пресс-центр»)
+        return getActiveMenuItem(section.list, currentPath) !== null;
     }, [currentPath]);
 
     return (
@@ -329,6 +330,7 @@ const Header = (props: HeaderProps) => {
                         const hasSubmenu = section.list && section.list.length > 0;
                         const isExpanded = expandedSection === section.caption;
                         const isActive = isSectionActive(section);
+                        const activeItem = getActiveMenuItem(section.list, currentPath);
 
                         return (
                             <div key={section.caption} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
@@ -354,7 +356,7 @@ const Header = (props: HeaderProps) => {
                                         {section.list.map((item) => (
                                             <SheetSubmenuBtn
                                                 key={item.caption}
-                                                $active={currentPath === item.url}
+                                                $active={activeItem?.url === item.url}
                                                 onClick={() => {
                                                     if (item.url.startsWith('http')) {
                                                         window.open(item.url, '_blank', 'noopener,noreferrer');

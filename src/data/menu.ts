@@ -51,3 +51,37 @@ export const menuSections: MenuSection[] = [
         ],
     },
 ];
+
+/** Путь меню: ведущий слэш, без хвостовых слэшей (кроме корня). */
+export const normalizeMenuPath = (path: string): string => {
+    const trimmed = path.trim();
+    const base = trimmed === '' || trimmed === ' ' ? '/' : trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+    return base.length > 1 ? base.replace(/\/+$/, '') : base;
+};
+
+const isExternalMenuUrl = (url: string): boolean => /^https?:\/\//.test(url);
+
+/** Точное совпадение пункта меню с текущим путём или вложенная страница. */
+export const isMenuItemActive = (itemUrl: string, currentPath: string): boolean => {
+    if (isExternalMenuUrl(itemUrl)) return false;
+    const current = normalizeMenuPath(currentPath);
+    const item = normalizeMenuPath(itemUrl);
+    return current === item || (item !== '/' && current.startsWith(`${item}/`));
+};
+
+/**
+ * Активный подпункт текущего раздела: из всех совпавших (включая вложенные
+ * страницы) берётся самый глубокий — /news/articles/... подсвечивает
+ * «Статьи», а не одновременно «Статьи» и «Новости».
+ */
+export const getActiveMenuItem = (list: MenuItem[] | undefined, currentPath: string): MenuItem | null => {
+    if (!list || list.length === 0) return null;
+    let best: MenuItem | null = null;
+    for (const item of list) {
+        if (!isMenuItemActive(item.url, currentPath)) continue;
+        if (!best || normalizeMenuPath(item.url).length > normalizeMenuPath(best.url).length) {
+            best = item;
+        }
+    }
+    return best;
+};

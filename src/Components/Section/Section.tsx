@@ -5,6 +5,7 @@ import Section_tooltip from "../Section_tooltip/Section_tooltip";
 import { TooltipItem } from "../Section_tooltip/styled";
 import Button from "../Button/Button";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { getActiveMenuItem, normalizeMenuPath } from "../../data/menu";
 
 interface SectionProps {
     src?: string,
@@ -28,70 +29,36 @@ const Section = (props: SectionProps) => {
     const rootRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
 
-    // Проверяем активность раздела
-    const isActive = () => {
-        if (!props.currentPath) return false;
-        
-        // Нормализуем текущий путь
-        const normalizedCurrentPath = props.currentPath.startsWith('/') ? props.currentPath : `/${props.currentPath}`;
-        
-        // Проверка прямого URL раздела
-        if (props.url) {
-            const trimmedUrl = props.url.trim();
-            
-            // Пропускаем внешние ссылки
-            if (trimmedUrl.startsWith('http://') || trimmedUrl.startsWith('https://')) {
-                return false;
-            }
-            
-            // Нормализуем URL
-            const normalizedUrl = trimmedUrl === '' || trimmedUrl === ' ' 
-                ? '/' 
-                : (trimmedUrl.startsWith('/') ? trimmedUrl : `/${trimmedUrl}`);
-            
-            // Проверяем точное совпадение
-            if (normalizedCurrentPath === normalizedUrl) {
-                return true;
-            }
-        }
-        
-        // Проверяем совпадение с любым URL из списка подразделов
-        if (props.list && props.list.length > 0) {
-            return props.list.some(item => {
-                // Пропускаем внешние ссылки
-                if (item.url.startsWith('http://') || item.url.startsWith('https://')) {
-                    return false;
-                }
-                
-                const normalizedItemUrl = item.url.startsWith('/') ? item.url : `/${item.url}`;
-                return normalizedCurrentPath === normalizedItemUrl;
-            });
-        }
-        
-        return false;
-    };
-
-    const active = isActive();
-
     const isExternalUrl = (url: string) => {
         return url.startsWith('http://') || url.startsWith('https://');
     };
 
-    const normalizePath = (url: string) => {
-        const trimmed = url.trim();
-        const base = trimmed === '' || trimmed === ' '
-            ? '/'
-            : (trimmed.startsWith('/') ? trimmed : `/${trimmed}`);
-        return base.length > 1 ? base.replace(/\/+$/, '') : base;
+    // Подпункт, которому соответствует текущий путь: точное совпадение или
+    // вложенная страница; среди совпавших активен самый глубокий, поэтому
+    // /news/articles/... подсвечивает «Статьи», а не вместе с «Новости»
+    const activeItem = props.currentPath ? getActiveMenuItem(props.list, props.currentPath) : null;
+
+    // Проверяем активность раздела
+    const isActive = () => {
+        if (!props.currentPath) return false;
+
+        // Проверка прямого URL раздела (внешние ссылки пропускаем)
+        if (props.url && !isExternalUrl(props.url)) {
+            if (normalizeMenuPath(props.currentPath) === normalizeMenuPath(props.url)) {
+                return true;
+            }
+        }
+
+        // Раздел с подпунктами: активен, когда совпал хотя бы один подпункт,
+        // включая вложенные страницы вроде /news/articles/...
+        if (props.list && props.list.length > 0) {
+            return activeItem !== null;
+        }
+
+        return false;
     };
 
-    // Активен ли конкретный подпункт: точное совпадение или вложенная страница
-    const isItemActive = (itemUrl: string) => {
-        if (!props.currentPath || isExternalUrl(itemUrl)) return false;
-        const current = normalizePath(props.currentPath);
-        const item = normalizePath(itemUrl);
-        return current === item || (item !== '/' && current.startsWith(`${item}/`));
-    };
+    const active = isActive();
 
     const handleNavigation = (url: string) => {
         // Закрываем меню перед навигацией
@@ -289,7 +256,7 @@ const Section = (props: SectionProps) => {
                     {props.list.map((item) => (
                         <TooltipItem
                             key={item.caption}
-                            $active={isItemActive(item.url)}
+                            $active={activeItem?.url === item.url}
                             onClick={(e) => {
                                 e.stopPropagation();
                                 handleNavigation(item.url);
