@@ -241,7 +241,7 @@ function sanitizeArticleBody($html) {
             }
             foreach ($attrs as $name) {
                 $lower = strtolower($name);
-                if ($lower === 'class' || $lower === 'id' || str_starts_with($lower, 'on')) {
+                if ($lower === 'class' || $lower === 'id' || strpos($lower, 'on') === 0) {
                     $node->removeAttribute($name);
                     continue;
                 }
@@ -684,7 +684,7 @@ try {
         $data = json_decode(file_get_contents("php://input"), true);
         $src = $data['src'] ?? '';
         if (!empty($src)) {
-            if (str_starts_with($src, '/documents/') || str_starts_with($src, 'documents/')) {
+            if (strpos($src, '/documents/') === 0 || strpos($src, 'documents/') === 0) {
                 deleteDocumentFileIfUnused($src, $pdo);
             } else {
                 deleteImageIfUnused($src, $pdo);
