@@ -14,4 +14,4 @@ $hash = password_hash($password, PASSWORD_BCRYPT);
 
 echo "Пароль: $password\n";
 echo "Хеш: $hash\n";
-echo "\nВставьте этот хеш в api.php в переменную \$passwordHash\n";
+echo "\nВставьте этот хеш в backend/.env в переменную ADMIN_PASSWORD_HASH\n";
