@@ -14,6 +14,7 @@ export const TooltipItem = styled.button<{ $active?: boolean }>`
     text-align: left;
     cursor: pointer;
     user-select: none;
+    text-decoration: none;
     background: ${({ $active }) => ($active ? 'rgba(40, 167, 69, 0.12)' : 'transparent')};
     color: ${({ $active }) => ($active ? '#28a745' : 'inherit')};
     font-weight: ${({ $active }) => ($active ? 700 : 'normal')};

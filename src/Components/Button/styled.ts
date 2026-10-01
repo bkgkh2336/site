@@ -12,7 +12,12 @@ export const Button_ = styled.button`
     background-color: white;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     cursor: pointer;
-    
+
+    &:link, &:visited {
+        color: inherit;
+        text-decoration: none;
+    }
+
     &:hover{
         transform: translateY(-5px);
         background-color: #e7f3e9;
