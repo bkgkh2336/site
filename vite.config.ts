@@ -94,10 +94,17 @@ export default defineConfig({
       output: {
         // Автоматическая оптимизация чанков при сборке
         manualChunks: (id) => {
-          // React vendors (строгое совпадение, чтобы не захватить react-world-flags и пр.)
+          // React и вся его экосистема ОБЯЗАНА быть в одном чанке:
+          // scheduler/use-sync-external-store (зависимости react-dom)
+          // инициализируют CJS на верхнем уровне и циклически зовут React —
+          // при разнесении по разным чанкам сборка падает с
+          // "Cannot set properties of undefined (setting 'Activity')"
           if (id.includes('node_modules/react/') || 
-              id.includes('node_modules/react-dom/') || 
-              id.includes('node_modules/react-router/')) {
+              id.includes('node_modules/react-dom/') ||
+              id.includes('node_modules/react-router/') ||
+              id.includes('node_modules/react-router-dom/') ||
+              id.includes('node_modules/scheduler/') ||
+              id.includes('node_modules/use-sync-external-store/')) {
             return 'react-vendor';
           }
           
