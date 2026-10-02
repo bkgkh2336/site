@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import {
-    Pencil, Plus, X, Newspaper, BookOpen, FileText,
+    Pencil, Plus, Newspaper, BookOpen, FileText,
     ExternalLink, Trash2, Calendar, Code2, Globe
 } from 'lucide-react';
 import Text from '../../Components/Text/Text';
@@ -9,10 +9,10 @@ import NewsEditForm from './EditForms/NewsEditForm';
 import { apiPost, apiUpload, isSessionError } from './api';
 import { useCrud } from './useCrud';
 import { BoardToolbar, BoardCards, CategoryList, SectionCard } from './Board';
+import Modal from './Modal';
 import {
     ActionButton,
     Table, Th, Td, Tr, IconButton,
-    ModalOverlay, ModalContent, ModalHeader, ModalBody, CloseButton,
     DocCard, DocCardIcon, DocCardInfo, DocCardName, DocCardMeta,
     DocCardActions, IconLink, EmptyPanel
 } from './ui';
@@ -58,6 +58,14 @@ const NewsManager: React.FC = () => {
     const [view, setView] = useState<'cards' | 'table'>('cards');
     const [selectedSection, setSelectedSection] = useState<ArticleSection>('news');
     const uploadedRef = useRef<string[]>([]);
+    const snapshotRef = useRef('');
+
+    const openEditing = (value: ArticleData) => {
+        snapshotRef.current = JSON.stringify(value);
+        setEditing(value);
+    };
+
+    const isDirty = editing !== null && JSON.stringify(editing) !== snapshotRef.current;
 
     const cleanupTempFile = async (src: string) => {
         try {
@@ -100,11 +108,11 @@ const NewsManager: React.FC = () => {
 
     const handleAdd = () => {
         const inSection = articles.filter(a => a.section === selectedSection);
-        setEditing(emptyArticle(selectedSection, inSection.length + 1));
+        openEditing(emptyArticle(selectedSection, inSection.length + 1));
     };
 
     const handleEdit = (article: ArticleData) => {
-        setEditing({ ...article });
+        openEditing({ ...article });
     };
 
     const handleSave = async () => {
@@ -351,32 +359,30 @@ const NewsManager: React.FC = () => {
             )}
 
             {editing && (
-                <ModalOverlay $fullscreen onClick={(e) => e.target === e.currentTarget && void handleCancel()}>
-                    <ModalContent $fullscreen>
-                        <ModalHeader>
-                            {editing.id
-                                ? `Редактирование: ${editing.title || 'без названия'}`
-                                : `Новая публикация — ${SECTION_LABELS[editing.section]}`}
-                            <CloseButton onClick={() => void handleCancel()} aria-label="Закрыть">
-                                <X />
-                            </CloseButton>
-                        </ModalHeader>
-                        <ModalBody>
-                            <NewsEditForm
-                                article={editing}
-                                isSaving={isSaving}
-                                isDeleting={isDeleting}
-                                isNew={!editing.id}
-                                onArticleChange={setEditing}
-                                onSave={() => void handleSave()}
-                                onCancel={() => void handleCancel()}
-                                onDelete={() => void handleDelete()}
-                                onUpload={uploadImage}
-                                onCleanupFile={cleanupTempFile}
-                            />
-                        </ModalBody>
-                    </ModalContent>
-                </ModalOverlay>
+                <Modal
+                    fullscreen
+                    title={
+                        editing.id
+                            ? `Редактирование: ${editing.title || 'без названия'}`
+                            : `Новая публикация — ${SECTION_LABELS[editing.section]}`
+                    }
+                    onClose={() => void handleCancel()}
+                    onSave={isSaving || isDeleting ? undefined : () => void handleSave()}
+                    dirty={isDirty}
+                >
+                    <NewsEditForm
+                        article={editing}
+                        isSaving={isSaving}
+                        isDeleting={isDeleting}
+                        isNew={!editing.id}
+                        onArticleChange={setEditing}
+                        onSave={() => void handleSave()}
+                        onCancel={() => void handleCancel()}
+                        onDelete={() => void handleDelete()}
+                        onUpload={uploadImage}
+                        onCleanupFile={cleanupTempFile}
+                    />
+                </Modal>
             )}
         </>
     );

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Pencil, Plus, X, Crown, Users, Building2, Trash2, User } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Pencil, Plus, Crown, Users, Building2, Trash2, User } from 'lucide-react';
 import Text from '../../Components/Text/Text';
 import Loading from '../../Components/Loading/Loading';
 import ContactEditForm from './EditForms/ContactEditForm';
@@ -7,10 +7,10 @@ import DepartmentEditForm from './EditForms/DepartmentEditForm';
 import { ResolveDepartmentImage, SortLeadership } from '../../functions';
 import { apiGet, apiPost, apiPut, apiDelete, apiUpload, ApiError, isSessionError } from './api';
 import { BoardToolbar, BoardCards, CategoryList, SectionCard } from './Board';
+import Modal from './Modal';
 import {
   ActionButton,
   Table, Th, Td, Tr, IconButton,
-  ModalOverlay, ModalContent, ModalHeader, ModalBody, CloseButton,
   DocCard, DocCardIcon, DocCardInfo, DocCardName, DocCardMeta,
   DocCardActions, EmptyPanel, AvatarImg
 } from './ui';
@@ -80,6 +80,14 @@ const ContactsManager: React.FC = () => {
 
   const [editing, setEditing] = useState<Editing>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const snapshotRef = useRef('');
+
+  const openEditing = (value: NonNullable<Editing>) => {
+    snapshotRef.current = JSON.stringify(value);
+    setEditing(value);
+  };
+
+  const isDirty = editing !== null && JSON.stringify(editing) !== snapshotRef.current;
   const [isDeleting, setIsDeleting] = useState(false);
   const [view, setView] = useState<'cards' | 'table'>('cards');
   const [section, setSection] = useState<BoardSection>('primary');
@@ -116,7 +124,7 @@ const ContactsManager: React.FC = () => {
   }, []);
 
   const handleEditContact = (contact: ContactData) => {
-    setEditing({
+    openEditing({
       kind: 'contact',
       data: { ...contact },
       phones: phones.filter(p => p.contact_id === contact.id).map(p => p.phone)
@@ -124,7 +132,7 @@ const ContactsManager: React.FC = () => {
   };
 
   const handleEditDepartment = (department: DepartmentData) => {
-    setEditing({
+    openEditing({
       kind: 'department',
       data: { ...department },
       phones: phoneDepartments.filter(p => p.id_department === department.id).map(p => p.phone)
@@ -314,7 +322,7 @@ const ContactsManager: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if (!editing) return;
+    if (isSaving || !editing) return;
 
     if (editing.kind === 'contact') {
       const validationError = validateContact(editing.data, editing.phones);
@@ -385,7 +393,7 @@ const ContactsManager: React.FC = () => {
   };
 
   const addContact = (isPrimary: boolean) => {
-    setEditing({
+    openEditing({
       kind: 'contact',
       data: {
         id: 0,
@@ -402,7 +410,7 @@ const ContactsManager: React.FC = () => {
   };
 
   const addDepartment = () => {
-    setEditing({
+    openEditing({
       kind: 'department',
       data: { id: 0, name: '', email: '', src: '' },
       phones: []
@@ -683,51 +691,48 @@ const ContactsManager: React.FC = () => {
       )}
 
       {editing && (
-        <ModalOverlay onClick={(e) => e.target === e.currentTarget && handleCancel()}>
-          <ModalContent>
-            <ModalHeader>
-              {editing.kind === 'contact'
-                ? (editing.data.id ? 'Редактирование сотрудника' : 'Новый сотрудник')
-                : (editing.data.id ? 'Редактирование отдела' : 'Новый отдел')}
-              <CloseButton onClick={handleCancel} aria-label="Закрыть">
-                <X />
-              </CloseButton>
-            </ModalHeader>
-            <ModalBody>
-              {editing.kind === 'contact' ? (
-                <ContactEditForm
-                  contact={editing.data}
-                  phones={editing.phones}
-                  isSaving={isSaving}
-                  isDeleting={isDeleting}
-                  onContactChange={handleContactChange}
-                  onPhoneChange={handlePhoneChange}
-                  onAddPhone={handleAddPhone}
-                  onRemovePhone={handleRemovePhone}
-                  onSave={handleSave}
-                  onCancel={handleCancel}
-                  onDelete={handleDelete}
-                  onImageUpload={handleImageUpload}
-                />
-              ) : (
-                <DepartmentEditForm
-                  department={editing.data}
-                  phones={editing.phones}
-                  isSaving={isSaving}
-                  isDeleting={isDeleting}
-                  onDepartmentChange={handleDepartmentChange}
-                  onPhoneChange={handlePhoneChange}
-                  onAddPhone={handleAddPhone}
-                  onRemovePhone={handleRemovePhone}
-                  onSave={handleSave}
-                  onCancel={handleCancel}
-                  onDelete={handleDelete}
-                  onImageUpload={handleImageUpload}
-                />
-              )}
-            </ModalBody>
-          </ModalContent>
-        </ModalOverlay>
+        <Modal
+          title={
+            editing.kind === 'contact'
+              ? (editing.data.id ? 'Редактирование сотрудника' : 'Новый сотрудник')
+              : (editing.data.id ? 'Редактирование отдела' : 'Новый отдел')
+          }
+          onClose={handleCancel}
+          onSave={isSaving || isDeleting ? undefined : handleSave}
+          dirty={isDirty}
+        >
+          {editing.kind === 'contact' ? (
+            <ContactEditForm
+              contact={editing.data}
+              phones={editing.phones}
+              isSaving={isSaving}
+              isDeleting={isDeleting}
+              onContactChange={handleContactChange}
+              onPhoneChange={handlePhoneChange}
+              onAddPhone={handleAddPhone}
+              onRemovePhone={handleRemovePhone}
+              onSave={handleSave}
+              onCancel={handleCancel}
+              onDelete={handleDelete}
+              onImageUpload={handleImageUpload}
+            />
+          ) : (
+            <DepartmentEditForm
+              department={editing.data}
+              phones={editing.phones}
+              isSaving={isSaving}
+              isDeleting={isDeleting}
+              onDepartmentChange={handleDepartmentChange}
+              onPhoneChange={handlePhoneChange}
+              onAddPhone={handleAddPhone}
+              onRemovePhone={handleRemovePhone}
+              onSave={handleSave}
+              onCancel={handleCancel}
+              onDelete={handleDelete}
+              onImageUpload={handleImageUpload}
+            />
+          )}
+        </Modal>
       )}
     </>
   );

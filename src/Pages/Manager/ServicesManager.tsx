@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Wind, Zap, Flame, Droplets, Wrench, Trash2, Trees, Truck, Search, Plus, Pencil, X, Save } from 'lucide-react';
 import Text from '../../Components/Text/Text';
 import Loading from '../../Components/Loading/Loading';
@@ -8,11 +8,11 @@ import { SelectField } from './EditForms/parts';
 import {
   Card, SectionHeader, SectionTitle, ActionButton, ModalActions,
   Table, Th, Td, Tr, IconButton,
-  ModalOverlay, ModalContent, ModalHeader, ModalBody, CloseButton,
   Field, FieldLabel, ToolbarRow,
   EmptyPanel
 } from './ui';
 import { BoardCards, CategoryList } from './Board';
+import Modal from './Modal';
 
 type Row = Record<string, string | number | null>;
 
@@ -204,6 +204,8 @@ const ServicesManager: React.FC = () => {
     return String(value ?? '');
   };
 
+  const formSnapshotRef = useRef('');
+
   const openAdd = (table: TableSpec) => {
     const initial: Record<string, string> = {};
     for (const field of table.fields) {
@@ -215,6 +217,7 @@ const ServicesManager: React.FC = () => {
       }
     }
     setForm(initial);
+    formSnapshotRef.current = JSON.stringify(initial);
     setEditing({ table: table.name, row: {}, isNew: true });
   };
 
@@ -224,8 +227,11 @@ const ServicesManager: React.FC = () => {
       initial[field.key] = row[field.key] == null ? '' : String(row[field.key]);
     }
     setForm(initial);
+    formSnapshotRef.current = JSON.stringify(initial);
     setEditing({ table: table.name, row, isNew: false });
   };
+
+  const isFormDirty = editing !== null && JSON.stringify(form) !== formSnapshotRef.current;
 
   const handleSave = async () => {
     if (!editing) return;
@@ -461,81 +467,76 @@ const ServicesManager: React.FC = () => {
       </BoardCards>
 
       {editing && editingTable && (
-        <ModalOverlay onClick={e => e.target === e.currentTarget && setEditing(null)}>
-          <ModalContent>
-            <ModalHeader>
-              {editing.isNew ? 'Новая запись' : 'Редактирование записи'}
-              <CloseButton onClick={() => setEditing(null)} aria-label="Закрыть">
-                <X />
-              </CloseButton>
-            </ModalHeader>
-            <ModalBody>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
-                {editingTable.fields.map(field => {
-                  if (field.kind === 'ref') {
-                    const parents = editingTable.refTable ? (data[editingTable.refTable] || []) : [];
-                    return (
-                      <SelectField
-                        key={field.key}
-                        label={`${field.label}:`}
-                        value={form[field.key] ?? ''}
-                        placeholder="Выберите услугу"
-                        options={parents.map(parent => ({
-                          value: String(parent.id),
-                          label: String(parent.name)
-                        }))}
-                        onChange={(value) => setForm(prev => ({ ...prev, [field.key]: value }))}
-                      />
-                    );
-                  }
-                  if (field.kind === 'number') {
-                    return (
-                      <Field key={field.key}>
-                        <FieldLabel>{field.label}:</FieldLabel>
-                        <Input
-                          value={form[field.key] ?? ''}
-                          onChange={e => setForm(prev => ({ ...prev, [field.key]: e.target.value }))}
-                          inputMode="decimal"
-                          placeholder="0.00"
-                        />
-                      </Field>
-                    );
-                  }
-                  return (
-                    <Field key={field.key}>
-                      <FieldLabel>{field.label}:</FieldLabel>
-                      <Input
-                        value={form[field.key] ?? ''}
-                        onChange={e => setForm(prev => ({ ...prev, [field.key]: e.target.value }))}
-                        placeholder={field.label}
-                      />
-                    </Field>
-                  );
-                })}
+        <Modal
+          title={editing.isNew ? 'Новая запись' : 'Редактирование записи'}
+          onClose={() => setEditing(null)}
+          onSave={isSaving || isDeleting ? undefined : handleSave}
+          dirty={isFormDirty}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
+            {editingTable.fields.map(field => {
+              if (field.kind === 'ref') {
+                const parents = editingTable.refTable ? (data[editingTable.refTable] || []) : [];
+                return (
+                  <SelectField
+                    key={field.key}
+                    label={`${field.label}:`}
+                    value={form[field.key] ?? ''}
+                    placeholder="Выберите услугу"
+                    options={parents.map(parent => ({
+                      value: String(parent.id),
+                      label: String(parent.name)
+                    }))}
+                    onChange={(value) => setForm(prev => ({ ...prev, [field.key]: value }))}
+                  />
+                );
+              }
+              if (field.kind === 'number') {
+                return (
+                  <Field key={field.key}>
+                    <FieldLabel>{field.label}:</FieldLabel>
+                    <Input
+                      value={form[field.key] ?? ''}
+                      onChange={e => setForm(prev => ({ ...prev, [field.key]: e.target.value }))}
+                      inputMode="decimal"
+                      placeholder="0.00"
+                    />
+                  </Field>
+                );
+              }
+              return (
+                <Field key={field.key}>
+                  <FieldLabel>{field.label}:</FieldLabel>
+                  <Input
+                    value={form[field.key] ?? ''}
+                    onChange={e => setForm(prev => ({ ...prev, [field.key]: e.target.value }))}
+                    placeholder={field.label}
+                  />
+                </Field>
+              );
+            })}
 
-                <ModalActions>
-                  <ActionButton onClick={handleSave} disabled={isSaving || isDeleting}>
-                    <Save />
-                    {isSaving ? 'Сохранение...' : 'Сохранить'}
-                  </ActionButton>
-                  <ActionButton
-                    $variant="secondary"
-                    onClick={() => setEditing(null)}
-                    disabled={isSaving || isDeleting}
-                  >
-                    <X /> Отмена
-                  </ActionButton>
-                  {!editing.isNew && (
-                    <ActionButton $variant="danger" onClick={handleDelete} disabled={isSaving || isDeleting}>
-                      <Trash2 />
-                      {isDeleting ? 'Удаление...' : 'Удалить'}
-                    </ActionButton>
-                  )}
-                </ModalActions>
-              </div>
-            </ModalBody>
-          </ModalContent>
-        </ModalOverlay>
+            <ModalActions>
+              <ActionButton onClick={handleSave} disabled={isSaving || isDeleting}>
+                <Save />
+                {isSaving ? 'Сохранение...' : 'Сохранить'}
+              </ActionButton>
+              <ActionButton
+                $variant="secondary"
+                onClick={() => setEditing(null)}
+                disabled={isSaving || isDeleting}
+              >
+                <X /> Отмена
+              </ActionButton>
+              {!editing.isNew && (
+                <ActionButton $variant="danger" onClick={handleDelete} disabled={isSaving || isDeleting}>
+                  <Trash2 />
+                  {isDeleting ? 'Удаление...' : 'Удалить'}
+                </ActionButton>
+              )}
+            </ModalActions>
+          </div>
+        </Modal>
       )}
     </>
   );
