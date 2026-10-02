@@ -48,6 +48,13 @@ interface PhoneDepartmentData {
   is_fax: boolean;
 }
 
+type EntityKind = 'contact' | 'department';
+
+type Editing =
+  | { kind: 'contact'; data: ContactData; phones: string[] }
+  | { kind: 'department'; data: DepartmentData; phones: string[] }
+  | null;
+
 const ImageUploadError = (err: unknown): void => {
   if (isSessionError(err)) return;
   console.error('Upload error:', err);
@@ -71,10 +78,7 @@ const ContactsManager: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const [editingContact, setEditingContact] = useState<ContactData | null>(null);
-  const [editingPhones, setEditingPhones] = useState<string[]>([]);
-  const [editingDepartment, setEditingDepartment] = useState<DepartmentData | null>(null);
-  const [editingDeptPhones, setEditingDeptPhones] = useState<string[]>([]);
+  const [editing, setEditing] = useState<Editing>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [view, setView] = useState<'cards' | 'table'>('cards');
@@ -112,24 +116,43 @@ const ContactsManager: React.FC = () => {
   }, []);
 
   const handleEditContact = (contact: ContactData) => {
-    setEditingContact({ ...contact });
-    setEditingPhones(phones.filter(p => p.contact_id === contact.id).map(p => p.phone));
+    setEditing({
+      kind: 'contact',
+      data: { ...contact },
+      phones: phones.filter(p => p.contact_id === contact.id).map(p => p.phone)
+    });
   };
 
-  const handleContactChange = (updatedContact: ContactData) => {
-    setEditingContact(updatedContact);
+  const handleEditDepartment = (department: DepartmentData) => {
+    setEditing({
+      kind: 'department',
+      data: { ...department },
+      phones: phoneDepartments.filter(p => p.id_department === department.id).map(p => p.phone)
+    });
+  };
+
+  const handleContactChange = (data: ContactData) => {
+    setEditing(prev => (prev?.kind === 'contact' ? { ...prev, data } : prev));
+  };
+
+  const handleDepartmentChange = (data: DepartmentData) => {
+    setEditing(prev => (prev?.kind === 'department' ? { ...prev, data } : prev));
   };
 
   const handlePhoneChange = (index: number, value: string) => {
-    setEditingPhones(prev => prev.map((phone, i) => i === index ? value : phone));
+    setEditing(prev => prev
+      ? { ...prev, phones: prev.phones.map((phone, i) => i === index ? value : phone) }
+      : prev);
   };
 
   const handleAddPhone = () => {
-    setEditingPhones(prev => [...prev, '']);
+    setEditing(prev => prev ? { ...prev, phones: [...prev.phones, ''] } : prev);
   };
 
   const handleRemovePhone = (index: number) => {
-    setEditingPhones(prev => prev.filter((_, i) => i !== index));
+    setEditing(prev => prev
+      ? { ...prev, phones: prev.phones.filter((_, i) => i !== index) }
+      : prev);
   };
 
   const uploadImage = async (file: File, type: 'contacts' | 'departments') => {
@@ -163,9 +186,19 @@ const ContactsManager: React.FC = () => {
   };
 
   const handleImageUpload = async (file: File) => {
-    if (!editingContact) return;
-    const path = await uploadImage(file, 'contacts');
-    if (path) setEditingContact({ ...editingContact, src: path });
+    if (!editing) return;
+    const path = await uploadImage(file, editing.kind === 'contact' ? 'contacts' : 'departments');
+    if (!path) return;
+
+    if (editing.kind === 'contact') {
+      setEditing(prev => (prev?.kind === 'contact'
+        ? { ...prev, data: { ...prev.data, src: path } }
+        : prev));
+    } else {
+      setEditing(prev => (prev?.kind === 'department'
+        ? { ...prev, data: { ...prev.data, src: path } }
+        : prev));
+    }
   };
 
   const cleanupTempImage = async () => {
@@ -176,144 +209,185 @@ const ContactsManager: React.FC = () => {
     }
   };
 
-  const validateContact = (): string | null => {
-    if (!editingContact) return 'Контакт не выбран';
-
-    if (editingContact.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editingContact.email)) {
+  const validateContact = (contact: ContactData, contactPhones: string[]): string | null => {
+    if (contact.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email)) {
       return 'Некорректный email';
     }
 
-    const invalidPhone = editingPhones.find(p => p.trim() && !/^[\d\s\-+()]{5,20}$/.test(p.trim()));
+    const invalidPhone = contactPhones.find(p => p.trim() && !/^[\d\s\-+()]{5,20}$/.test(p.trim()));
     if (invalidPhone) return 'Некорректный номер телефона';
 
     return null;
   };
 
-  const syncContactPhones = async (contactId: number, existingIds: number[], newPhones: string[]) => {
-    await Promise.allSettled(existingIds.map(id => apiDelete(`phone_contacts/${id}`)));
+  const syncPhones = async (
+    kind: EntityKind,
+    id: number,
+    existingIds: number[],
+    newPhones: string[]
+  ) => {
+    const base = kind === 'contact' ? 'phone_contacts' : 'phone_departments';
+    await Promise.allSettled(existingIds.map(pid => apiDelete(`${base}/${pid}`)));
     const validPhones = newPhones.filter(phone => phone.trim() !== '');
     if (validPhones.length > 0) {
       await Promise.all(
-        validPhones.map(phone => apiPost('phone_contacts', { contact_id: contactId, phone }))
+        validPhones.map(phone =>
+          apiPost(base, kind === 'contact'
+            ? { contact_id: id, phone }
+            : { id_department: id, phone, is_fax: false })
+        )
       );
     }
   };
 
-  const handleSaveContact = async () => {
-    if (!editingContact) return;
+  const saveContact = async (contact: ContactData, contactPhones: string[]) => {
+    const isNew = !contact.id || contact.id === 0;
+    const payload = {
+      surname: contact.surname,
+      name: contact.name,
+      patronymic: contact.patronymic,
+      job_title: contact.job_title,
+      email: contact.email,
+      src: contact.src ?? '',
+      is_primary: Number(contact.is_primary) === 1 ? 1 : 0
+    };
 
-    const validationError = validateContact();
-    if (validationError) {
-      alert(validationError);
-      return;
+    const responseData = isNew
+      ? await apiPost<{ id?: number }>('contacts', payload)
+      : await apiPut(`contacts/${contact.id}`, payload);
+    const savedId = isNew ? responseData?.id ?? 0 : contact.id;
+    const savedContact = isNew ? { ...contact, id: savedId } : contact;
+
+    const existingPhoneIds = isNew
+      ? []
+      : phones.filter(p => p.contact_id === contact.id).map(p => p.id);
+    await syncPhones('contact', savedId, existingPhoneIds, contactPhones);
+
+    if (isNew) {
+      if (Number(savedContact.is_primary) === 1) {
+        setPrimaryContacts(prev => SortLeadership([...prev, savedContact]));
+      } else {
+        setContacts(prev => [...prev, savedContact]);
+      }
+    } else {
+      // Обновляем контакт и при смене флага переносим между разделами
+      setContacts(prev => prev
+        .filter(c => c.id !== contact.id)
+        .concat(Number(contact.is_primary) === 1 ? [] : [contact]));
+      setPrimaryContacts(prev => SortLeadership(prev
+        .filter(c => c.id !== contact.id)
+        .concat(Number(contact.is_primary) === 1 ? [contact] : [])));
+    }
+
+    // Refresh phones data
+    setPhones(await apiGet<PhoneData[]>('phone_contacts') || []);
+    setEditing(null);
+  };
+
+  const saveDepartment = async (department: DepartmentData, deptPhones: string[]) => {
+    const isNew = !department.id || department.id === 0;
+    const payload = {
+      name: department.name,
+      email: department.email,
+      src: department.src ?? ''
+    };
+
+    const responseData = isNew
+      ? await apiPost<{ id?: number }>('departments', payload)
+      : await apiPut(`departments/${department.id}`, payload);
+    const savedId = isNew ? responseData?.id ?? 0 : department.id;
+
+    const existingPhoneIds = isNew
+      ? []
+      : phoneDepartments.filter(p => p.id_department === department.id).map(p => p.id);
+    await syncPhones('department', savedId, existingPhoneIds, deptPhones);
+
+    if (isNew) {
+      setDepartments(prev => [...prev, { ...department, id: savedId }]);
+    } else {
+      setDepartments(prev => prev.map(d => d.id === department.id ? department : d));
+    }
+
+    // Refresh phone departments data
+    setPhoneDepartments(await apiGet<PhoneDepartmentData[]>('phone_departments') || []);
+    setEditing(null);
+  };
+
+  const handleSave = async () => {
+    if (!editing) return;
+
+    if (editing.kind === 'contact') {
+      const validationError = validateContact(editing.data, editing.phones);
+      if (validationError) {
+        alert(validationError);
+        return;
+      }
     }
 
     setIsSaving(true);
     try {
-      const isNew = !editingContact.id || editingContact.id === 0;
-      const payload = {
-        surname: editingContact.surname,
-        name: editingContact.name,
-        patronymic: editingContact.patronymic,
-        job_title: editingContact.job_title,
-        email: editingContact.email,
-        src: editingContact.src ?? '',
-        is_primary: Number(editingContact.is_primary) === 1 ? 1 : 0
-      };
-
-      const responseData = isNew
-        ? await apiPost<{ id?: number }>('contacts', payload)
-        : await apiPut(`contacts/${editingContact.id}`, payload);
-      const savedId = isNew ? responseData?.id ?? 0 : editingContact.id;
-      const savedContact = isNew ? { ...editingContact, id: savedId } : editingContact;
-
-      if (isNew) {
-        await syncContactPhones(savedId, [], editingPhones);
-
-        if (Number(savedContact.is_primary) === 1) {
-          setPrimaryContacts(prev => SortLeadership([...prev, savedContact]));
-        } else {
-          setContacts(prev => [...prev, savedContact]);
-        }
+      if (editing.kind === 'contact') {
+        await saveContact(editing.data, editing.phones);
       } else {
-        const existingPhoneIds = phones
-          .filter(p => p.contact_id === editingContact.id)
-          .map(p => p.id);
-
-        await syncContactPhones(editingContact.id, existingPhoneIds, editingPhones);
-
-        // Обновляем контакт и при смене флага переносим между разделами
-        setContacts(prev => prev
-          .filter(c => c.id !== editingContact.id)
-          .concat(Number(editingContact.is_primary) === 1 ? [] : [editingContact]));
-        setPrimaryContacts(prev => SortLeadership(prev
-          .filter(c => c.id !== editingContact.id)
-          .concat(Number(editingContact.is_primary) === 1 ? [editingContact] : [])));
+        await saveDepartment(editing.data, editing.phones);
       }
-
-      // Refresh phones data
-      setPhones(await apiGet<PhoneData[]>('phone_contacts') || []);
-
-      setEditingContact(null);
-      setEditingPhones([]);
     } catch (err) {
-      saveErrorAlert(err, 'Ошибка при сохранении контакта');
+      saveErrorAlert(err, editing.kind === 'contact'
+        ? 'Ошибка при сохранении контакта'
+        : 'Ошибка при сохранении отдела');
     } finally {
       setIsSaving(false);
     }
   };
 
-  const deleteContact = async (contactId: number) => {
-    await apiDelete(`contacts/${contactId}`);
-    setContacts(prev => prev.filter(c => c.id !== contactId));
-    setPrimaryContacts(prev => prev.filter(c => c.id !== contactId));
-    setEditingContact(null);
+  const removeEntity = async (kind: EntityKind, id: number) => {
+    if (kind === 'contact') {
+      await apiDelete(`contacts/${id}`);
+      setContacts(prev => prev.filter(c => c.id !== id));
+      setPrimaryContacts(prev => prev.filter(c => c.id !== id));
+    } else {
+      await apiDelete(`departments/${id}`);
+      setDepartments(prev => prev.filter(d => d.id !== id));
+    }
+    setEditing(null);
   };
 
-  const handleDeleteContact = async () => {
-    if (!editingContact) return;
+  const handleDelete = async () => {
+    if (!editing) return;
 
     setIsDeleting(true);
     try {
-      await deleteContact(editingContact.id);
+      await removeEntity(editing.kind, editing.data.id);
     } catch (err) {
-      if (!isSessionError(err)) console.error('Delete error:', err);
+      if (!isSessionError(err)) {
+        console.error('Delete error:', err);
+        if (editing.kind === 'department') alert('Ошибка при удалении отдела');
+      }
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const handleCancelEdit = () => {
-    if (editingContact?.src) {
-      const originalContact = contacts.find(c => c.id === editingContact.id);
-      if (!originalContact || originalContact.src !== editingContact.src) {
-        cleanupTempImage();
+  const handleCancel = () => {
+    if (!editing) return;
+    const { kind, data } = editing;
+
+    // Delete uploaded image if not saved
+    if (data.src) {
+      const original = kind === 'contact'
+        ? [...contacts, ...primaryContacts].find(c => c.id === data.id)
+        : departments.find(d => d.id === data.id);
+      if (!original || original.src !== data.src) {
+        void cleanupTempImage();
       }
     }
-    setEditingContact(null);
-    setEditingPhones([]);
+    setEditing(null);
   };
 
-  const handleAddContact = () => {
-    setEditingContact({
-      id: 0,
-      name: '',
-      surname: '',
-      patronymic: '',
-      job_title: '',
-      email: '',
-      src: '',
-      is_primary: false
-    });
-    setEditingPhones([]);
-  };
-
-  const handleAddForSection = () => {
-    if (section === 'departments') {
-      setEditingDepartment({ id: 0, name: '', email: '', src: '' });
-      setEditingDeptPhones([]);
-    } else {
-      setEditingContact({
+  const addContact = (isPrimary: boolean) => {
+    setEditing({
+      kind: 'contact',
+      data: {
         id: 0,
         name: '',
         surname: '',
@@ -321,9 +395,25 @@ const ContactsManager: React.FC = () => {
         job_title: '',
         email: '',
         src: '',
-        is_primary: section === 'primary'
-      });
-      setEditingPhones([]);
+        is_primary: isPrimary
+      },
+      phones: []
+    });
+  };
+
+  const addDepartment = () => {
+    setEditing({
+      kind: 'department',
+      data: { id: 0, name: '', email: '', src: '' },
+      phones: []
+    });
+  };
+
+  const handleAddForSection = () => {
+    if (section === 'departments') {
+      addDepartment();
+    } else {
+      addContact(section === 'primary');
     }
   };
 
@@ -333,7 +423,7 @@ const ContactsManager: React.FC = () => {
 
     setIsDeleting(true);
     try {
-      await deleteContact(contact.id);
+      await removeEntity('contact', contact.id);
     } catch (err) {
       if (!isSessionError(err)) {
         console.error('Delete contact error:', err);
@@ -349,9 +439,7 @@ const ContactsManager: React.FC = () => {
 
     setIsDeleting(true);
     try {
-      await apiDelete(`departments/${department.id}`);
-      setDepartments(prev => prev.filter(d => d.id !== department.id));
-      setEditingDepartment(null);
+      await removeEntity('department', department.id);
     } catch (err) {
       if (!isSessionError(err)) {
         console.error('Delete department error:', err);
@@ -360,119 +448,6 @@ const ContactsManager: React.FC = () => {
     } finally {
       setIsDeleting(false);
     }
-  };
-
-  const handleEditDepartment = (department: DepartmentData) => {
-    setEditingDepartment({ ...department });
-    setEditingDeptPhones(phoneDepartments.filter(p => p.id_department === department.id).map(p => p.phone));
-  };
-
-  const handleDepartmentChange = (updatedDepartment: DepartmentData) => {
-    setEditingDepartment(updatedDepartment);
-  };
-
-  const handleDeptPhoneChange = (index: number, value: string) => {
-    setEditingDeptPhones(prev => prev.map((phone, i) => i === index ? value : phone));
-  };
-
-  const handleAddDeptPhone = () => {
-    setEditingDeptPhones(prev => [...prev, '']);
-  };
-
-  const handleRemoveDeptPhone = (index: number) => {
-    setEditingDeptPhones(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const handleImageUploadDepartment = async (file: File) => {
-    if (!editingDepartment) return;
-    const path = await uploadImage(file, 'departments');
-    if (path) setEditingDepartment({ ...editingDepartment, src: path });
-  };
-
-  const handleSaveDepartment = async () => {
-    if (!editingDepartment) return;
-
-    setIsSaving(true);
-    try {
-      const isNew = !editingDepartment.id || editingDepartment.id === 0;
-      const payload = {
-        name: editingDepartment.name,
-        email: editingDepartment.email,
-        src: editingDepartment.src ?? ''
-      };
-
-      const responseData = isNew
-        ? await apiPost<{ id?: number }>('departments', payload)
-        : await apiPut(`departments/${editingDepartment.id}`, payload);
-      const savedId = isNew ? responseData?.id ?? 0 : editingDepartment.id;
-
-      if (isNew) {
-        const newDept = { ...editingDepartment, id: savedId };
-        await syncDeptPhones(savedId, [], editingDeptPhones);
-        setDepartments(prev => [...prev, newDept]);
-      } else {
-        const existingPhoneIds = phoneDepartments
-          .filter(p => p.id_department === editingDepartment.id)
-          .map(p => p.id);
-
-        await syncDeptPhones(editingDepartment.id, existingPhoneIds, editingDeptPhones);
-
-        // Update departments state
-        setDepartments(prev => prev.map(d => d.id === editingDepartment.id ? editingDepartment : d));
-      }
-
-      // Refresh phone departments data
-      setPhoneDepartments(await apiGet<PhoneDepartmentData[]>('phone_departments') || []);
-
-      setEditingDepartment(null);
-      setEditingDeptPhones([]);
-    } catch (err) {
-      saveErrorAlert(err, 'Ошибка при сохранении отдела');
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const syncDeptPhones = async (departmentId: number, existingIds: number[], newPhones: string[]) => {
-    await Promise.allSettled(existingIds.map(id => apiDelete(`phone_departments/${id}`)));
-    const validPhones = newPhones.filter(phone => phone.trim() !== '');
-    if (validPhones.length > 0) {
-      await Promise.all(
-        validPhones.map(phone =>
-          apiPost('phone_departments', { id_department: departmentId, phone, is_fax: false })
-        )
-      );
-    }
-  };
-
-  const handleDeleteDepartment = async () => {
-    if (!editingDepartment) return;
-
-    setIsDeleting(true);
-    try {
-      await apiDelete(`departments/${editingDepartment.id}`);
-      setDepartments(prev => prev.filter(d => d.id !== editingDepartment.id));
-      setEditingDepartment(null);
-    } catch (err) {
-      if (!isSessionError(err)) {
-        console.error('Delete department error:', err);
-        alert('Ошибка при удалении отдела');
-      }
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const handleCancelDeptEdit = async () => {
-    // Delete uploaded image if not saved
-    if (editingDepartment?.src) {
-      const originalDept = departments.find(d => d.id === editingDepartment.id);
-      if (!originalDept || originalDept.src !== editingDepartment.src) {
-        await cleanupTempImage();
-      }
-    }
-    setEditingDepartment(null);
-    setEditingDeptPhones([]);
   };
 
   if (isLoading) {
@@ -636,7 +611,7 @@ const ContactsManager: React.FC = () => {
           <SectionCard
             title="Сотрудники"
             action={
-              <ActionButton onClick={handleAddContact}>
+              <ActionButton onClick={() => addContact(false)}>
                 <Plus /> Добавить сотрудника
               </ActionButton>
             }
@@ -674,17 +649,7 @@ const ContactsManager: React.FC = () => {
           <SectionCard
             title="Отделы"
             action={
-              <ActionButton
-                onClick={() => {
-                  setEditingDepartment({
-                    id: 0,
-                    name: '',
-                    email: '',
-                    src: ''
-                  });
-                  setEditingDeptPhones([]);
-                }}
-              >
+              <ActionButton onClick={addDepartment}>
                 <Plus /> Добавить отдел
               </ActionButton>
             }
@@ -717,59 +682,49 @@ const ContactsManager: React.FC = () => {
         </>
       )}
 
-      {editingContact && (
-        <ModalOverlay onClick={(e) => e.target === e.currentTarget && handleCancelEdit()}>
+      {editing && (
+        <ModalOverlay onClick={(e) => e.target === e.currentTarget && handleCancel()}>
           <ModalContent>
             <ModalHeader>
-              {editingContact.id ? 'Редактирование сотрудника' : 'Новый сотрудник'}
-              <CloseButton onClick={handleCancelEdit} aria-label="Закрыть">
+              {editing.kind === 'contact'
+                ? (editing.data.id ? 'Редактирование сотрудника' : 'Новый сотрудник')
+                : (editing.data.id ? 'Редактирование отдела' : 'Новый отдел')}
+              <CloseButton onClick={handleCancel} aria-label="Закрыть">
                 <X />
               </CloseButton>
             </ModalHeader>
             <ModalBody>
-              <ContactEditForm
-                contact={editingContact}
-                phones={editingPhones}
-                isSaving={isSaving}
-                isDeleting={isDeleting}
-                onContactChange={handleContactChange}
-                onPhoneChange={handlePhoneChange}
-                onAddPhone={handleAddPhone}
-                onRemovePhone={handleRemovePhone}
-                onSave={handleSaveContact}
-                onCancel={handleCancelEdit}
-                onDelete={handleDeleteContact}
-                onImageUpload={handleImageUpload}
-              />
-            </ModalBody>
-          </ModalContent>
-        </ModalOverlay>
-      )}
-
-      {editingDepartment && (
-        <ModalOverlay onClick={(e) => e.target === e.currentTarget && handleCancelDeptEdit()}>
-          <ModalContent>
-            <ModalHeader>
-              {editingDepartment.id ? 'Редактирование отдела' : 'Новый отдел'}
-              <CloseButton onClick={handleCancelDeptEdit} aria-label="Закрыть">
-                <X />
-              </CloseButton>
-            </ModalHeader>
-            <ModalBody>
-              <DepartmentEditForm
-                department={editingDepartment}
-                phones={editingDeptPhones}
-                isSaving={isSaving}
-                isDeleting={isDeleting}
-                onDepartmentChange={handleDepartmentChange}
-                onPhoneChange={handleDeptPhoneChange}
-                onAddPhone={handleAddDeptPhone}
-                onRemovePhone={handleRemoveDeptPhone}
-                onSave={handleSaveDepartment}
-                onCancel={handleCancelDeptEdit}
-                onDelete={handleDeleteDepartment}
-                onImageUpload={handleImageUploadDepartment}
-              />
+              {editing.kind === 'contact' ? (
+                <ContactEditForm
+                  contact={editing.data}
+                  phones={editing.phones}
+                  isSaving={isSaving}
+                  isDeleting={isDeleting}
+                  onContactChange={handleContactChange}
+                  onPhoneChange={handlePhoneChange}
+                  onAddPhone={handleAddPhone}
+                  onRemovePhone={handleRemovePhone}
+                  onSave={handleSave}
+                  onCancel={handleCancel}
+                  onDelete={handleDelete}
+                  onImageUpload={handleImageUpload}
+                />
+              ) : (
+                <DepartmentEditForm
+                  department={editing.data}
+                  phones={editing.phones}
+                  isSaving={isSaving}
+                  isDeleting={isDeleting}
+                  onDepartmentChange={handleDepartmentChange}
+                  onPhoneChange={handlePhoneChange}
+                  onAddPhone={handleAddPhone}
+                  onRemovePhone={handleRemovePhone}
+                  onSave={handleSave}
+                  onCancel={handleCancel}
+                  onDelete={handleDelete}
+                  onImageUpload={handleImageUpload}
+                />
+              )}
             </ModalBody>
           </ModalContent>
         </ModalOverlay>
