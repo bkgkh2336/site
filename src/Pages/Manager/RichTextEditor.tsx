@@ -400,7 +400,10 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [, setTick] = useState(0);
     const [palette, setPalette] = useState<'text' | 'bg' | 'insert' | null>(null);
-    const handlersRef = useRef<{ openBlock: (pos: number) => void }>({ openBlock: () => undefined });
+    const handlersRef = useRef<{
+        openBlock: (pos: number) => void;
+        insertFiles: (files: File[], at?: { left: number; top: number }) => void;
+    }>({ openBlock: () => undefined, insertFiles: () => undefined });
 
     const editor: Editor | null = useEditor({
         extensions: [
@@ -428,6 +431,26 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
                 if (node.type.name === 'customBlock') {
                     handlersRef.current.openBlock(pos);
                 }
+            },
+            handlePaste: (_view, event) => {
+                const images = Array.from(event.clipboardData?.files || []).filter(f =>
+                    f.type.startsWith('image/')
+                );
+                if (!images.length) return false;
+                event.preventDefault();
+                handlersRef.current.insertFiles(images);
+                return true;
+            },
+            handleDrop: (_view, event) => {
+                const images = Array.from(event.dataTransfer?.files || []).filter(f =>
+                    f.type.startsWith('image/')
+                );
+                if (!images.length) return false;
+                handlersRef.current.insertFiles(images, {
+                    left: event.clientX,
+                    top: event.clientY
+                });
+                return true;
             }
         },
         onUpdate: ({ editor: e }) => {
@@ -511,13 +534,21 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
 
     if (!editor) return null;
 
-    const insertImage = async (file: File) => {
-        const path = await onImageUpload(file);
-        if (path && editor) {
-            editor.chain().focus().setImage({ src: path, alt: file.name }).run();
+    const insertFiles = async (files: File[], at?: { left: number; top: number }) => {
+        if (!editor) return;
+        for (const file of files) {
+            const path = await onImageUpload(file);
+            if (!path || !editor) continue;
+            const chain = editor.chain().focus();
+            if (at) {
+                const found = editor.view.posAtCoords(at);
+                if (found) chain.setTextSelection(found.pos);
+            }
+            chain.setImage({ src: path, alt: file.name }).run();
             setTick(t => t + 1);
         }
     };
+    handlersRef.current.insertFiles = insertFiles;
 
     const setLink = () => {
         const prev = editor.getAttributes('link').href as string | undefined;
@@ -863,7 +894,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
                 style={{ display: 'none' }}
                 onChange={e => {
                     const file = e.target.files?.[0];
-                    if (file) void insertImage(file);
+                    if (file) void insertFiles([file]);
                     e.target.value = '';
                 }}
             />
