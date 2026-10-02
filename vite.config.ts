@@ -112,9 +112,26 @@ export default defineConfig({
           if (id.includes('node_modules/lucide-react')) {
             return 'icons';
           }
-          
-          // Styled components
-          if (id.includes('node_modules/styled-components')) {
+
+          // Редактор tiptap/prosemirror — только админка (Manager ленивый),
+          // отдельным чанком, чтобы не грузился посетителям первой страницы
+          if (id.includes('node_modules/@tiptap') ||
+              id.includes('node_modules/prosemirror')) {
+            return 'editor';
+          }
+
+          // Styled components и ЕГО зависимости (stylis, css-to-react-native и др.):
+          // зависимости должны лежать в том же чанке, иначе styled ссылается на
+          // vendor и весь vendor (tiptap) подтягивается на каждую страницу
+          if (id.includes('node_modules/styled-components') ||
+              id.includes('node_modules/@emotion/') ||
+              id.includes('node_modules/stylis') ||
+              id.includes('node_modules/css-to-react-native') ||
+              id.includes('node_modules/csstype') ||
+              id.includes('node_modules/postcss') ||
+              id.includes('node_modules/shallowequal') ||
+              id.includes('node_modules/tslib') ||
+              id.includes('node_modules/@types/stylis')) {
             return 'styled';
           }
           
