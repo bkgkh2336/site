@@ -7,6 +7,7 @@ import Text from '../../Components/Text/Text';
 import Loading from '../../Components/Loading/Loading';
 import NewsEditForm from './EditForms/NewsEditForm';
 import { apiPost, apiUpload, isSessionError } from './api';
+import { resizeImageForUpload } from './resizeImage';
 import { useCrud } from './useCrud';
 import { BoardToolbar, BoardCards, CategoryList, SectionCard } from './Board';
 import Modal from './Modal';
@@ -25,6 +26,23 @@ const SECTION_ICONS: Record<ArticleSection, React.ReactNode> = {
     news: <Newspaper />,
     articles: <BookOpen />,
     useful_to_know: <FileText />
+};
+
+const replacePaths = (value: unknown, map: Map<string, string>): unknown => {
+    if (typeof value === 'string') {
+        let out = value;
+        for (const [from, to] of map) out = out.split(from).join(to);
+        return out;
+    }
+    if (Array.isArray(value)) return value.map(item => replacePaths(item, map));
+    if (value && typeof value === 'object') {
+        const result: Record<string, unknown> = {};
+        for (const [key, val] of Object.entries(value)) {
+            result[key] = replacePaths(val, map);
+        }
+        return result;
+    }
+    return value;
 };
 
 const emptyArticle = (section: ArticleSection, sortOrder: number): ArticleData => ({
@@ -57,8 +75,10 @@ const NewsManager: React.FC = () => {
     } = useCrud<ArticleData>('articles', 'Не удалось загрузить новости');
     const [view, setView] = useState<'cards' | 'table'>('cards');
     const [selectedSection, setSelectedSection] = useState<ArticleSection>('news');
-    const uploadedRef = useRef<string[]>([]);
+    const stagedRef = useRef<Map<string, File>>(new Map());
+    const uploadedPathsRef = useRef<Map<string, string>>(new Map());
     const snapshotRef = useRef('');
+    const savingRef = useRef(false);
 
     const openEditing = (value: ArticleData) => {
         snapshotRef.current = JSON.stringify(value);
@@ -68,6 +88,11 @@ const NewsManager: React.FC = () => {
     const isDirty = editing !== null && JSON.stringify(editing) !== snapshotRef.current;
 
     const cleanupTempFile = async (src: string) => {
+        if (src.startsWith('blob:')) {
+            stagedRef.current.delete(src);
+            URL.revokeObjectURL(src);
+            return;
+        }
         try {
             await apiPost('cleanup-file', { src });
         } catch (err) {
@@ -75,7 +100,13 @@ const NewsManager: React.FC = () => {
         }
     };
 
-    const uploadImage = async (file: File): Promise<string | null> => {
+    const clearStaged = () => {
+        for (const url of stagedRef.current.keys()) URL.revokeObjectURL(url);
+        stagedRef.current.clear();
+        uploadedPathsRef.current.clear();
+    };
+
+    const stageImage = async (file: File): Promise<string | null> => {
         if (!file.type.startsWith('image/')) {
             alert('Допустимы только изображения');
             return null;
@@ -84,26 +115,49 @@ const NewsManager: React.FC = () => {
             alert('Размер файла не должен превышать 15 МБ');
             return null;
         }
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('type', 'news');
-        try {
-            const data = await apiUpload<{ success?: boolean; path?: string; message?: string }>(
-                'upload',
-                formData
-            );
-            if (data?.success && data.path) {
-                uploadedRef.current.push(data.path);
-                return data.path;
+        const resized = await resizeImageForUpload(file);
+        const url = URL.createObjectURL(resized);
+        stagedRef.current.set(url, resized);
+        return url;
+    };
+
+    const preparePayload = async (
+        payload: Record<string, unknown>
+    ): Promise<Record<string, unknown> | null> => {
+        if (!stagedRef.current.size) return payload;
+        const serialized = JSON.stringify(payload);
+        const uploads = new Map<string, string>();
+        for (const [url, file] of stagedRef.current.entries()) {
+            if (!serialized.includes(url)) continue;
+            const cached = uploadedPathsRef.current.get(url);
+            if (cached) {
+                uploads.set(url, cached);
+                continue;
             }
-            alert(`Ошибка загрузки: ${data?.message || 'неизвестная ошибка'}`);
-            return null;
-        } catch (err) {
-            if (isSessionError(err)) return null;
-            console.error('Upload error:', err);
-            alert(`Ошибка загрузки: ${err instanceof Error ? err.message : err}`);
-            return null;
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('type', 'news');
+            try {
+                const data = await apiUpload<{ success?: boolean; path?: string; message?: string }>(
+                    'upload',
+                    formData
+                );
+                if (!data?.success || !data.path) {
+                    alert(`Ошибка загрузки: ${data?.message || 'неизвестная ошибка'}`);
+                    return null;
+                }
+                uploadedPathsRef.current.set(url, data.path);
+                uploads.set(url, data.path);
+            } catch (err) {
+                if (!isSessionError(err)) {
+                    console.error('Upload error:', err);
+                    alert(`Ошибка загрузки: ${err instanceof Error ? err.message : err}`);
+                }
+                return null;
+            }
         }
+        if (!uploads.size) return payload;
+        return replacePaths(payload, uploads) as Record<string, unknown>;
     };
 
     const handleAdd = () => {
@@ -116,7 +170,7 @@ const NewsManager: React.FC = () => {
     };
 
     const handleSave = async () => {
-        if (!editing) return;
+        if (!editing || savingRef.current) return;
 
         const title = editing.title.trim();
         if (!title) {
@@ -140,26 +194,41 @@ const NewsManager: React.FC = () => {
             return;
         }
 
-        const isNew = !editing.id;
-        const payload = {
-            section: editing.section,
-            slug,
-            title,
-            summary: editing.summary,
-            published_at: editing.published_at,
-            cover: editing.cover,
-            gallery: editing.gallery,
-            body: editing.body,
-            custom_content: editing.custom_content,
-            is_external: editing.is_external,
-            external_url: editing.external_url,
-            sort_order: editing.sort_order
-        };
+        savingRef.current = true;
+        try {
+            const isNew = !editing.id;
+            const payload = {
+                section: editing.section,
+                slug,
+                title,
+                summary: editing.summary,
+                published_at: editing.published_at,
+                cover: editing.cover,
+                gallery: editing.gallery,
+                body: editing.body,
+                custom_content: editing.custom_content,
+                is_external: editing.is_external,
+                external_url: editing.external_url,
+                sort_order: editing.sort_order
+            };
 
-        const saved = await save(payload, editing, isNew);
-        if (saved) {
-            uploadedRef.current = [];
-            setEditing(null);
+            const prepared = await preparePayload(payload);
+            if (!prepared) return;
+
+            const saved = await save(prepared, editing, isNew);
+            if (saved) {
+                const savedStr = JSON.stringify(prepared);
+                const orphans = [...uploadedPathsRef.current.values()].filter(
+                    path => !savedStr.includes(path)
+                );
+                setEditing(null);
+                clearStaged();
+                for (const src of orphans) {
+                    await cleanupTempFile(src);
+                }
+            }
+        } finally {
+            savingRef.current = false;
         }
     };
 
@@ -173,9 +242,10 @@ const NewsManager: React.FC = () => {
     };
 
     const handleCancel = async () => {
-        const pending = uploadedRef.current;
-        uploadedRef.current = [];
+        const pending = [...uploadedPathsRef.current.values()];
+        uploadedPathsRef.current.clear();
         setEditing(null);
+        clearStaged();
         for (const src of pending) {
             await cleanupTempFile(src);
         }
@@ -379,7 +449,7 @@ const NewsManager: React.FC = () => {
                         onSave={() => void handleSave()}
                         onCancel={() => void handleCancel()}
                         onDelete={() => void handleDelete()}
-                        onUpload={uploadImage}
+                        onUpload={stageImage}
                         onCleanupFile={cleanupTempFile}
                     />
                 </Modal>
