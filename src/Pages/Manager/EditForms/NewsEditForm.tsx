@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { Input } from '../styled';
-import { Save, X, Trash2, ImageIcon, Upload, Eye, Pencil } from 'lucide-react';
+import { Save, X, Trash2, ImageIcon, Upload, Eye, Pencil, Calendar } from 'lucide-react';
 import RichTextEditor from '../RichTextEditor';
+import H1 from '../../../Components/H1/H1';
 import {
     Field, FieldLabel, FieldHint, ModalActions, ActionButton, FileInput
 } from '../ui';
+import { SelectField } from './parts';
 import BlockEditModal from './BlockEditModal';
 import {
-    ArticleData, ArticleGalleryItem, isCustomArticle, parseGallery, slugify
+    ArticleData, ArticleGalleryItem, ArticleSection, SECTION_LABELS,
+    formatArticleDate, isCustomArticle, parseGallery, slugify
 } from '../../../data/articles';
 import {
     ALL_BLOCK_TYPES, customPageKey, type Block
@@ -17,6 +20,9 @@ import { getCustomContent } from '../../../data/customContentDefaults';
 import { blocksToBodyHtml, splitBodyHtml, type BlockApi } from '../../../data/customBody';
 import BlocksView from '../../News/Blocks/BlocksView';
 import RichChunk from '../../News/RichChunk';
+import {
+    PublicationDate, HeroImage, Lead, GalleryCard, GalleryImage
+} from '../../News/ArticlePage/styled';
 
 const Row = styled.div`
     display: flex;
@@ -171,6 +177,45 @@ const ArticlePreview: React.FC<{ html: string; pageKey?: string }> = ({ html, pa
     );
 };
 
+const ArticleHeader: React.FC<{ article: ArticleData }> = ({ article }) => {
+    const showHero =
+        !!article.cover &&
+        (isCustomArticle(article.section, article.slug) ||
+            article.section !== 'useful_to_know');
+
+    return (
+        <div
+            style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 14,
+                marginBottom: 18
+            }}
+        >
+            <H1 style={{ margin: 0 }}>
+                {article.title || 'Без названия'}
+            </H1>
+
+            {article.published_at && (
+                <PublicationDate>
+                    <Calendar size={16} />
+                    <span>
+                        Опубликовано:{' '}
+                        {formatArticleDate(
+                            article.published_at,
+                            article.section === 'articles'
+                        )}
+                    </span>
+                </PublicationDate>
+            )}
+
+            {showHero && <HeroImage src={article.cover!} alt={article.title} />}
+
+            {article.summary && <Lead>{article.summary}</Lead>}
+        </div>
+    );
+};
+
 interface NewsEditFormProps {
     article: ArticleData;
     isSaving: boolean;
@@ -312,6 +357,28 @@ const NewsEditForm: React.FC<NewsEditFormProps> = ({
                 </Field>
             </Row>
 
+            <Row>
+                <SelectField
+                    label="Раздел:"
+                    value={article.section}
+                    placeholder="Выберите раздел"
+                    options={(Object.keys(SECTION_LABELS) as ArticleSection[]).map(s => ({
+                        value: s,
+                        label: SECTION_LABELS[s]
+                    }))}
+                    onChange={value => setField('section', value as ArticleSection)}
+                />
+                <Field>
+                    <FieldLabel>Порядок сортировки:</FieldLabel>
+                    <Input
+                        type="number"
+                        value={article.sort_order}
+                        onChange={e => setField('sort_order', Number(e.target.value) || 0)}
+                        placeholder="0"
+                    />
+                </Field>
+            </Row>
+
             <Field>
                 <FieldLabel>Краткое описание:</FieldLabel>
                 <TextArea
@@ -416,7 +483,24 @@ const NewsEditForm: React.FC<NewsEditFormProps> = ({
                     </ToggleRow>
                     {preview ? (
                         <PreviewBox>
-                            <ArticlePreview html={editorContent} pageKey={customLayout ? customKey : undefined} />
+                            <ArticleHeader article={article} />
+
+                            <ArticlePreview
+                                html={editorContent}
+                                pageKey={customLayout ? customKey : undefined}
+                            />
+
+                            {!customLayout && gallery.length > 0 && (
+                                <GalleryCard style={{ marginTop: 16 }}>
+                                    {gallery.map((item, index) => (
+                                        <GalleryImage
+                                            key={`${item.src}-${index}`}
+                                            src={item.src}
+                                            alt={item.alt || article.title}
+                                        />
+                                    ))}
+                                </GalleryCard>
+                            )}
                         </PreviewBox>
                     ) : (
                         <RichTextEditor
@@ -427,6 +511,7 @@ const NewsEditForm: React.FC<NewsEditFormProps> = ({
                             insertBlocks={ALL_BLOCK_TYPES.filter(t => t !== 'paragraph')}
                             onEditBlock={(block, api) => setEditing({ block, api })}
                             pageKey={customLayout ? customKey : undefined}
+                            header={<ArticleHeader article={article} />}
                         />
                     )}
                 </Field>

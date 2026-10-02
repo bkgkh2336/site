@@ -308,6 +308,10 @@ const EditorBox = styled.div`
     border-radius: 0 0 10px 10px;
     background: #ffffff;
 
+    .rte-header {
+        padding: 16px 16px 0;
+    }
+
     .rte-content {
         padding: 14px 16px;
     }
@@ -378,6 +382,8 @@ interface RichTextEditorProps {
     onEditBlock?: (block: Block, api: BlockApi) => void;
     /** Page key (e.g. "news/union_conference") — picks block style variants. */
     pageKey?: string;
+    /** Rendered inside the editor box above the text (e.g. article header). */
+    header?: React.ReactNode;
 }
 
 const RichTextEditor: React.FC<RichTextEditorProps> = ({
@@ -388,7 +394,8 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     disabled = false,
     insertBlocks,
     onEditBlock,
-    pageKey
+    pageKey,
+    header
 }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [, setTick] = useState(0);
@@ -843,6 +850,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
             </Toolbar>
 
             <EditorBox>
+                {header && <div className="rte-header">{header}</div>}
                 <div className="rte-content">
                     <EditorContent editor={editor} />
                 </div>
