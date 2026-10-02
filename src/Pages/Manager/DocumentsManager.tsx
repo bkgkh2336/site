@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Pencil, Plus, X, Folder, FileText, ExternalLink, Trash2 } from 'lucide-react';
+import React, { useEffect, useState, useRef } from 'react';
+import { Pencil, Plus, Folder, FileText, ExternalLink, Trash2 } from 'lucide-react';
 import Text from '../../Components/Text/Text';
 import Loading from '../../Components/Loading/Loading';
 import DocumentEditForm, { DocumentData, GroupOption } from './EditForms/DocumentEditForm';
@@ -7,10 +7,10 @@ import { Input } from './styled';
 import { apiPost, apiUpload, isSessionError } from './api';
 import { useCrud } from './useCrud';
 import { BoardToolbar, BoardCards, CategoryList, SectionCard } from './Board';
+import Modal from './Modal';
 import {
   ActionButton, ModalActions,
   Table, Th, Td, Tr, IconButton,
-  ModalOverlay, ModalContent, ModalHeader, ModalBody, CloseButton,
   FileLink, CategoryEdit,
   DocCard, DocCardIcon, DocCardInfo, DocCardName, DocCardMeta,
   DocCardActions, IconLink, EmptyPanel
@@ -47,6 +47,14 @@ const DocumentsManager: React.FC = () => {
   const isSaving = isSavingGroup || isSavingDoc;
   const isDeleting = isDeletingGroup || isDeletingDoc;
 
+  const groupSnapshotRef = useRef('');
+  const docSnapshotRef = useRef('');
+
+  const isGroupDirty =
+    editingGroup !== null && JSON.stringify(editingGroup) !== groupSnapshotRef.current;
+  const isDocDirty =
+    editingDocument !== null && JSON.stringify(editingDocument) !== docSnapshotRef.current;
+
   useEffect(() => {
     if (selectedGroupId === null && groups.length > 0) {
       setSelectedGroupId(groups[0].id ?? null);
@@ -64,11 +72,15 @@ const DocumentsManager: React.FC = () => {
   // --- Группы ---
 
   const handleAddGroup = () => {
-    setEditingGroup({ id: 0, name: '' });
+    const value: GroupOption = { id: 0, name: '' };
+    groupSnapshotRef.current = JSON.stringify(value);
+    setEditingGroup(value);
   };
 
   const handleEditGroup = (group: GroupOption) => {
-    setEditingGroup({ ...group });
+    const value = { ...group };
+    groupSnapshotRef.current = JSON.stringify(value);
+    setEditingGroup(value);
   };
 
   const handleSaveGroup = async () => {
@@ -107,16 +119,20 @@ const DocumentsManager: React.FC = () => {
   // --- Документы ---
 
   const handleAddDocument = () => {
-    setEditingDocument({
+    const value: DocumentData = {
       id: 0,
       name: '',
       id_group: selectedGroupId ?? groups[0]?.id ?? 0,
       src: ''
-    });
+    };
+    docSnapshotRef.current = JSON.stringify(value);
+    setEditingDocument(value);
   };
 
   const handleEditDocument = (document: DocumentData) => {
-    setEditingDocument({ ...document });
+    const value = { ...document };
+    docSnapshotRef.current = JSON.stringify(value);
+    setEditingDocument(value);
   };
 
   const handleFileUpload = async (file: File) => {
@@ -415,63 +431,53 @@ const DocumentsManager: React.FC = () => {
       )}
 
       {editingGroup && (
-        <ModalOverlay onClick={(e) => e.target === e.currentTarget && setEditingGroup(null)}>
-          <ModalContent>
-            <ModalHeader>
-              {editingGroup.id ? 'Редактирование категории' : 'Новая категория'}
-              <CloseButton onClick={() => setEditingGroup(null)} aria-label="Закрыть">
-                <X />
-              </CloseButton>
-            </ModalHeader>
-            <ModalBody>
-              <Input
-                value={editingGroup.name}
-                onChange={(e) => setEditingGroup({ ...editingGroup, name: e.target.value })}
-                placeholder="Название категории"
-                aria-label="Название категории"
-              />
-              <ModalActions>
-                <ActionButton onClick={handleSaveGroup} disabled={isSaving || isDeleting}>
-                  {isSaving ? 'Сохранение...' : 'Сохранить'}
-                </ActionButton>
-                <ActionButton $variant="secondary" onClick={() => setEditingGroup(null)} disabled={isSaving || isDeleting}>
-                  Отмена
-                </ActionButton>
-                {editingGroup.id !== 0 && (
-                  <ActionButton $variant="danger" onClick={handleDeleteGroup} disabled={isSaving || isDeleting}>
-                    {isDeleting ? 'Удаление...' : 'Удалить'}
-                  </ActionButton>
-                )}
-              </ModalActions>
-            </ModalBody>
-          </ModalContent>
-        </ModalOverlay>
+        <Modal
+          title={editingGroup.id ? 'Редактирование категории' : 'Новая категория'}
+          onClose={() => setEditingGroup(null)}
+          onSave={isSaving || isDeleting ? undefined : handleSaveGroup}
+          dirty={isGroupDirty}
+        >
+          <Input
+            value={editingGroup.name}
+            onChange={(e) => setEditingGroup({ ...editingGroup, name: e.target.value })}
+            placeholder="Название категории"
+            aria-label="Название категории"
+          />
+          <ModalActions>
+            <ActionButton onClick={handleSaveGroup} disabled={isSaving || isDeleting}>
+              {isSaving ? 'Сохранение...' : 'Сохранить'}
+            </ActionButton>
+            <ActionButton $variant="secondary" onClick={() => setEditingGroup(null)} disabled={isSaving || isDeleting}>
+              Отмена
+            </ActionButton>
+            {editingGroup.id !== 0 && (
+              <ActionButton $variant="danger" onClick={handleDeleteGroup} disabled={isSaving || isDeleting}>
+                {isDeleting ? 'Удаление...' : 'Удалить'}
+              </ActionButton>
+            )}
+          </ModalActions>
+        </Modal>
       )}
 
       {editingDocument && (
-        <ModalOverlay onClick={(e) => e.target === e.currentTarget && handleCancelDocument()}>
-          <ModalContent>
-            <ModalHeader>
-              {editingDocument.id ? 'Редактирование документа' : 'Новый документ'}
-              <CloseButton onClick={handleCancelDocument} aria-label="Закрыть">
-                <X />
-              </CloseButton>
-            </ModalHeader>
-            <ModalBody>
-              <DocumentEditForm
-                document={editingDocument}
-                groups={groups}
-                isSaving={isSaving}
-                isDeleting={isDeleting}
-                onDocumentChange={setEditingDocument}
-                onSave={handleSaveDocument}
-                onCancel={handleCancelDocument}
-                onDelete={handleDeleteDocument}
-                onFileUpload={handleFileUpload}
-              />
-            </ModalBody>
-          </ModalContent>
-        </ModalOverlay>
+        <Modal
+          title={editingDocument.id ? 'Редактирование документа' : 'Новый документ'}
+          onClose={handleCancelDocument}
+          onSave={isSaving || isDeleting ? undefined : handleSaveDocument}
+          dirty={isDocDirty}
+        >
+          <DocumentEditForm
+            document={editingDocument}
+            groups={groups}
+            isSaving={isSaving}
+            isDeleting={isDeleting}
+            onDocumentChange={setEditingDocument}
+            onSave={handleSaveDocument}
+            onCancel={handleCancelDocument}
+            onDelete={handleDeleteDocument}
+            onFileUpload={handleFileUpload}
+          />
+        </Modal>
       )}
     </>
   );

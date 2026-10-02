@@ -289,8 +289,14 @@ export const FileLink = styled.a`
 export const ModalActions = styled.div`
   display: flex;
   gap: 10px;
-  margin-top: 20px;
   flex-wrap: wrap;
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  margin: 20px -24px -24px;
+  padding: 14px 24px;
+  background: #fff;
+  border-top: 1px solid #eef1f4;
 `;
 
 export const FileInput = styled.input`
