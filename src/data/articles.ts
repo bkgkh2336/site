@@ -50,6 +50,7 @@ export const CUSTOM_ARTICLES: Record<string, CustomArticleLayout> = {
     'news/safety_day_passed': { lightbox: true, summary: true, coverFromGallery: true, wide: false },
     'news/unified_safety_day': { lightbox: false, summary: true, coverFromGallery: false, wide: false },
     'articles/boiler_maintenance': { lightbox: false, summary: false, coverFromGallery: false, wide: true },
+    'articles/boiler_low_temperature': { lightbox: false, summary: false, coverFromGallery: false, wide: true },
     'articles/attractions_safety': { lightbox: false, summary: false, coverFromGallery: false, wide: true },
     'articles/autonomous_fire_detectors': { lightbox: false, summary: false, coverFromGallery: false, wide: false }
 };

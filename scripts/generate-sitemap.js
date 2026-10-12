@@ -50,6 +50,7 @@ const pages = [
   { url: '/news/safety_day_passed', priority: '0.6', changefreq: 'monthly' },
   { url: '/news/articles', priority: '0.7', changefreq: 'weekly' },
   { url: '/news/articles/boiler_maintenance', priority: '0.6', changefreq: 'monthly' },
+  { url: '/news/articles/boiler_low_temperature', priority: '0.6', changefreq: 'monthly' },
   { url: '/news/articles/attractions_safety', priority: '0.6', changefreq: 'monthly' },
   { url: '/news/articles/autonomous_fire_detectors', priority: '0.6', changefreq: 'monthly' },
   { url: '/news/useful_to_know', priority: '0.7', changefreq: 'weekly' },
