@@ -285,6 +285,7 @@ export const CUSTOM_PAGE_BLOCK_TYPES: Record<string, BlockType[]> = {
     'news/cleanup_day': ['heading', 'paragraph', 'gallery'],
     'news/unified_safety_day': ['heading', 'paragraph', 'info', 'link'],
     'news/safety_day_passed': ['heading', 'paragraph', 'gallery'],
+    'news/unified_information_day': ['heading', 'paragraph', 'intro', 'quote', 'info', 'gallery', 'stats', 'cards', 'list', 'link'],
     'articles/boiler_maintenance': ['paragraph', 'intro', 'card', 'list', 'warning', 'author'],
     'articles/boiler_low_temperature': ['paragraph', 'intro', 'heading', 'info', 'cards', 'list', 'warning', 'author'],
     'articles/attractions_safety': ['paragraph', 'intro', 'card', 'quote', 'author'],
