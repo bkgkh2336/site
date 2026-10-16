@@ -57,10 +57,32 @@ npm run dev              фронт + PHP-сервер (localhost:8000)
 npm run dev:full         то же, но PHP через router.php (чистые URL в dev)
 npm run php              только PHP-сервер (порт 8000)
 npm run lint             ESLint
+npm run typecheck        проверка типов (tsc -b)
+npm run test             JS/TS-тесты (Vitest)
+npm run test:php         PHP-тесты API и SEO (php backend/tests/*.php)
 npm run build            sitemap.xml + сборка в dist/
 npm run prepare-deploy   сборка + api.php/.env/.htaccess в dist/ — БД НЕ кладёт
 npm run prepare-deploy:first  то же + contacts.db — только для первого заливки
 ```
+
+---
+
+## Тесты и CI
+
+- **Vitest** — чистые функции без DOM/сети: `src/**/*.test.ts`, `scripts/**/*.test.ts`
+  (конфиг `vitest.config.ts`, отдельный от `vite.config.ts`). Запуск: `npm test`.
+- **PHP-тесты** — без внешних зависимостей, обычные скрипты с `exit(1)` при провале:
+  - `backend/tests/unit.php` — санитайзер статей (`sanitizeArticleBody`,
+    `cleanBlockFields`, `isSafeArticleUrl`, `sanitizeCustomContent`) и медиа-хелперы
+    (`isLocalMediaPath`, `articleEmbeddedPaths`). В `backend/api.php` для этого есть
+    тест-хук: при константе `BK_TESTING` файл только объявляет функции (без роутинга и БД).
+  - `backend/tests/seo.php` — smoke-тест `seo.php`: запускает его в подпроцессе
+    (`seo_render.php`) на разных URL и проверяет title/canonical/OG/JSON-LD и 404.
+    Кейсы со статьями пропускаются, если нет `backend/contacts.db`.
+  - Запуск: `npm run test:php` (нужен PHP в PATH).
+- **CI** — `.github/workflows/ci.yml`: frontend (`typecheck` → `lint` → `test` → `build`)
+  и backend (`php -l` + `php backend/tests/unit.php` + `php backend/tests/seo.php`).
+
 
 ---
 

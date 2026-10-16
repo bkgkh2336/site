@@ -10,6 +10,9 @@
     "dev:full": "concurrently \"npm run php:router\" \"vite\"",
     "vite": "vite",
     "lint": "eslint .",
+    "typecheck": "tsc -b",
+    "test": "vitest run",
+    "test:php": "php backend/tests/unit.php && php backend/tests/seo.php",
     "preview": "vite preview",
     "generate:sitemap": "node scripts/generate-sitemap.js",
     "build": "npm run generate:sitemap && vite build && shx cp .htaccess dist/.htaccess && shx cp seo.php dist/seo.php && shx cp src/data/seoConfig.json dist/seoConfig.json",
@@ -48,7 +51,8 @@
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.24.1",
     "vite": "^6.2.0",
-    "vite-bundle-visualizer": "^1.2.1"
+    "vite-bundle-visualizer": "^1.2.1",
+    "vitest": "^4.1.12"
   },
   "description": "This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.",
   "main": "eslint.config.js",
