@@ -413,8 +413,8 @@ function imageStillUsed($filename, $pdo, $excludeContactId = null) {
     $count += (int)$stmt->fetchColumn();
 
     $like = '%' . $filename . '%';
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM articles WHERE cover IN ($ph) OR gallery LIKE ? OR body LIKE ? OR custom_content LIKE ?");
-    $stmt->execute(array_merge($candidates, [$like, $like, $like]));
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM articles WHERE cover IN ($ph) OR cover LIKE ? OR gallery LIKE ? OR body LIKE ? OR custom_content LIKE ?");
+    $stmt->execute(array_merge($candidates, [$like, $like, $like, $like]));
     $count += (int)$stmt->fetchColumn();
 
     return $count > 0;
@@ -469,6 +469,59 @@ function deleteDocumentFileIfUnused($srcPath, $pdo) {
 
     unlink($filePath);
     return true;
+}
+
+/**
+ * Локальный путь к файлу мультимедиа внутри контента: "/news/x.jpg",
+ * "/useful_to_know/y.png". Внешние и протокол-относительные URL — нет.
+ */
+function isLocalMediaPath($value) {
+    if (!is_string($value) || $value === '') return false;
+    if ($value[0] !== '/' || strpos($value, '//') === 0) return false;
+    if (strpos($value, '..') !== false) return false;
+    return (bool)preg_match('~^/[A-Za-z0-9._/-]+\.(?:jpe?g|png|gif|webp|mp4|webm)$~i', $value);
+}
+
+/**
+ * Все локальные пути к файлам, встроенным в статью: обложка, галерея,
+ * тело (img/src, video/poster), блоки custom_content. Ссылки <a href>
+ * встроенными не считаются — их удалять нельзя.
+ */
+function articleEmbeddedPaths($cover, $gallery, $body, $custom) {
+    $paths = [];
+    $walk = function ($node) use (&$walk, &$paths) {
+        if (is_array($node)) {
+            foreach ($node as $child) $walk($child);
+            return;
+        }
+        if (is_string($node) && isLocalMediaPath($node)) $paths[$node] = true;
+    };
+    $walk($cover);
+    foreach ([$gallery, $custom] as $json) {
+        if (is_string($json) && $json !== '') {
+            $decoded = json_decode($json, true);
+            if (is_array($decoded)) $walk($decoded);
+        }
+    }
+    if (is_string($body) && $body !== '') {
+        preg_match_all('~(?:src|poster)="(/[^"]+)"~i', $body, $m);
+        foreach ($m[1] as $url) {
+            if (isLocalMediaPath($url)) $paths[$url] = true;
+        }
+    }
+    return array_keys($paths);
+}
+
+/**
+ * Удаление файла статьи из каталога, если после сохранения или удаления
+ * статьи на него больше не ссылается ни одна запись.
+ */
+function deleteArticleFileIfUnused($srcPath, $pdo) {
+    if (!isLocalMediaPath($srcPath)) return false;
+    $full = CONTENT_ROOT . $srcPath;
+    if (!is_file($full)) return false;
+    if (imageStillUsed(basename($srcPath), $pdo)) return false;
+    return (bool)@unlink($full);
 }
 
 // 2. Путь к базе данных SQLite
@@ -800,7 +853,7 @@ try {
                     $oldData = $stmt->fetch(PDO::FETCH_ASSOC);
                 }
                 if ($tableName === 'articles') {
-                    $stmt = $pdo->prepare("SELECT cover FROM articles WHERE id = ?");
+                    $stmt = $pdo->prepare("SELECT cover, gallery, body, custom_content FROM articles WHERE id = ?");
                     $stmt->execute([$id]);
                     $oldData = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
                 }
@@ -837,9 +890,26 @@ try {
                     }
                 }
                 if ($oldData && $tableName === 'articles') {
-                    $newCover = $data['cover'] ?? '';
-                    if (($oldData['cover'] ?? '') !== $newCover) {
-                        deleteImageIfUnused($oldData['cover'] ?? '', $pdo);
+                    $newVals = [];
+                    foreach (['cover', 'gallery', 'body', 'custom_content'] as $key) {
+                        $newVals[$key] = array_key_exists($key, $data)
+                            ? $data[$key]
+                            : ($oldData[$key] ?? '');
+                    }
+                    $oldPaths = articleEmbeddedPaths(
+                        $oldData['cover'] ?? '',
+                        $oldData['gallery'] ?? '',
+                        $oldData['body'] ?? '',
+                        $oldData['custom_content'] ?? ''
+                    );
+                    $newPaths = articleEmbeddedPaths(
+                        $newVals['cover'],
+                        $newVals['gallery'],
+                        $newVals['body'],
+                        $newVals['custom_content']
+                    );
+                    foreach (array_diff($oldPaths, $newPaths) as $path) {
+                        deleteArticleFileIfUnused($path, $pdo);
                     }
                 }
                 
@@ -857,7 +927,7 @@ try {
                 $oldData = $stmt->fetch(PDO::FETCH_ASSOC);
             }
             if ($tableName === 'articles') {
-                $stmt = $pdo->prepare("SELECT cover FROM articles WHERE id = ?");
+                $stmt = $pdo->prepare("SELECT cover, gallery, body, custom_content FROM articles WHERE id = ?");
                 $stmt->execute([$id]);
                 $oldData = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
             }
@@ -882,8 +952,15 @@ try {
                     deleteImageIfUnused($oldData['src'], $pdo);
                 }
             }
-            if ($oldData && !empty($oldData['cover'])) {
-                deleteImageIfUnused($oldData['cover'], $pdo);
+            if ($tableName === 'articles' && $oldData) {
+                foreach (articleEmbeddedPaths(
+                    $oldData['cover'] ?? '',
+                    $oldData['gallery'] ?? '',
+                    $oldData['body'] ?? '',
+                    $oldData['custom_content'] ?? ''
+                ) as $path) {
+                    deleteArticleFileIfUnused($path, $pdo);
+                }
             }
             
             echo json_encode(["message" => "Deleted"]);
