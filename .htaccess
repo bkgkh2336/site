@@ -1,5 +1,8 @@
 # SEO оптимизация для КЖУП "Буда-Кошелёвский коммунальник"
 
+# Корень отдаём через seo.php (server-side meta), иначе — статический каркас.
+DirectoryIndex seo.php index.html
+
 # Включаем mod_rewrite
 <IfModule mod_rewrite.c>
     RewriteEngine On
@@ -17,9 +20,10 @@
     # ЗАЩИТА: Отсекаем левые PHP и выдаем хостингу честный 404 статус
     # -----------------------------------------------------------------
     
-    # Если запрашивают ЛЮБОЙ .php файл, КРОМЕ твоего рабочего backend/api.php
-    # отдаем сухую системную ошибку 404 (React даже не загрузится)
+    # Если запрашивают ЛЮБОЙ .php файл, КРОМЕ рабочего backend/api.php и
+    # seo.php (server-side meta), отдаем сухую системную ошибку 404
     RewriteCond %{REQUEST_URI} !^/backend/api\.php [NC]
+    RewriteCond %{REQUEST_URI} !^/seo\.php [NC]
     RewriteCond %{REQUEST_URI} \.php$ [NC]
     RewriteRule ^ - [R=404,L]
 
@@ -27,10 +31,12 @@
     # СТАНДАРТНЫЙ РОУТИНГ ДЛЯ REACT SPA (БЕЗ РЕДИРЕКТОВ)
     # -----------------------------------------------------------------
 
-    # Если запрос идет к РЕАЛЬНОМУ файлу (картинка, js, css) — отдаем его как есть
+    # Реальный файл (картинка, js, css) — отдаём как есть.
+    # Остальные маршруты уходят в seo.php: он подставляет мета в каркас
+    # index.html и отдаёт готовый HTML (важно для краулеров и соцсетей).
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_URI} !^/backend/ [NC]
-    RewriteRule . /index.html [L]
+    RewriteRule . /seo.php [L]
 
 </IfModule>
 

@@ -93,8 +93,9 @@ site/
 │   │   ├── Manager/              # Админ-панель (/manager)
 │   │   └── ...                   # Остальные страницы
 │   ├── data/
-│   │   └── menu.ts               # Меню сайта (структура + активные пункты)
-│   └── utils/seoConfig.ts        # SEO-конфигурация
+│   │   ├── menu.ts               # Меню сайта (структура + активные пункты)
+│   │   └── seoConfig.json        # Мета маршрутов (общий источник для фронта и seo.php)
+│   └── utils/seoConfig.ts        # SEO-конфигурация (импортирует seoConfig.json)
 ├── backend/                      # PHP-бэкенд
 │   ├── api.php                   # REST API (~850 строк)
 │   ├── contacts.db               # SQLite (ВНЕ git)
@@ -108,7 +109,8 @@ site/
 │   ├── useful_to_know/GSZ/       # Видео (LFS)
 │   └── sitemap.xml               # Автогенерируется при сборке
 ├── scripts/generate-sitemap.js
-├── .htaccess                     # SPA-роутинг + запрет *.php (кроме backend/api.php)
+├── seo.php                       # Server-side meta: вкладывает title/OG/JSON-LD в index.html
+├── .htaccess                     # SPA-роутинг через seo.php + запрет *.php (кроме api.php, seo.php)
 ├── .gitattributes                # LFS-трекинг видео
 └── package.json
 ```
@@ -128,6 +130,29 @@ site/
 3. В `src/utils/seoConfig.ts` — SEO-метаданные
 4. Меню — в `src/data/menu.ts` (там же нормализация путей и подсветка
    активного пункта; `Header` и `Section` читают его оттуда)
+
+### SEO и превью в соцсетях
+
+Мета-теги (title, description, OG/Twitter, canonical) для каждой страницы
+формируются на сервере в `seo.php` и попадают прямо в HTML. Без этого
+Telegram, VK и поисковые боты (они не исполняют JS) видели бы один общий
+заголовок и логотип на всех страницах.
+
+- **Статика** (`/contacts`, `/tariffs`, ...) — из `src/data/seoConfig.json`.
+  Это единый источник: тот же файл импортирует `src/utils/seoConfig.ts`
+  для клиентской навигации (компонент `SEO`).
+- **Статьи** (`/news/...`, `/news/articles/...`, `/news/useful_to_know/...`) —
+  из SQLite (`articles.title/summary/cover`), поэтому превью корректны и для
+  новостей, добавленных через админку без пересборки. Для статей отдаётся
+  JSON-LD `NewsArticle`.
+
+`seo.php` читает собранный `index.html` и подменяет теги; при любой ошибке
+отдаёт исходный каркас (сайт не падает). `.htaccess` направляет все
+не-файловые маршруты в `seo.php` (`DirectoryIndex seo.php index.html`).
+
+> Мета статьи можно уточнить вручную: добавьте её путь в
+> `src/data/seoConfig.json` — но он приоритетнее данных из БД, а `og:image`
+> всё равно возьмётся из обложки статьи.
 
 ### Стили
 
@@ -234,8 +259,9 @@ npm run prepare-deploy:first
 ```
 dist/
 ├── index.html, assets/        # собранный фронт (хеш-имена чанков!)
+├── seo.php, seoConfig.json    # server-side meta (копируются из корня и src/data)
 ├── public-файлы...            # logo, uploads, documents, news, sitemap.xml...
-├── .htaccess                  # SPA-роутинг + запрет php
+├── .htaccess                  # SPA-роутинг через seo.php + запрет php
 └── backend/
     ├── api.php                # копия из backend/
     ├── .env                   # копия секретов
@@ -258,6 +284,7 @@ dist/
 | 403 на `.env`/скрипты | Это защита, а не ошибка |
 | 500 при сохранении статьи | В `api.php` появилась функция PHP 8+ (на хостинге PHP 7.4) |
 | Ломается после заливки только `assets/` | Чанки и `index.html` должны обновляться **вместе**; заливай весь `dist/` |
+| В Telegram/поиске у всех страниц один заголовок | Не залиты `seo.php`/`seoConfig.json` или старый `.htaccess` — маршруты идут мимо `seo.php` |
 
 ---
 
@@ -282,8 +309,10 @@ dist/
 Sqlite Viewer → `backend/contacts.db` → таблицы `*_services`,
 `transport_*`. Или через админку, если это контакты/документы/новости.
 
-### SEO-тайтлы
-`src/utils/seoConfig.ts`.
+### SEO-тайтлы и мета
+`src/data/seoConfig.json` — единый источник для фронта и `seo.php`. Статьям
+мета собирается автоматически из БД; для ручного уточнения добавьте путь в
+JSON.
 
 ### Новая картинка/PDF
 Положить в `public/` (или подпапку), после сборки доступно по URL.
