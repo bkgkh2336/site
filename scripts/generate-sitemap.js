@@ -1,11 +1,12 @@
 import fs from 'fs';
 import path from 'path';
+import { pathToFileURL } from 'url';
 
 // Базовый URL сайта
-const BASE_URL = 'https://bkgkh.by';
+export const BASE_URL = 'https://bkgkh.by';
 
 // Определяем все страницы сайта
-const pages = [
+export const pages = [
   { url: '/', priority: '1.0', changefreq: 'daily' },
   { url: '/about_us', priority: '0.8', changefreq: 'monthly' },
   { url: '/requisites', priority: '0.6', changefreq: 'monthly' },
@@ -70,18 +71,19 @@ const pages = [
   { url: '/news/useful_to_know/landscaping_guide', priority: '0.6', changefreq: 'monthly' },
 ];
 
-// Получаем текущую дату
-const currentDate = new Date().toISOString().split('T')[0];
-
 // Генерируем XML sitemap
-const generateSitemap = () => {
+export const generateSitemap = (
+  items = pages,
+  baseUrl = BASE_URL,
+  lastmod = new Date().toISOString().split('T')[0],
+) => {
   let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
   xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
 
-  pages.forEach(page => {
+  items.forEach(page => {
     xml += '  <url>\n';
-    xml += `    <loc>${BASE_URL}${page.url}</loc>\n`;
-    xml += `    <lastmod>${currentDate}</lastmod>\n`;
+    xml += `    <loc>${baseUrl}${page.url}</loc>\n`;
+    xml += `    <lastmod>${lastmod}</lastmod>\n`;
     xml += `    <changefreq>${page.changefreq}</changefreq>\n`;
     xml += `    <priority>${page.priority}</priority>\n`;
     xml += '  </url>\n';
@@ -92,10 +94,16 @@ const generateSitemap = () => {
   return xml;
 };
 
-// Сохраняем sitemap в public папку
-const sitemap = generateSitemap();
-const publicPath = path.join(process.cwd(), 'public', 'sitemap.xml');
+// Сохраняем sitemap в public папку (только при запуске файла напрямую)
+const main = () => {
+  const sitemap = generateSitemap();
+  const publicPath = path.join(process.cwd(), 'public', 'sitemap.xml');
 
-fs.writeFileSync(publicPath, sitemap, 'utf8');
-console.log('✅ Sitemap успешно создан:', publicPath);
-console.log(`📄 Всего страниц: ${pages.length}`);
+  fs.writeFileSync(publicPath, sitemap, 'utf8');
+  console.log('✅ Sitemap успешно создан:', publicPath);
+  console.log(`📄 Всего страниц: ${pages.length}`);
+};
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main();
+}

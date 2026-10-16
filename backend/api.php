@@ -561,6 +561,12 @@ $allowedFields = [
     'articles' => ['section', 'slug', 'title', 'summary', 'published_at', 'cover', 'gallery', 'body', 'custom_content', 'is_external', 'external_url', 'sort_order']
 ];
 
+// Тест-хук: при включённом BK_TESTING файл только объявляет функции/константы,
+// без роутинга и подключения к БД (см. backend/tests/unit.php).
+if (defined('BK_TESTING')) {
+    return;
+}
+
 try {
     $pdo = new PDO("sqlite:$dbPath");
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
