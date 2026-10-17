@@ -1,0 +1,49 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Автодеплой включается только когда в репозитории задана переменная
+# DEPLOY_ENABLED=true (Settings -> Secrets and variables -> Actions -> Variables)
+# и добавлены секреты FTP_SERVER / FTP_USERNAME / FTP_PASSWORD / FTP_SERVER_DIR.
+# Пока переменной нет — job просто пропускается, ошибок не будет.
+jobs:
+  deploy:
+    name: Build & deploy to Plesk (FTP)
+    runs-on: ubuntu-latest
+    if: ${{ vars.DEPLOY_ENABLED == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --legacy-peer-deps
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+      - name: Собрать содержимое для заливки
+        run: |
+          mkdir -p deploy
+          cp -a dist/. deploy/
+          mkdir -p deploy/backend
+          cp backend/api.php deploy/backend/
+          cp backend/.htaccess deploy/backend/
+
+      - name: FTP-заливка на Plesk
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: ${{ secrets.FTP_SERVER_DIR }}
+          local-dir: ./deploy/
+          # Ничего на сервере не удаляем и не перетираем секреты/базу
+          dangerous-clean-slate: false
+          exclude: |
+            **/.env
+            **/contacts.db
+            **/backend/tests/**

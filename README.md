@@ -88,6 +88,9 @@ npm run prepare-deploy:first  то же + contacts.db — только для п
 - **CI** — `.github/workflows/ci.yml`: frontend (`typecheck` → `lint` → `test` → `build`)
   и backend (`php -l` + `php backend/tests/unit.php` + `php backend/tests/seo.php`
   + `php backend/tests/api.php`).
+- **Хуки перед коммитом** (husky + lint-staged, ставятся через `prepare` при `npm install`):
+  на изменённые `*.ts/tsx` прогоняется `eslint --fix`, затем `typecheck` и `vitest` —
+  поломка не уезжает в коммит. Конфиг — `.husky/pre-commit` и `lint-staged` в `package.json`.
 
 
 ---
@@ -296,6 +299,19 @@ dist/
     ├── .htaccess              # доступен только api.php
     └── contacts.db            # ТОЛЬКО в prepare-deploy:first
 ```
+
+### Автодеплой (GitHub Actions + FTP, опционально)
+
+`.github/workflows/deploy.yml` после зелёной сборки `main` сам заливает сайт на Plesk по
+FTP. Пока он **выключен** — включается, когда в репозитории заданы:
+
+- секреты (**Settings → Secrets and variables → Actions → Secrets**):
+  `FTP_SERVER` (хост), `FTP_USERNAME`, `FTP_PASSWORD`, `FTP_SERVER_DIR` (путь к веб-руту, напр. `/httpdocs/`);
+- переменная (**… → Variables**): `DEPLOY_ENABLED` = `true`.
+
+Workflow собирает `dist/`, добавляет `backend/api.php` и `backend/.htaccess` и заливает,
+**не трогая** на сервере `.env` и `contacts.db` (`dangerous-clean-slate: false` + exclude).
+Можно запустить вручную: **Actions → Deploy → Run workflow**.
 
 ### Требования к хостингу
 

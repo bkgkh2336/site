@@ -18,7 +18,11 @@
     "build": "npm run generate:sitemap && vite build && shx cp .htaccess dist/.htaccess && shx cp seo.php dist/seo.php && shx cp src/data/seoConfig.json dist/seoConfig.json",
     "organize-public": "node scripts/organize-public.js",
     "prepare-deploy": "npm run build && shx mkdir -p dist/backend && shx cp backend/.env dist/backend/ && shx cp backend/.htaccess dist/backend/ && shx cp backend/api.php dist/backend/ && shx cp .htaccess dist/",
-    "prepare-deploy:first": "npm run prepare-deploy && shx cp backend/contacts.db dist/backend/"
+    "prepare-deploy:first": "npm run prepare-deploy && shx cp backend/contacts.db dist/backend/",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": "eslint --fix"
   },
   "dependencies": {
     "@tiptap/extension-image": "^3.31.3",
@@ -46,6 +50,8 @@
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^15.15.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
     "shx": "^0.4.0",
     "terser": "^5.44.1",
     "typescript": "~5.7.2",
