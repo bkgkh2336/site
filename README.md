@@ -79,9 +79,15 @@ npm run prepare-deploy:first  то же + contacts.db — только для п
   - `backend/tests/seo.php` — smoke-тест `seo.php`: запускает его в подпроцессе
     (`seo_render.php`) на разных URL и проверяет title/canonical/OG/JSON-LD и 404.
     Кейсы со статьями пропускаются, если нет `backend/contacts.db`.
+  - `backend/tests/api.php` — роутинг и CRUD `api.php` на ВРЕМЕННОЙ базе (боевую
+    `contacts.db` не трогает): публичное чтение, отказ без сессии, создание/изменение/
+    удаление, вырезание тегов, санитайзер тела статьи и каскадное удаление тарифов.
+    Каждый запрос идёт в подпроцесс (`api_request.php`); путь к БД подменяется через
+    `BK_DB_PATH`, сессия подделывается валидным токеном.
   - Запуск: `npm run test:php` (нужен PHP в PATH).
 - **CI** — `.github/workflows/ci.yml`: frontend (`typecheck` → `lint` → `test` → `build`)
-  и backend (`php -l` + `php backend/tests/unit.php` + `php backend/tests/seo.php`).
+  и backend (`php -l` + `php backend/tests/unit.php` + `php backend/tests/seo.php`
+  + `php backend/tests/api.php`).
 
 
 ---

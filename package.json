@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "typecheck": "tsc -b",
     "test": "vitest run",
-    "test:php": "php backend/tests/unit.php && php backend/tests/seo.php",
+    "test:php": "php backend/tests/unit.php && php backend/tests/seo.php && php backend/tests/api.php",
     "preview": "vite preview",
     "generate:sitemap": "node scripts/generate-sitemap.js",
     "build": "npm run generate:sitemap && vite build && shx cp .htaccess dist/.htaccess && shx cp seo.php dist/seo.php && shx cp src/data/seoConfig.json dist/seoConfig.json",
