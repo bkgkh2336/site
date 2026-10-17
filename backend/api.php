@@ -120,6 +120,15 @@ function authError() {
 }
 
 /**
+ * Тело запроса. В web-SAPI — php://input; в CLI-тестах php://input пуст,
+ * поэтому тело передаётся через константу BK_REQUEST_BODY (см. backend/tests/api_request.php).
+ */
+function readRequestBody() {
+    if (defined('BK_REQUEST_BODY')) return BK_REQUEST_BODY;
+    return file_get_contents("php://input");
+}
+
+/**
  * Ограничение попыток входа (/api/login): после 5 неудач подряд
  * IP блокируется на 15 минут (защита от перебора пароля онлайн).
  */
@@ -525,7 +534,9 @@ function deleteArticleFileIfUnused($srcPath, $pdo) {
 }
 
 // 2. Путь к базе данных SQLite
-$dbPath = __DIR__ . "/contacts.db";
+// В тестах подменяется через BK_DB_PATH (см. backend/tests/api.php), в проде
+// переменной нет — используется боевая база рядом со скриптом.
+$dbPath = getenv('BK_DB_PATH') ?: __DIR__ . "/contacts.db";
 
 $validTables = [
     "contacts", "phone_contacts", "departments", "phone_departments",
@@ -604,7 +615,7 @@ try {
 
         loginThrottleCheck();
 
-        $data = json_decode(file_get_contents("php://input"), true);
+        $data = json_decode(readRequestBody(), true);
         $password = $data["password"] ?? "";
 
         if (password_verify($password, ADMIN_PASSWORD_HASH)) {
@@ -764,7 +775,7 @@ try {
         $user = checkAuth();
         if (!$user) authError();
         
-        $data = json_decode(file_get_contents("php://input"), true);
+        $data = json_decode(readRequestBody(), true);
         $src = $data['src'] ?? '';
         if (!empty($src)) {
             if (strpos($src, '/documents/') === 0 || strpos($src, 'documents/') === 0) {
@@ -818,7 +829,7 @@ try {
             $user = checkAuth();
             if (!$user) authError();
             
-            $data = json_decode(file_get_contents("php://input"), true);
+            $data = json_decode(readRequestBody(), true);
             if (!empty($data)) {
                 $tableAllowedFields = $allowedFields[$tableName] ?? [];
                 $fields = []; $placeholders = []; $values = [];
@@ -847,7 +858,7 @@ try {
             $user = checkAuth();
             if (!$user) authError();
             
-            $data = json_decode(file_get_contents("php://input"), true);
+            $data = json_decode(readRequestBody(), true);
             if (!empty($data)) {
                 $tableAllowedFields = $allowedFields[$tableName] ?? [];
                 $fields = []; $values = [];

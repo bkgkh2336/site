@@ -34,3 +34,4 @@ jobs:
       - run: php -l seo.php
       - run: php backend/tests/unit.php
       - run: php backend/tests/seo.php
+      - run: php backend/tests/api.php
