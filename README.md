@@ -245,7 +245,7 @@ ventilation/waste/electro/grass/heating/plumbing/el_inst/transport_*).
 ```
 SESSION_SECRET=...          HMAC-ключ сессий (bin2hex(random_bytes(32)))
 ADMIN_PASSWORD_HASH=$2y$... bcrypt-хеш пароля (php backend/generate_hash.php)
-SESSION_EXPIRY=3600
+SESSION_EXPIRY=604800      срок жизни сессии, сек (7 дней; пусто/0 -> 7 дней)
 APP_ENV=production
 ```
 
@@ -258,7 +258,8 @@ APP_ENV=production
   (`.env`, БД, dev-скрипты — 403); корневой `.htaccess` запрещает любые `*.php`
   кроме `/backend/api.php`.
 - Rate-limit входа: 5 неудач подряд → блок IP на 15 минут, сброс при успехе.
-- Сессия: HMAC-подписанный токен, срок — `SESSION_EXPIRY`.
+- Сессия: HMAC-подписанный токен, срок — `SESSION_EXPIRY` (по умолчанию 7 дней);
+  при активности кука продлевается автоматически (sliding expiration).
 
 ### Админ-панель
 
@@ -295,10 +296,13 @@ dist/
 ├── .htaccess                  # SPA-роутинг через seo.php + запрет php
 └── backend/
     ├── api.php                # копия из backend/
-    ├── .env                   # копия секретов
     ├── .htaccess              # доступен только api.php
     └── contacts.db            # ТОЛЬКО в prepare-deploy:first
 ```
+
+> `backend/.env` **не попадает в `dist/`** — он создаётся/хранится на сервере
+> вручную (см. `.env.example`). Не заливайте локальный `.env`: другой
+> `SESSION_SECRET` разлогинивает админку, а другой пароль меняет вход.
 
 ### Автодеплой (GitHub Actions + FTP, опционально)
 
@@ -325,6 +329,7 @@ Workflow собирает `dist/`, добавляет `backend/api.php` и `back
 |---|---|
 | Все запросы API → 500 `no such table` | В `dist/backend/` нет `contacts.db` (залит без `:first`) или она пустая |
 | Вход → 500 | Нет `backend/.env` или пустые `SESSION_SECRET`/`ADMIN_PASSWORD_HASH` |
+| Вход проходит, но сохранение → «сессия истекла» (401) | Пустой/нулевой `SESSION_EXPIRY` в серверном `.env` (кука истекает сразу); теперь трактуется как 7 дней — залить новый `api.php`. Также проверить, что вход и сохранение на одном хосте (`bkgkh.by` vs `www.bkgkh.by`) |
 | 403 на `.env`/скрипты | Это защита, а не ошибка |
 | 500 при сохранении статьи | В `api.php` появилась функция PHP 8+ (на хостинге PHP 7.4) |
 | Ломается после заливки только `assets/` | Чанки и `index.html` должны обновляться **вместе**; заливай весь `dist/` |

@@ -50,6 +50,7 @@ export const pages = [
   { url: '/news/unified_safety_day', priority: '0.6', changefreq: 'monthly' },
   { url: '/news/safety_day_passed', priority: '0.6', changefreq: 'monthly' },
   { url: '/news/unified_information_day', priority: '0.6', changefreq: 'monthly' },
+  { url: '/news/dai_lesu_novae_zyccio', priority: '0.6', changefreq: 'monthly' },
   { url: '/news/articles', priority: '0.7', changefreq: 'weekly' },
   { url: '/news/articles/boiler_maintenance', priority: '0.6', changefreq: 'monthly' },
   { url: '/news/articles/boiler_low_temperature', priority: '0.6', changefreq: 'monthly' },

@@ -50,8 +50,14 @@ if (is_readable($envPath)) {
 
 // Приоритет: реальные переменные окружения сервера > backend/.env
 define('SESSION_SECRET', (string)(getenv('SESSION_SECRET') ?: ($envValues['SESSION_SECRET'] ?? '')));
-define('SESSION_EXPIRY', (int)(getenv('SESSION_EXPIRY') ?: ($envValues['SESSION_EXPIRY'] ?? 3600)));
 define('ADMIN_PASSWORD_HASH', (string)(getenv('ADMIN_PASSWORD_HASH') ?: ($envValues['ADMIN_PASSWORD_HASH'] ?? '')));
+
+// Срок жизни сессии. Пустое/нулевое/нечисловое значение в .env приводит к куке
+// с expires = time(), то есть к мгновенному истечению сессии после входа.
+// Поэтому некорректное значение заменяем на 7 дней.
+$sessionExpiry = (int)(getenv('SESSION_EXPIRY') ?: ($envValues['SESSION_EXPIRY'] ?? 0));
+if ($sessionExpiry <= 0) $sessionExpiry = 604800;
+define('SESSION_EXPIRY', $sessionExpiry);
 
 // Корень контента (изображения, документы): в репозитории public/ лежит
 // рядом с backend/, в собранном dist/ Vite уже разложил public/* в корень.
@@ -102,12 +108,39 @@ function validateSessionToken($token) {
 }
 
 /**
- * Проверка авторизации через httpOnly куки
+ * Установка httpOnly куки сессии
+ */
+function setSessionCookie($token) {
+    if (headers_sent()) return;
+    $isSecure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+    setcookie(
+        'admin_session',
+        $token,
+        [
+            'expires' => time() + SESSION_EXPIRY,
+            'path' => '/',
+            'domain' => '',
+            'secure' => $isSecure,
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ]
+    );
+}
+
+/**
+ * Проверка авторизации через httpOnly куки.
+ * Активная сессия продлевается (sliding expiration), чтобы сохранение
+ * длинной статьи не упиралось в истёкший токен.
  */
 function checkAuth() {
     $token = $_COOKIE['admin_session'] ?? '';
     if (empty($token)) return null;
-    return validateSessionToken($token);
+    $data = validateSessionToken($token);
+    if (!$data) return null;
+    if (($data['exp'] - time()) < (SESSION_EXPIRY / 2)) {
+        setSessionCookie(generateSessionToken($data));
+    }
+    return $data;
 }
 
 /**
@@ -397,7 +430,30 @@ function sanitizeCustomContent($json) {
  * Кандидаты покрывают все исторические форматы хранения: 'reception.png',
  * '/uploads/...', '/departments/...', '/contacts/...'.
  */
-function imageStillUsed($filename, $pdo, $excludeContactId = null) {
+function articleReferencesPath($pdo, $srcPath) {
+    $relative = ltrim($srcPath, '/');
+    $patterns = [
+        '%' . $srcPath . '%',
+        '%' . $relative . '%',
+        '%' . str_replace('/', '\\/', $srcPath) . '%',
+        '%' . str_replace('/', '\\/', $relative) . '%'
+    ];
+    $patterns = array_values(array_unique($patterns));
+    $clauses = [];
+    $params = [];
+    foreach ($patterns as $pattern) {
+        $clauses[] = 'cover LIKE ?';
+        $clauses[] = 'gallery LIKE ?';
+        $clauses[] = 'body LIKE ?';
+        $clauses[] = 'custom_content LIKE ?';
+        array_push($params, $pattern, $pattern, $pattern, $pattern);
+    }
+    $stmt = $pdo->prepare('SELECT COUNT(*) FROM articles WHERE ' . implode(' OR ', $clauses));
+    $stmt->execute($params);
+    return (int)$stmt->fetchColumn() > 0;
+}
+
+function imageStillUsed($filename, $pdo, $excludeContactId = null, $srcPath = null) {
     $candidates = [
         $filename,
         "/uploads/$filename",
@@ -421,10 +477,14 @@ function imageStillUsed($filename, $pdo, $excludeContactId = null) {
     $stmt->execute($candidates);
     $count += (int)$stmt->fetchColumn();
 
-    $like = '%' . $filename . '%';
-    $stmt = $pdo->prepare("SELECT COUNT(*) FROM articles WHERE cover IN ($ph) OR cover LIKE ? OR gallery LIKE ? OR body LIKE ? OR custom_content LIKE ?");
-    $stmt->execute(array_merge($candidates, [$like, $like, $like, $like]));
-    $count += (int)$stmt->fetchColumn();
+    if (is_string($srcPath) && $srcPath !== '') {
+        if (articleReferencesPath($pdo, $srcPath)) $count++;
+    } else {
+        $like = '%' . $filename . '%';
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM articles WHERE cover IN ($ph) OR cover LIKE ? OR gallery LIKE ? OR body LIKE ? OR custom_content LIKE ?");
+        $stmt->execute(array_merge($candidates, [$like, $like, $like, $like]));
+        $count += (int)$stmt->fetchColumn();
+    }
 
     return $count > 0;
 }
@@ -444,19 +504,50 @@ function findImageFile($filename) {
 }
 
 /**
+ * Удалить опустевшую папку новости/статьи (но не базовые каталоги контента).
+ */
+function removeEmptyMediaDir($filePath) {
+    $dir = dirname($filePath);
+    $root = rtrim(CONTENT_ROOT, '/');
+    if (strpos($dir, $root . '/') !== 0) return;
+    $relative = substr($dir, strlen($root) + 1);
+    if (substr_count($relative, '/') < 1) return;
+    $items = @scandir($dir);
+    if ($items === false) return;
+    if (count(array_diff($items, ['.', '..'])) === 0) {
+        @rmdir($dir);
+    }
+}
+
+/**
+ * Полный путь к локальному медиафайлу по пути из БД ('/news/slug/img1.jpg').
+ */
+function resolveMediaFile($srcPath) {
+    if (!is_string($srcPath) || $srcPath === '') return null;
+    if ($srcPath[0] !== '/' || strpos($srcPath, '..') !== false) return null;
+    $full = CONTENT_ROOT . $srcPath;
+    return is_file($full) ? $full : null;
+}
+
+/**
  * Удаление файла изображения, если он больше не привязан ни к чему
  */
 function deleteImageIfUnused($imagePath, $pdo, $currentContactId = null) {
     if (empty($imagePath)) return false;
 
     $filename = basename($imagePath);
-    $filePath = findImageFile($filename);
+    $filePath = resolveMediaFile($imagePath);
+    if ($filePath === null) $filePath = findImageFile($filename);
     if ($filePath === null) return false;
 
-    if (imageStillUsed($filename, $pdo, $currentContactId)) return false;
+    $srcPath = (is_string($imagePath) && $imagePath !== '' && $imagePath[0] === '/')
+        ? $imagePath
+        : null;
+    if (imageStillUsed($filename, $pdo, $currentContactId, $srcPath)) return false;
 
-    unlink($filePath);
-    return true;
+    $deleted = @unlink($filePath);
+    if ($deleted) removeEmptyMediaDir($filePath);
+    return (bool)$deleted;
 }
 
 /**
@@ -529,8 +620,10 @@ function deleteArticleFileIfUnused($srcPath, $pdo) {
     if (!isLocalMediaPath($srcPath)) return false;
     $full = CONTENT_ROOT . $srcPath;
     if (!is_file($full)) return false;
-    if (imageStillUsed(basename($srcPath), $pdo)) return false;
-    return (bool)@unlink($full);
+    if (imageStillUsed(basename($srcPath), $pdo, null, $srcPath)) return false;
+    $deleted = @unlink($full);
+    if ($deleted) removeEmptyMediaDir($full);
+    return (bool)$deleted;
 }
 
 // 2. Путь к базе данных SQLite
@@ -625,19 +718,7 @@ try {
                 'role' => 'administrator'
             ]);
             
-            $isSecure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
-            setcookie(
-                'admin_session',
-                $sessionToken,
-                [
-                    'expires' => time() + SESSION_EXPIRY,
-                    'path' => '/',
-                    'domain' => '', 
-                    'secure' => $isSecure, 
-                    'httponly' => true, // Защита от кражи токена через XSS / JS
-                    'samesite' => 'Lax'
-                ]
-            );
+            setSessionCookie($sessionToken);
             
             echo json_encode(["success" => true, "message" => "Logged in"]);
         } else {
@@ -736,7 +817,19 @@ try {
             exit;
         }
         
-        $uploadDir = CONTENT_ROOT . "/$type/";
+        $relativeDir = $type;
+        $slug = '';
+        if ($type === 'news') {
+            // Фото новости/статьи складываем в отдельную папку по slug:
+            // /news/<slug>/, /articles/<slug>/, /useful_to_know/<slug>/.
+            $slug = strtolower(trim((string)($_POST['slug'] ?? '')));
+            $slug = substr(preg_replace('/[^a-z0-9_-]+/', '', $slug), 0, 80);
+            $section = (string)($_POST['section'] ?? '');
+            $base = in_array($section, ['articles', 'useful_to_know'], true) ? $section : 'news';
+            $relativeDir = $slug !== '' ? "$base/$slug" : $base;
+        }
+
+        $uploadDir = CONTENT_ROOT . "/$relativeDir/";
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0755, true);
         }
@@ -753,6 +846,13 @@ try {
                 $newFileName = $base . ' (' . $i . ').' . $fileExt;
                 $i++;
             }
+        } elseif ($type === 'news' && $slug !== '') {
+            // В папке новости — последовательные img1, img2, ... без дыр.
+            $i = 1;
+            while ($i < 10000 && count(glob($uploadDir . 'img' . $i . '.*') ?: []) > 0) {
+                $i++;
+            }
+            $newFileName = 'img' . $i . '.' . $fileExt;
         } else {
             $newFileName = uniqid() . '_' . time() . '.' . $fileExt;
         }
@@ -760,7 +860,7 @@ try {
         if (move_uploaded_file($file['tmp_name'], $uploadDir . $newFileName)) {
             echo json_encode([
                 "success" => true, 
-                "path" => "/" . $type . "/" . $newFileName,
+                "path" => "/" . $relativeDir . "/" . $newFileName,
                 "filename" => $newFileName
             ]);
         } else {

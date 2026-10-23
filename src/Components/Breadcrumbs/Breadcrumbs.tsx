@@ -49,6 +49,7 @@ const pageHierarchy: PageMap = {
     '/news/cleanup_day': { name: 'Прошел субботник по благоустройству территории', parent: [{ name: 'Пресс-центр' }, { name: 'Новости', url: '/news' }] },
     '/news/safety_day_passed': { name: 'Прошёл Единый день безопасности', parent: [{ name: 'Пресс-центр' }, { name: 'Новости', url: '/news' }] },
     '/news/unified_information_day': { name: 'Прошёл Единый день информирования населения', parent: [{ name: 'Пресс-центр' }, { name: 'Новости', url: '/news' }] },
+    '/news/dai_lesu_novae_zyccio': { name: 'Мы приняли участие в акции «Дай лесу новае жыццё!»', parent: [{ name: 'Пресс-центр' }, { name: 'Новости', url: '/news' }] },
     '/news/unified_safety_day': { name: '24 сентября состоится Единый день безопасности', parent: [{ name: 'Пресс-центр' }, { name: 'Новости', url: '/news' }] },
     '/news/useful_to_know': { name: 'Полезно знать', parent: [{ name: 'Пресс-центр' }] },
     '/news/useful_to_know/phone_scammers': { name: 'Телефонные мошенники', parent: [{ name: 'Пресс-центр' }, { name: 'Полезно знать', url: '/news/useful_to_know' }] },

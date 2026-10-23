@@ -137,6 +137,8 @@ const NewsManager: React.FC = () => {
             const formData = new FormData();
             formData.append('file', file);
             formData.append('type', 'news');
+            formData.append('section', String(payload.section ?? ''));
+            formData.append('slug', String(payload.slug ?? ''));
             try {
                 const data = await apiUpload<{ success?: boolean; path?: string; message?: string }>(
                     'upload',
