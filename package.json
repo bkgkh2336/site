@@ -16,6 +16,7 @@
     "preview": "vite preview",
     "generate:sitemap": "node scripts/generate-sitemap.js",
     "build": "npm run generate:sitemap && vite build && shx cp .htaccess dist/.htaccess && shx cp seo.php dist/seo.php && shx cp src/data/seoConfig.json dist/seoConfig.json",
+    "build:analyze": "vite-bundle-visualizer",
     "organize-public": "node scripts/organize-public.js",
     "prepare-deploy": "npm run build && shx mkdir -p dist/backend && shx cp backend/.htaccess dist/backend/ && shx cp backend/api.php dist/backend/ && shx cp .htaccess dist/",
     "prepare-deploy:first": "npm run prepare-deploy && shx cp backend/contacts.db dist/backend/",

@@ -39,11 +39,12 @@ cp backend/.env.example backend/.env
 php backend/generate_hash.php "ваш_пароль"
 # → вписать хеш в backend/.env: ADMIN_PASSWORD_HASH=$2y$...
 
-# 3. Разработка (фронт + PHP-сервер на :8000, прокси из vite)
-npm run dev
+# 3. Разработка (Vite + PHP с router.php, API через прокси)
+npm run dev:full
 ```
 
-Сайт откроется на `http://localhost:5173`, API — на `http://localhost:8000`.
+Сайт откроется на `http://localhost:5173`, API — на
+`http://localhost:8000/backend/api.php/api/...`.
 
 Без заполненного `backend/.env` сайт работает публично, но вход в админку
 отдаёт 500 (fail-closed — так задумано).
@@ -53,23 +54,25 @@ npm run dev
 ## Режимы запуска
 
 ```bash
-npm run dev              фронт + PHP-сервер (localhost:8000)
-npm run dev:full         то же, но PHP через router.php (чистые URL в dev)
-npm run php              только PHP-сервер (порт 8000)
+npm run dev              Vite + PHP без router.php (API через Vite-прокси не работает)
+npm run dev:full         Vite + PHP с router.php (полноценный API и чистые URL в dev)
+npm run php              только PHP-сервер без router.php (порт 8000)
 npm run lint             ESLint
 npm run typecheck        проверка типов (tsc -b)
 npm run test             JS/TS-тесты (Vitest)
 npm run test:php         PHP-тесты API и SEO (php backend/tests/*.php)
-npm run build            sitemap.xml + сборка в dist/
-npm run prepare-deploy   сборка + api.php/.env/.htaccess в dist/ — БД НЕ кладёт
-npm run prepare-deploy:first  то же + contacts.db — только для первого заливки
+npm run build            sitemap.xml + сборка в dist/ (+ .htaccess, seo.php, seoConfig.json)
+npm run build:analyze    отчёт о размерах чанков (vite-bundle-visualizer)
+npm run generate:sitemap только пересобрать public/sitemap.xml
+npm run prepare-deploy   сборка + api.php/.htaccess в dist/ — БД и .env НЕ кладёт
+npm run prepare-deploy:first  то же + contacts.db — только для первой заливки
 ```
 
 ---
 
 ## Тесты и CI
 
-- **Vitest** — чистые функции без DOM/сети: `src/**/*.test.ts`, `scripts/**/*.test.ts`
+- **Vitest** — чистые функции без DOM/сети: `src/**/*.test.ts`, `scripts/**/*.test.{js,ts}`
   (конфиг `vitest.config.ts`, отдельный от `vite.config.ts`). Запуск: `npm test`.
 - **PHP-тесты** — без внешних зависимостей, обычные скрипты с `exit(1)` при провале:
   - `backend/tests/unit.php` — санитайзер статей (`sanitizeArticleBody`,
@@ -86,8 +89,8 @@ npm run prepare-deploy:first  то же + contacts.db — только для п
     `BK_DB_PATH`, сессия подделывается валидным токеном.
   - Запуск: `npm run test:php` (нужен PHP в PATH).
 - **CI** — `.github/workflows/ci.yml`: frontend (`typecheck` → `lint` → `test` → `build`)
-  и backend (`php -l` + `php backend/tests/unit.php` + `php backend/tests/seo.php`
-  + `php backend/tests/api.php`).
+  и backend (`php -l backend/api.php` + `php -l seo.php` + `php backend/tests/unit.php`
+  + `php backend/tests/seo.php` + `php backend/tests/api.php`).
 - **Хуки перед коммитом** (husky + lint-staged, ставятся через `prepare` при `npm install`):
   на изменённые `*.ts/tsx` прогоняется `eslint --fix`, затем `typecheck` и `vitest` —
   поломка не уезжает в коммит. Конфиг — `.husky/pre-commit` и `lint-staged` в `package.json`.
@@ -97,9 +100,11 @@ npm run prepare-deploy:first  то же + contacts.db — только для п
 
 ## Git, LFS и что нельзя коммитить
 
-- **Никогда в git:** `backend/.env` (секреты), `*.db` / `*.sqlite` (состояние
-  сервера) — это в `.gitignore`; на сервер они попадают только через
-  `prepare-deploy:first` (БД) и вручную (`.env` копируется скриптом).
+- **Не коммитить:** `backend/.env` (секреты), `backend/contacts.db` и другие
+  серверные `*.db` / `*.sqlite` — они в `.gitignore`. В корне репозитория
+  остался пустой `contacts.db` (старый артефакт, API его не читает) — его
+  стоит удалить из git. На сервер БД попадает только через
+  `prepare-deploy:first`, а `.env` создаётся на сервере вручную.
 - **Видео** (`*.mp4`, `*.MP4`) — через **Git LFS**: в истории git только
   указатели (~130 байт), байты уходят в LFS-хранилище GitHub (лимит 1 ГБ,
   занято ~324 МБ). Клонирующим нужен установленный `git-lfs`.
@@ -113,8 +118,9 @@ npm run prepare-deploy:first  то же + contacts.db — только для п
 site/
 ├── src/                          # Исходники фронтенда
 │   ├── main.tsx                  # Точка входа
-│   ├── App.tsx                   # Корневой компонент (роутер)
+│   ├── App.tsx                   # Корневой компонент (роутер + routeTitles)
 │   ├── functions.ts              # GetData() + сортировка руководства
+│   ├── accessibility.css         # Настройки версии для слабовидящих
 │   ├── Components/               # Header, Footer, Breadcrumbs, Section, ...
 │   ├── Pages/                    # Страницы
 │   │   ├── Main/                 # Главная
@@ -125,21 +131,28 @@ site/
 │   │   └── ...                   # Остальные страницы
 │   ├── data/
 │   │   ├── menu.ts               # Меню сайта (структура + активные пункты)
+│   │   ├── articles.ts           # Типы статей и реестр кастомных layout-ов
 │   │   └── seoConfig.json        # Мета маршрутов (общий источник для фронта и seo.php)
 │   └── utils/seoConfig.ts        # SEO-конфигурация (импортирует seoConfig.json)
 ├── backend/                      # PHP-бэкенд
-│   ├── api.php                   # REST API (~850 строк)
+│   ├── api.php                   # REST API (~1000 строк)
 │   ├── contacts.db               # SQLite (ВНЕ git)
 │   ├── .env                      # Секреты (ВНЕ git), см. .env.example
+│   ├── .env.example              # Шаблон секретов
 │   ├── .htaccess                 # Отдаёт только api.php (всё остальное — 403)
 │   ├── generate_hash.php         # Генератор bcrypt-хеша пароля
-│   └── router.php                # Рouter для dev-сервера
+│   ├── router.php                # Альтернативный dev-роутер (npm-скрипты используют корневой)
+│   ├── tests/                    # PHP-тесты: unit.php, seo.php, api.php
+│   └── check_*.php, seed_*.php, migrate_*.php  # Dev-скрипты (на прод не нужны)
 ├── public/                       # Статика (копируется в dist как есть)
 │   ├── uploads/, contacts/, departments/   # Картинки из админки
-│   ├── documents/, news/         # PDF и картинки новостей
+│   ├── documents/, news/, articles/   # Файлы и картинки разделов
+│   ├── cemetries/                     # Документы раздела кладбищ (так в коде)
 │   ├── useful_to_know/GSZ/       # Видео (LFS)
 │   └── sitemap.xml               # Автогенерируется при сборке
-├── scripts/generate-sitemap.js
+├── scripts/generate-sitemap.js   # Список URL для sitemap (правится вручную)
+├── scripts/organize-public.js    # Проверка структуры public/ (ничего не перемещает)
+├── router.php                    # Dev-роутер: /backend → backend/api.php, остальное → SPA
 ├── seo.php                       # Server-side meta: вкладывает title/OG/JSON-LD в index.html
 ├── .htaccess                     # SPA-роутинг через seo.php + запрет *.php (кроме api.php, seo.php)
 ├── .gitattributes                # LFS-трекинг видео
@@ -157,10 +170,14 @@ site/
 
 **Чтобы добавить новую страницу:**
 1. Создать `src/Pages/MyNewPage/MyNewPage.tsx` + `styled.ts`
-2. В `src/App.tsx`: `const MyNewPage = lazy(...)` + `<Route>`
-3. В `src/utils/seoConfig.ts` — SEO-метаданные
+2. В `src/App.tsx`: `const MyNewPage = lazy(...)`, `<Route>` и заголовок
+   в `routeTitles` (он же обновляет `document.title`)
+3. В `src/data/seoConfig.json` — SEO-метаданные (единый источник для
+   `SEO`-компонента и `seo.php`; `src/utils/seoConfig.ts` только импортирует JSON)
 4. Меню — в `src/data/menu.ts` (там же нормализация путей и подсветка
    активного пункта; `Header` и `Section` читают его оттуда)
+5. URL — в `scripts/generate-sitemap.js` (sitemap собирается из этого списка,
+   а не из БД)
 
 ### SEO и превью в соцсетях
 
@@ -187,7 +204,8 @@ Telegram, VK и поисковые боты (они не исполняют JS) 
 
 ### Стили
 
-Все стили — через `styled-components`, свой `styled.ts` у каждой страницы:
+Стили — через `styled-components`, свой `styled.ts` у каждой страницы;
+глобальные — `src/App.css` и `src/accessibility.css`:
 
 ```tsx
 import styled from 'styled-components';
@@ -202,10 +220,17 @@ export const MyBlock = styled.div`
 `lucide-react`, tree-shake-ятся при сборке: `import { Phone, Send } from 'lucide-react';`
 Список: https://lucide.dev/icons
 
-### Тёмная тема для слабовидящих
+### Версия для слабовидящих
 
-CSS-классы на `<body>`: `.bvi-mode`, `.bvi-mode-dark`, `.bvi-mode-light`,
-управляются компонентом `AccessibilityPanel`.
+Компонент `AccessibilityPanel` (кнопка — в `FixedLanguageSelector`) хранит
+настройки в `localStorage` и выставляет атрибуты на `<html>`:
+
+- `data-font-size` — `small` / `medium` / `large`;
+- `data-color-scheme` — `default` / `black-on-white` / `white-on-black` / `blue-on-white`;
+- `data-letter-spacing` — `true` / `false`;
+- `data-images-enabled` — `true` / `false`.
+
+Стили — в `src/accessibility.css` (селекторы `:root[data-...]`).
 
 ---
 
@@ -217,24 +242,40 @@ CSS-классы на `<body>`: `.bvi-mode`, `.bvi-mode-dark`, `.bvi-mode-light`
 
 **Публичное чтение (GET):**
 ```
-GET /backend/api.php/api/contacts       контакты (is_primary=1 → руководство)
-GET /backend/api.php/api/articles       новости/статьи
-GET /backend/api.php/api/{table}        любая таблица
+GET /backend/api.php/api/contacts                    контакты (is_primary=1 — руководство)
+GET /backend/api.php/api/articles                    новости/статьи
+GET /backend/api.php/api/{table}                     только таблицы из белого списка
+GET /backend/api.php/api/transport_services          JOIN: население и бюджет
+GET /backend/api.php/api/transport_jur_services      JOIN: юрлица
+GET /backend/api.php/api/transport_other_services    JOIN: прочие
 ```
 
-**С авторизацией (POST/PUT/DELETE):**
+**Авторизация и запись:**
 ```
-POST   /api/login          вход (пароль из .env; 5 неудач → 429 на 15 минут)
-POST   /api/{table}        создать запись
-PUT    /api/{table}/id     обновить запись
-DELETE /api/{table}/id     удалить запись
-POST   /api/upload         загрузить изображение (contacts/departments/documents/news)
-POST   /api/cleanup        удалить осиротевшие картинки
+POST   /backend/api.php/api/login                    вход (пароль из .env; 5 неудач → 429 на 15 минут)
+GET    /backend/api.php/api/verify                   проверить сессию
+POST   /backend/api.php/api/logout                   выход
+POST   /backend/api.php/api/{table}                  создать запись
+PUT    /backend/api.php/api/{table}/id               обновить запись
+DELETE /backend/api.php/api/{table}/id               удалить запись
+POST   /backend/api.php/api/upload                   contacts/departments — картинки; documents — PDF/DOC/XLS/…;
+                                                     news — картинки в /news|/articles|/useful_to_know/<slug>/
+POST   /backend/api.php/api/cleanup                  удалить осиротевшие картинки в uploads/, departments/, contacts/
+POST   /backend/api.php/api/cleanup-file             удалить несохранённый файл
 ```
 
-**Таблицы:** contacts, phone_contacts, departments, phone_departments,
-documents_group, documents, articles (+ schedule_reception, тарифы услуг:
-ventilation/waste/electro/grass/heating/plumbing/el_inst/transport_*).
+**Таблицы:** `contacts`, `phone_contacts`, `departments`, `phone_departments`,
+`documents_group`, `documents`, `articles`.
+
+Тарифы услуг: `ventilation_services`, `waste_services`, `electro_services`,
+`grass_services`, `heating_services`, `plumbing_services`, `el_inst_services`.
+
+Транспорт: `transport_population_and_budget` + `transport_price_population_and_budget`,
+`transport_jur` + `transport_price_jur`, `transport_other` + `transport_price_other`.
+
+В текущей `backend/contacts.db` также есть пустые legacy-таблицы
+`translations` и `schedule_reception` — фронтенд их не использует (график
+приёма собирается из `contacts` и `src/Pages/ScheduleForms/ScheduleForms.tsx`).
 
 Колонки-флаги (`is_primary`, `is_fax`, `is_external`) API всегда отдаёт
 **числами** — на хостинге pdo_sqlite возвращает их строками, нормализация
@@ -246,7 +287,7 @@ ventilation/waste/electro/grass/heating/plumbing/el_inst/transport_*).
 SESSION_SECRET=...          HMAC-ключ сессий (bin2hex(random_bytes(32)))
 ADMIN_PASSWORD_HASH=$2y$... bcrypt-хеш пароля (php backend/generate_hash.php)
 SESSION_EXPIRY=604800      срок жизни сессии, сек (7 дней; пусто/0 -> 7 дней)
-APP_ENV=production
+APP_ENV=production         зарезервировано, api.php его пока не читает
 ```
 
 Без `.env` или с пустыми ключами вход всегда 500 — сайт публично жив,
@@ -256,7 +297,7 @@ APP_ENV=production
 
 - `backend/.htaccess`: из папки бэкенда доступен только `api.php`
   (`.env`, БД, dev-скрипты — 403); корневой `.htaccess` запрещает любые `*.php`
-  кроме `/backend/api.php`.
+  кроме `/backend/api.php` и `/seo.php`.
 - Rate-limit входа: 5 неудач подряд → блок IP на 15 минут, сброс при успехе.
 - Сессия: HMAC-подписанный токен, срок — `SESSION_EXPIRY` (по умолчанию 7 дней);
   при активности кука продлевается автоматически (sliding expiration).
@@ -267,12 +308,16 @@ APP_ENV=production
 
 - **Контакты и отделы** — телефоны, картинки, галочка «Руководящий состав»
   (`is_primary`);
-- **Документы** — группы и PDF;
+- **Услуги** — тарифы всех услуг и транспорта (`ServicesManager`, таблицы
+  `*_services` и `transport_*`);
+- **Документы** — группы и файлы (PDF, DOC/DOCX, XLS/XLSX, RTF, ODT/ODS);
 - **Новости/статьи** — TipTap-редактор: текст, таблицы, картинки/галереи,
-  видео, внешние ссылки, расписание публикации.
+  видео, внешние ссылки, расписание публикации, блочный `custom_content`.
 
-Тарифы услуг и графики приёма правятся напрямую в SQLite
-(например, Sqlite Viewer + `backend/contacts.db`).
+График приёма в админке не редактируется: ФИО и должности берутся из
+`contacts`, а время приёма зашито в `src/Pages/ScheduleForms/ScheduleForms.tsx`
+(таблица `schedule_reception` пустая; API держит её в whitelist, но страница
+графика её не читает).
 
 ---
 
@@ -292,7 +337,7 @@ npm run prepare-deploy:first
 dist/
 ├── index.html, assets/        # собранный фронт (хеш-имена чанков!)
 ├── seo.php, seoConfig.json    # server-side meta (копируются из корня и src/data)
-├── public-файлы...            # logo, uploads, documents, news, sitemap.xml...
+├── public-файлы...            # logo, uploads, documents, news, articles, cemetries, sitemap.xml...
 ├── .htaccess                  # SPA-роутинг через seo.php + запрет php
 └── backend/
     ├── api.php                # копия из backend/
@@ -306,8 +351,9 @@ dist/
 
 ### Автодеплой (GitHub Actions + FTP, опционально)
 
-`.github/workflows/deploy.yml` после зелёной сборки `main` сам заливает сайт на Plesk по
-FTP. Пока он **выключен** — включается, когда в репозитории заданы:
+`.github/workflows/deploy.yml` при пуше в `main` (и вручную через
+`workflow_dispatch`) сам прогоняет `typecheck`/`test`/`build` и заливает сайт
+на Plesk по FTP. Пока он **выключен** — включается, когда в репозитории заданы:
 
 - секреты (**Settings → Secrets and variables → Actions → Secrets**):
   `FTP_SERVER` (хост), `FTP_USERNAME`, `FTP_PASSWORD`, `FTP_SERVER_DIR` (путь к веб-руту, напр. `/httpdocs/`);
@@ -321,7 +367,11 @@ Workflow собирает `dist/`, добавляет `backend/api.php` и `back
 
 - PHP **7.4+** с pdo_sqlite (на хостинге 7.4.33)
 - Apache с mod_rewrite (Plesk: nginx+Apache)
-- `backend/` доступен на запись (сессии, загрузки, БД)
+- Каталог сайта (`dist/`) доступен на запись: `uploads/`, `contacts/`,
+  `departments/`, `documents/`, `news/`, `articles/`, `useful_to_know/`
+  и файл `backend/contacts.db`
+- PHP может писать в `sys_get_temp_dir()` — там хранится счётчик попыток входа
+  (rate-limit), сессии живут в подписанной куке и на диск не пишутся
 
 ### Типовые ошибки
 
@@ -347,21 +397,27 @@ Workflow собирает `dist/`, добавляет `backend/api.php` и `back
 определяется автоматически (самый глубокий совпавший путь).
 
 ### Изменить расписание приёма (график)
-`src/Pages/ScheduleForms/ScheduleForms.tsx` (таблица КЖУП ~строки 96-104,
-карточки-ссылки ~120-161); карточка `ScheduleLinkCard` в `styled.ts`.
+`src/Pages/ScheduleForms/ScheduleForms.tsx` (таблица ~85-113, карточки-ссылки
+~121-183); карточка `ScheduleLinkCard` в `styled.ts`. ФИО/должности приходят
+из `contacts`, время приёма и телефоны зашиты в компоненте.
 
 ### Контакты в футере/шапке
-`src/Components/Footer/Footer.tsx`, `src/Components/Header/Header.tsx`
-(блоки `ContactInfo` и `MobileContactInfo`).
+`src/Components/Header/Header.tsx` (блоки `ContactInfo` и `MobileContactInfo`)
+и `src/Components/Footer/Footer.tsx` (`FooterContactBlock`).
 
 ### Новые тарифы на услуги
-Sqlite Viewer → `backend/contacts.db` → таблицы `*_services`,
-`transport_*`. Или через админку, если это контакты/документы/новости.
+Админка `/manager` → вкладка «Услуги» (`ServicesManager`): разделы
+`*_services` и `transport_*`. Альтернатива — Sqlite Viewer →
+`backend/contacts.db` → те же таблицы.
 
 ### SEO-тайтлы и мета
 `src/data/seoConfig.json` — единый источник для фронта и `seo.php`. Статьям
 мета собирается автоматически из БД; для ручного уточнения добавьте путь в
 JSON.
+
+`public/sitemap.xml` собирается из **статического списка** в
+`scripts/generate-sitemap.js` — новая статья/страница попадёт в sitemap только
+после добавления её URL туда (и пересборки).
 
 ### Новая картинка/PDF
 Положить в `public/` (или подпапку), после сборки доступно по URL.
