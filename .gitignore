@@ -32,5 +32,8 @@ backend/.env
 *.db
 *.sqlite
 
+# Kombai design-tool resources
+.kombai/
+
 # Видео хранятся через Git LFS (.gitattributes): в истории git — указатели,
 # байты — в LFS-хранилище GitHub (лимит 1 ГБ, файлы >100 МБ в git невозможны)
